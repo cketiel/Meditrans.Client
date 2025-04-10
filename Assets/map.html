@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Route Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
+    <script src="https://unpkg.com/leaflet-polylinedecorator/dist/leaflet.polylineDecorator.js"></script>
+    <style>
+        #map {
+            height: 500px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="toggleRouteDetails()">Mostrar/Ocultar Detalles</button>
+    <div id="map"></div>
+    <script>
+        /*var LAT_ORIGEN = 27.351814; // Latitud del origen
+        var LNG_ORIGEN = -82.542549; // Longitud del origen
+        var LAT_DESTINO = 27.334042; // Latitud del destino
+        var LNG_DESTINO = -82.514795; // Longitud del destino
+        */
+        // Tomar las coordenadas de los parámetros inyectados por WPF
+        var LAT_ORIGEN = parseFloat("{LAT_ORIGEN}");
+        var LNG_ORIGEN = parseFloat("{LNG_ORIGEN}");
+        var LAT_DESTINO = parseFloat("{LAT_DESTINO}");
+        var LNG_DESTINO = parseFloat("{LNG_DESTINO}");
+        var ORIGEN = parseFloat("{ORIGEN}");
+        var NOMBRE = parseFloat("{NOMBRE}");
+
+        //console.log("Origen:", LAT_ORIGEN, LNG_ORIGEN);
+
+        //var map = L.map('map').setView([19.4326, -99.1332], 10);
+        var map = L.map('map').setView([LAT_ORIGEN, LNG_ORIGEN], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        var iconOrigen = L.icon({
+            //iconUrl: '/Assets/icons/up.png',
+            iconUrl: 'https://img.icons8.com/ios-filled/50/000000/long-arrow-up.png',
+            iconSize: [20, 20],
+            iconAnchor: [10, 20],
+            popupAnchor: [0, -20]
+        });
+
+        var iconDestino = L.icon({
+            iconUrl: 'https://img.icons8.com/ios-filled/50/000000/long-arrow-down.png',
+            iconSize: [40, 40],
+            iconAnchor: [20, 40],
+            popupAnchor: [0, -40]
+        });
+
+        var origen = L.marker([LAT_ORIGEN, LNG_ORIGEN], { icon: iconOrigen }).addTo(map).bindPopup("📍 Origen.<br> Patient: {NOMBRE}").openPopup();
+        var destino = L.marker([LAT_DESTINO, LNG_DESTINO], { icon: iconDestino }).addTo(map).bindPopup("🏁 Destino");
+
+        // Generar la ruta con sentido correcto de circulación usando OSRM
+        var route = L.Routing.control({
+            waypoints: [
+                L.latLng(LAT_ORIGEN, LNG_ORIGEN),
+                L.latLng(LAT_DESTINO, LNG_DESTINO)
+            ],
+            routeWhileDragging: true,
+            //showAlternatives: true,
+            createMarker: function () { return null; }, // Evita agregar más marcadores
+            lineOptions: {
+                styles: [{ color: 'rgba(0, 0, 255, 0.8)', weight: 5 }]
+            },
+            show: false /*,
+                router: L.Routing.osrmv1({
+                    serviceUrl: 'https://router.project-osrm.org/route/v1'
+                })*/
+        }).addTo(map);
+
+        var popup = L.popup();
+
+        function onMapClick(e) {
+            popup
+                .setLatLng(e.latlng)
+                .setContent("You clicked the map at " + e.latlng.toString())
+                .openOn(map);
+        }
+
+        map.on('click', onMapClick);
+
+        function toggleRouteDetails() {
+            var container = document.querySelector(".leaflet-routing-container");
+            if (container) {
+                container.style.display = container.style.display === "none" ? "block" : "none";
+            }
+        }
+
+        
+
+    </script>
+</body>
+</html>

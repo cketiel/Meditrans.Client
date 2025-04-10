@@ -10,11 +10,19 @@
 
   <ItemGroup>
     <None Remove="Assets\logo.png" />
+    <None Remove="Assets\map.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\map.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MaterialDesignColors" Version="2.1.4" />
     <PackageReference Include="MaterialDesignThemes" Version="4.9.0" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3179.45" />
   </ItemGroup>
 
   <ItemGroup>

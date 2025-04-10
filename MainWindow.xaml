@@ -8,6 +8,17 @@
         Opacity="0.8"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
+        <DockPanel>
+            <!-- Menu -->
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="Home" Click="OpenHomeView"/>
+                <MenuItem Header="Admin" Click="OpenAdminView"/>
+            </Menu>
+
+            <!-- Dynamic content -->
+            <ContentControl x:Name="MainContent"/>
+        </DockPanel>
+        
         <TextBlock Text="Bienvenido a Meditrans" 
                    FontSize="24" 
                    VerticalAlignment="Center" 
