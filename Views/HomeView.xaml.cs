@@ -19,6 +19,7 @@ using System.Collections.ObjectModel;
 using Microsoft.Web.WebView2.Core;
 using System.Text.Json;
 using Meditrans.Client.Services;
+using System.Configuration;
 
 namespace Meditrans.Client.Views
 {
@@ -119,7 +120,12 @@ namespace Meditrans.Client.Views
             if (trip == null || MapaWebView.CoreWebView2 == null)
                 return;
 
+            string apiKey = App.Configuration["GoogleMaps:ApiKey"];
+            //MessageBox.Show($"La API Key es: {apiKey}");
+
             string htmlPath = File.ReadAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "googlemap.html"));
+            htmlPath = htmlPath.Replace("{{API_KEY}}", apiKey);
+
             htmlPath = htmlPath.Replace("{LAT_ORIGEN}", trip.PickupLatitude.ToString())
                                .Replace("{LNG_ORIGEN}", trip.PickupLongitude.ToString())
                                .Replace("{LAT_DESTINO}", trip.DropoffLatitude.ToString())
@@ -132,6 +138,28 @@ namespace Meditrans.Client.Views
             ShowETAInfo(trip);
         }
 
+        public void aa ()
+        {
+            // Ruta del archivo HTML de plantilla
+            string templatePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "googlemap.html");
+
+            // Leer HTML original
+            string htmlContent = File.ReadAllText(templatePath);
+
+            // Leer la clave desde App.config
+            string apiKey = ConfigurationManager.AppSettings["GoogleMapsApiKey"];
+
+            // Reemplazar {{API_KEY}} por la real
+            htmlContent = htmlContent.Replace("{{API_KEY}}", apiKey);
+
+            // Crear archivo temporal con el HTML ya modificado
+            string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "googlemap2.html");
+            File.WriteAllText(tempPath, htmlContent);
+
+            // Cargar en el WebView2
+
+            MapaWebView.CoreWebView2.Navigate(tempPath);
+        }
         public async void ShowETAInfo(Trip SelectedTrip) {
 
             GoogleMapsService googleMapsService = new GoogleMapsService();

@@ -46,7 +46,7 @@ namespace Meditrans.Client.Views
                 SessionManager.Token = result.Token;
                 SessionManager.Username = username;
                 SessionManager.UserId = result.UserId;
-                SessionManager.Role = result.Role;
+                //SessionManager.Role = result.Role;
 
                 StorageHelper.SaveUsername(username);
 

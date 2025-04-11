@@ -2,6 +2,7 @@
 using System.Data;
 using System.Windows;
 using Meditrans.Client.Views;
+using Microsoft.Extensions.Configuration;
 
 namespace Meditrans.Client
 {
@@ -10,6 +11,7 @@ namespace Meditrans.Client
     /// </summary>
     public partial class App : Application
     {
+        public static IConfiguration Configuration { get; private set; }
         protected void Application_Startup(object sender, StartupEventArgs e)
         {
             var login = new LoginWindow();
@@ -17,6 +19,15 @@ namespace Meditrans.Client
             login.WindowState = WindowState.Normal;
             login.Topmost = true;
             login.Show();
+
+            // Cargar configuración desde appsettings.json
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+            Configuration = builder.Build();
+
+            //base.OnStartup(e);
         }
 
         /*protected override void OnStartup(StartupEventArgs e)
