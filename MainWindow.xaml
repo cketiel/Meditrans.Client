@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:Meditrans.Client"
         mc:Ignorable="d"
         Opacity="0.8"
-        Title="MainWindow" Height="450" Width="800">
+        Icon="/Assets/logo.png"
+        Title="Milanes Transport" Height="450" Width="800">
     <Grid>
         <DockPanel>
             <!-- Menu -->

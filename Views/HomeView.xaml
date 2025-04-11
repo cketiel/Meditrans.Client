@@ -27,6 +27,17 @@
                 <TextBlock Text="{Binding SelectedTrip.FromTime}"/>
                 <TextBlock Text="{Binding SelectedTrip.PickupAddress}"/>
                 <TextBlock Text="{Binding SelectedTrip.DropoffAddress}"/>
+                <Label x:Name="TripInfoLabel" 
+                   Content="ETA and Distance will appear here" 
+                   FontSize="14" 
+                   Foreground ="DarkBlue" 
+                   Margin="10"/>
+                <Label x:Name="ETAInfoLabel" 
+                Content="ETA and Distance will appear here" 
+                FontSize="14" 
+                Foreground ="DarkBlue" 
+                Margin="10"/>
+
             </StackPanel>
 
             <!-- Map with the route -->

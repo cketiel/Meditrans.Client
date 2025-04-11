@@ -17,6 +17,8 @@ using Meditrans.Client.ViewModels;
 using Meditrans.Client.Models;
 using System.Collections.ObjectModel;
 using Microsoft.Web.WebView2.Core;
+using System.Text.Json;
+using Meditrans.Client.Services;
 
 namespace Meditrans.Client.Views
 {
@@ -64,6 +66,35 @@ namespace Meditrans.Client.Views
             {
                 await MapaWebView.EnsureCoreWebView2Async();
                 LoadMap();
+                // MapaWebView.WebMessageReceived += MapaWebView_WebMessageReceived;
+                // Suscribirse al mensaje desde JavaScript
+                MapaWebView.CoreWebView2.WebMessageReceived += (s, args) =>
+                {
+                    try
+                    {
+                        var json = args.WebMessageAsJson;
+                        dynamic data = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
+
+                        if (data.type == "routeInfo")
+                        {
+                            string eta = data.eta;
+                            string distance = data.distance;
+
+
+                            // Show on Label
+                            Dispatcher.Invoke(() =>
+                            {
+                                TripInfoLabel.Content = $"ETA: {eta} | Distance: {distance}";
+                            });
+                            // Here you can display the message
+                            //MessageBox.Show($"ETA: {eta}\nDistance: {distance}", "Trip Info");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Error receiving message: " + ex.Message);
+                    }
+                };
 
             }
             catch (Exception ex)
@@ -88,7 +119,7 @@ namespace Meditrans.Client.Views
             if (trip == null || MapaWebView.CoreWebView2 == null)
                 return;
 
-            string htmlPath = File.ReadAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "map.html"));
+            string htmlPath = File.ReadAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "googlemap.html"));
             htmlPath = htmlPath.Replace("{LAT_ORIGEN}", trip.PickupLatitude.ToString())
                                .Replace("{LNG_ORIGEN}", trip.PickupLongitude.ToString())
                                .Replace("{LAT_DESTINO}", trip.DropoffLatitude.ToString())
@@ -97,7 +128,53 @@ namespace Meditrans.Client.Views
                                .Replace("{LNG_DESTINO}", trip.DropoffLongitude.ToString());
 
             MapaWebView.NavigateToString(htmlPath);
-          
+
+            ShowETAInfo(trip);
         }
+
+        public async void ShowETAInfo(Trip SelectedTrip) {
+
+            GoogleMapsService googleMapsService = new GoogleMapsService();
+            var routeInfo = await googleMapsService.GetRouteDurationsAndDistance(SelectedTrip.PickupLatitude, SelectedTrip.PickupLongitude, SelectedTrip.DropoffLatitude, SelectedTrip.DropoffLongitude);
+
+            // Mostrar las duraciones y distancia en el Label
+            Label etaLabel = new Label();
+            etaLabel.Content = $"Duration without traffic: {routeInfo.noTraffic}\n" +
+                              $"Duration with traffic: {routeInfo.withTraffic}\n" +
+                              $"Duration (pessimistic): {routeInfo.pessimistic}\n" +
+                              $"Duration (optimistic): {routeInfo.optimistic}\n" +
+                              $"Distance: {routeInfo.distance}";
+
+            Dispatcher.Invoke(() =>
+            {
+                ETAInfoLabel.Content = etaLabel.Content;
+            });
+        }
+
+        private void MapaWebView_WebMessageReceived(object? sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs e)
+        {
+            try
+            {
+                var json = e.WebMessageAsJson;
+                var data = JsonSerializer.Deserialize<RouteInfoMessage>(json);
+
+                if (data?.Type == "routeInfo")
+                {
+                    MessageBox.Show($"ETA: {data.Eta}\nDistance: {data.Distance}", "Route Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error parsing message: {ex.Message}");
+            }
+        }
+
+        public class RouteInfoMessage
+        {
+            public string Type { get; set; } = "";
+            public string Eta { get; set; } = "";
+            public string Distance { get; set; } = "";
+        }
+
     }
 }
