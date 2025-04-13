@@ -20,7 +20,7 @@ namespace Meditrans.Client
             login.Topmost = true;
             login.Show();
 
-            // Cargar configuración desde appsettings.json
+            // Load configuration from appsettings.json
             var builder = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
