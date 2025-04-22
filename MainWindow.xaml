@@ -4,180 +4,45 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Meditrans.Client"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:materialDesignIcons="http://materialdesigninxaml.net/winfx/xaml/shared"
         mc:Ignorable="d"
         Opacity="0.8"
         Icon="/Assets/logo.png"
         Title="Milanes Transport" Height="600" Width="800">
     <Grid>
         <DockPanel>
-            
-            <!--#region Menu -->
-            
-            <Menu DockPanel.Dock="Top">
-                
-                <!-- Home -->
-                
-                <MenuItem Header="Home" Click="OpenHomeView"/>
-                
-                <!--#region Data -->
+            <!-- Menú horizontal superior -->
+            <StackPanel x:Name="MenuPanel" DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right" Background="{DynamicResource MaterialDesignDrawerBackgroundBrush}" Margin="0,0,0,5">
+                <Button x:Name="btnHome" Style="{StaticResource MenuButtonStyle}" Click="OpenHomeView">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="HomeOutline" Width="20" Height="20" Margin="0,0,5,0"/>
+                        <TextBlock Text="Home" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
 
-                <MenuItem Header="Data" Click="OpenAdminView">
-                    
-                    <!-- Customers -->
-                    
-                    <MenuItem Header="Customers">
-                        
-                        <MenuItem Header="List"/>
-                        
-                        <MenuItem Header="Trips"/>
-                        
-                    </MenuItem>
-                    
-                    <!-- Scheduling -->
-                        
-                    <MenuItem Header="Scheduling">
-                            
-                        <MenuItem Header="Runs"/>
-                            
-                        <!-- Vehicles -->
-                            
-                        <MenuItem Header="Vehicles">
-                            <MenuItem Header="Vehicles"/>
-                            <MenuItem Header="Space Types"/>
-                            <MenuItem Header="Capacities"/>
-                            <MenuItem Header="Speed Groups"/>
-                            <MenuItem Header="API"/>
-                        </MenuItem>
+                <Button x:Name="btnAdmin" Style="{StaticResource MenuButtonStyle}" Click="OpenAdminView">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="AccountBoxOutline" Width="20" Height="20" Margin="0,0,5,0"/>
+                        <TextBlock Text="Admin" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
 
-                        <MenuItem Header="Violation Sets"/>
-                            
-                    </MenuItem>
+            </StackPanel>
 
-                    <MenuItem Header="Locations"/>
-                    
-                    <MenuItem Header="Other"/>
+            <!-- Tab Container -->
+            <TabControl x:Name="MainTabControl" Grid.Row="1"
+                                                Margin="0"
+                                                HorizontalAlignment="Stretch"
+                                                VerticalAlignment="Stretch">
 
-                </MenuItem>
-                
-                <!--#endregion-->
-                
-                <!--#region Schedules -->
+            </TabControl>
 
-                <MenuItem Header="Schedule" Click="OpenAdminView" >
 
-                    <MenuItem Header="Trips"/>
 
-                    <MenuItem Header="Revenue"/>
 
-                    <MenuItem Header="Graphs"/>
-
-                </MenuItem>
-                
-                <!--#endregion-->
-
-                <!--#region Dispatch -->
-
-                    <MenuItem Header="Dispatch"/>
-
-                <!--#endregion-->
-
-                <!--#region Reports -->
-                
-                    <MenuItem Header="Reports"/>
-
-                <!--#endregion-->
-
-                <!--#region Admin -->
-
-                <MenuItem Header="Admin" Click="OpenAdminView">
-                    
-                    <!-- Employees -->
-                    
-                    <MenuItem Header="Employees">
-
-                        <MenuItem Header="Users and Roles"/>
-                        <MenuItem Header="Drivers"/>
-
-                    </MenuItem>
-                    
-                    <!-- Billing -->
-
-                    <MenuItem Header="Billing">
-
-                        <MenuItem Header="Billing Items"/>
-                        
-                        <!-- Funding Sources -->
-
-                        <MenuItem Header="Funding Sources">
-
-                            <MenuItem Header="Funding Sources and Payees"/>
-
-                            <!-- Billing Items -->
-
-                            <MenuItem Header="Billing Items">
-
-                                <MenuItem Header="Per Trip"/>
-
-                                <MenuItem Header="Per Run"/>
-
-                            </MenuItem>
-
-                            <MenuItem Header="Calendar Trips"/>
-
-                            <!-- Trip Authorization -->
-
-                            <MenuItem Header="Trip Authorization">
-
-                                <MenuItem Header="Authorization"/>
-
-                                <MenuItem Header="Trips"/>
-
-                            </MenuItem>
-
-                        </MenuItem>
-
-                        <MenuItem Header="1500 HICF/EDI Setup"/>
-
-                        <!-- EDI Submission -->
-
-                        <MenuItem Header="EDI Submission">
-
-                            <MenuItem Header="837 Download"/>
-
-                            <MenuItem Header="API Submission"/>
-
-                        </MenuItem>
-
-                    </MenuItem>
-
-                    <!-- IP Address Access -->
-
-                    <MenuItem Header="IP Address Access">
-
-                        <MenuItem Header="Remote IP Addresses"/>
-
-                        <MenuItem Header="Login History"/>
-
-                        <MenuItem Header="Time Zone Info"/>
-
-                    </MenuItem>
-
-                    <MenuItem Header="Profile"/>
-
-                </MenuItem>
-                
-                <!--#endregion-->
-
-                <MenuItem Header="Where is My Ride"/>
-
-            </Menu>
-            
-            <!--#endregion-->
-
-            <!-- Dynamic content -->
-            <ContentControl x:Name="MainContent"/>
         </DockPanel>
-        
+
         <TextBlock Text="Bienvenido a Meditrans" 
                    FontSize="24" 
                    VerticalAlignment="Center" 

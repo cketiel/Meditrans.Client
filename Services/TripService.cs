@@ -51,12 +51,19 @@ namespace Meditrans.Client.Services
         public async Task<List<Trip>> GetTripList()
         {
             var tripList = new List<Trip>();
-            var response = await _httpClient.GetAsync("api/trips");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                tripList = await response.Content.ReadFromJsonAsync<List<Trip>>();
-                
+                var response = await _httpClient.GetAsync("api/trips");
+                if (response.IsSuccessStatusCode)
+                {
+                    tripList = await response.Content.ReadFromJsonAsync<List<Trip>>();
+
+                }
             }
+            catch (Exception ex) { 
+                // throw exception 
+            }
+
             return tripList;
         }
     }

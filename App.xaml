@@ -7,13 +7,17 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
 
+                             
+
                 <!-- Tema base -->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
 
-                <!-- Colores recomendados -->
+                <!-- Recommended colors -->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.DeepPurple.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Accent/MaterialDesignColor.Lime.xaml" />
+                
+                <!-- Custom styles -->
+                <ResourceDictionary Source="Styles/GeneralStyles.xaml"/>
 
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

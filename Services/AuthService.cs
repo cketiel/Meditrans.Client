@@ -8,11 +8,11 @@ namespace Meditrans.Client.Services
     public class AuthService
     {
         private readonly HttpClient _httpClient;
-
+        private string URI = App.Configuration["ApiAddress:UsersService"];
         public AuthService()
         {
             _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new System.Uri("https://localhost:7151/"); // en un archivo de configuracion
+            _httpClient.BaseAddress = new System.Uri(URI); 
         }
 
         public async Task<LoginResponse> LoginAsync(string username, string password)

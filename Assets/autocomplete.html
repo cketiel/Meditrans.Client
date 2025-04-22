@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Autocomplete Only</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+        }
+
+        #autocompleteInput {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{API_KEY}}&libraries=places"></script>
+</head>
+<body>
+    <input id="autocompleteInput" placeholder="Search address" type="text" />
+
+
+
+    <script>
+        let autocomplete;
+        let input;
+
+        function initAutocomplete() {
+            input = document.getElementById('autocompleteInput');
+            autocomplete = new google.maps.places.Autocomplete(input);
+            autocomplete.addListener('place_changed', () => {
+                const place = autocomplete.getPlace();
+                const location = place.geometry?.location;
+                if (!location) return;
+
+                const result = {
+                    address: '',
+                    city: '',
+                    state: '',
+                    zip: '',
+                    lat: location.lat(),
+                    lng: location.lng()
+                };
+
+                for (const comp of place.address_components) {
+                    const types = comp.types;
+                    if (types.includes("street_number")) result.address = comp.long_name + ' ';
+                    if (types.includes("route")) result.address += comp.long_name;
+                    if (types.includes("locality")) result.city = comp.long_name;
+                    if (types.includes("administrative_area_level_1")) result.state = comp.short_name;
+                    if (types.includes("postal_code")) result.zip = comp.long_name;
+                }
+
+                // Enviar resultado a WPF
+                window.chrome.webview.postMessage(result);
+            });
+        }
+
+        window.onload = initAutocomplete;
+    </script>
+
+
+
+
+</body>
+</html>

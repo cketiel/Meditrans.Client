@@ -11,7 +11,7 @@ namespace Meditrans.Client.Services
 {
     internal class GoogleMapsService
     {
-        private static readonly string apiKey = "AIzaSyAM4pplIWtAPLyCmzjQWFndZ8cNq7FWkYI"; 
+        private static readonly string apiKey = App.Configuration["GoogleMaps:ApiKey"];
         private static readonly HttpClient client = new HttpClient();
 
         // traffic_model: Se puede establecer en best_guess (la mejor estimación), pessimistic (el peor escenario), o optimistic (el mejor escenario).

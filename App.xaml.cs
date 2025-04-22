@@ -3,6 +3,9 @@ using System.Data;
 using System.Windows;
 using Meditrans.Client.Views;
 using Microsoft.Extensions.Configuration;
+using MaterialDesignThemes.Wpf;
+using MaterialDesignColors;
+
 
 namespace Meditrans.Client
 {
@@ -27,8 +30,27 @@ namespace Meditrans.Client
 
             Configuration = builder.Build();
 
+            //SetThemeBasedOnTime();
+
+
             //base.OnStartup(e);
         }
+
+        private void SetThemeBasedOnTime()
+        {
+            var paletteHelper = new PaletteHelper();
+            Theme theme = paletteHelper.GetTheme();
+
+            var now = DateTime.Now.TimeOfDay;
+            var isNight = now >= new TimeSpan(18, 0, 0) || now < new TimeSpan(6, 0, 0);
+
+            theme.SetBaseTheme(isNight ? BaseTheme.Dark : BaseTheme.Light);
+            theme.SetBaseTheme(BaseTheme.Dark);
+
+            paletteHelper.SetTheme(theme);
+                       
+        }
+
 
         /*protected override void OnStartup(StartupEventArgs e)
         {

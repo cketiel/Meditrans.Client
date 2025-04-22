@@ -5,56 +5,431 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Meditrans.Client.Views"
              xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"  
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:md="http://materialdesigninxaml.net/winfx/xaml/shared"
+             xmlns:domain="clr-namespace:Meditrans.Client.Validations"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="50*"/>
-            <RowDefinition Height="50*"/>
-        </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="30*"/>
-                <ColumnDefinition Width="70*"/>
-            </Grid.ColumnDefinitions>
+    
+        
+        <Border BorderThickness="0,1,0,0" BorderBrush="#2196f3">
 
-            <!-- Selected trip details -->
-            <StackPanel Grid.Column="0" Margin="10">
-                <TextBlock Text="Selected trip details" FontWeight="Bold"/>
-                <TextBlock Text="{Binding SelectedTrip.PatientName}"/>
-                <TextBlock Text="{Binding SelectedTrip.Date}"/>
-                <TextBlock Text="{Binding SelectedTrip.FromTime}"/>
-                <TextBlock Text="{Binding SelectedTrip.PickupAddress}"/>
-                <TextBlock Text="{Binding SelectedTrip.DropoffAddress}"/>
-                <Label x:Name="TripInfoLabel" 
-                   Content="ETA and Distance will appear here" 
-                   FontSize="14" 
-                   Foreground ="DarkBlue" 
-                   Margin="10"/>
-                <Label x:Name="ETAInfoLabel" 
-                Content="ETA and Distance will appear here" 
-                FontSize="14" 
-                Foreground ="DarkBlue" 
-                Margin="10"/>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition x:Name="TopRow" Height="6*" /> <!-- 40% Upper area -->
+                    <RowDefinition Height="6" />  <!-- Horizontal GridSplitter -->
+                    <RowDefinition x:Name="BottomRow" Height="4*" /> <!-- 60% Lower area (DataGrid) -->
+                </Grid.RowDefinitions>
 
-            </StackPanel>
+                <!-- Top row: Client, Billing, Splitter, Map -->
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />  <!-- Customer (Trip data area) -->
+                        <ColumnDefinition x:Name="BillingColumn" Width="0" />  <!-- Billing (initially hidden) -->
+                        <ColumnDefinition Width="6" />     <!-- Vertical GridSplitter -->
+                        <ColumnDefinition Width="2*" />    <!-- Map -->
+                    </Grid.ColumnDefinitions>
 
-            <!-- Map with the route -->
-            <wv2:WebView2 Grid.Column="1" x:Name="MapaWebView" Loaded="WebView_Loaded"/>
-        </Grid>
+                    <!-- Trip data area -->
+                    <Grid Background="{DynamicResource MaterialDesignPaper}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*" />
+                            <!-- Scrollable content -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- Trip Filters -->
+                        </Grid.RowDefinitions>
 
-        <!-- Travel table -->
-        <DataGrid Grid.Row="1" ItemsSource="{Binding Trips}" SelectedItem="{Binding SelectedTrip, Mode=TwoWay}"
-                  AutoGenerateColumns="False" SelectionMode="Single">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Patient" Binding="{Binding PatientName}"/>
-                <DataGridTextColumn Header="Date" Binding="{Binding Date}"/>
-                <DataGridTextColumn Header="From Time" Binding="{Binding FromTime}"/>
-                <DataGridTextColumn Header="Pickup Address" Binding="{Binding PickupAddress}"/>
-                <DataGridTextColumn Header="Dropoff Address" Binding="{Binding DropoffAddress}"/>
-               
-            </DataGrid.Columns>
-        </DataGrid>
-    </Grid>
+                        <!-- 👤 Customer Search & Info -->
+                    <!-- <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Margin="0">-->
+                        <StackPanel Orientation="Vertical" Background="{DynamicResource MaterialDesignPaper}" >
+
+                                <!-- 🔎 Customer Search Section -->
+                                <materialDesign:ColorZone Padding="16" Mode="PrimaryMid"
+                                                              materialDesign:ElevationAssist.Elevation="Dp16"
+                                                              ClipToBounds="False"
+                                                              CornerRadius="5">
+
+                                    <DockPanel>
+                                        <StackPanel
+                                                  materialDesign:RippleAssist.IsCentered="True"
+                                                  Orientation="Horizontal">
+
+
+                                            <materialDesign:ColorZone
+                                                        Margin="16,0,0,0"
+                                                        Padding="8,4,8,4"
+                                                        Panel.ZIndex="1"
+                                                        materialDesign:ElevationAssist.Elevation="Dp2"
+                                                        CornerRadius="2"
+                                                        Mode="Standard">
+
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition
+                                                            Width="Auto" />
+                                                        <ColumnDefinition
+                                                             Width="*" />
+                                                        <ColumnDefinition
+                                                            Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Button
+                                                            Style="{StaticResource MaterialDesignToolButton}">
+                                                        <materialDesign:PackIcon
+                                                                  Kind="Search"
+                                                                  Opacity=".56" />
+                                                    </Button>
+
+
+
+                                                    <materialDesign:AutoSuggestBox
+                                                            Grid.Column="1"
+                                                             MinWidth="200"
+            
+                                                              VerticalAlignment="Bottom"
+                                                              Margin="0,0,8,0"
+                                                              Suggestions="{Binding Customers}"
+                                                              Text="{Binding Customer.FullName, UpdateSourceTrigger=PropertyChanged}"
+                                                              ValueMember="Key"
+                                                        />
+
+                                                    <Button Grid.Column="2"
+                                                                Style="{StaticResource MaterialDesignToolButton}">
+                                                        <materialDesign:PackIcon
+                                                                Margin="8,0,0,0"
+                                                                Kind="Microphone"
+                                                                Opacity=".56" />
+                                                    </Button>
+
+
+                                                </Grid>
+                                            </materialDesign:ColorZone>
+
+
+
+
+                                            <Button
+                                                        Margin="8,0,0,0"
+                                                        Panel.ZIndex="0"
+                                                    ToolTip="Save customer information"
+                                                        Style="{StaticResource MaterialDesignToolForegroundButton}"
+                                                        Command="{Binding SaveCustomerCommand}">
+
+                                                <materialDesign:PackIcon Kind="Safe" />
+                                            </Button>
+
+                                            <Button
+                                                        Margin="8,0,0,0"
+                                                        Panel.ZIndex="0"
+                                                        ToolTip="New customer"
+                                                        Style="{StaticResource MaterialDesignToolForegroundButton}"
+                                                        Command="{Binding NewCustomerCommand}" Click="OnSaveCustomerClick">
+
+                                                <materialDesign:PackIcon Kind="UserAdd" />
+                                            </Button>
+
+                                            <!-- Buscador -->
+                                            <!--<ComboBox ItemsSource="{Binding Customers}"
+                                                            SelectedItem="{Binding Customer}"
+                                                            materialDesign:HintAssist.Hint="Customers"
+                                                            Style="{StaticResource MaterialDesignComboBox}" Margin="0,0,8,0"/>-->
+
+                                            <!-- Botones -->
+                                            <!--<StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                                                    <Button Content="💾 Save Info"
+                                                            Command="{Binding SaveCustomerCommand}"
+                                                            Style="{StaticResource MaterialDesignRaisedButton}" 
+                                                            Margin="0,0,10,0"/>
+                                                    <Button Content="➕ New Customer"
+                                                            Command="{Binding NewCustomerCommand}"
+                                                            Style="{StaticResource MaterialDesignOutlinedButton}"/>
+                                                </StackPanel>-->
+
+                                        </StackPanel>
+                                    </DockPanel>
+                                </materialDesign:ColorZone>
+
+                                <!-- 🧾 Customer Info Section -->
+                                <materialDesign:Card Padding="16" Background="{DynamicResource MaterialDesignCardBackground}">
+                                    <StackPanel>
+                                        <TextBlock Text="Customer Info" FontWeight="Bold" FontSize="16" Margin="0,0,0,12"/>
+
+                                        <!-- Aqui voy a trabajar ahora-->
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Columna Izquierda -->
+                                            <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                                <TextBox x:Name="FullNameTextBox"
+                                                             Text="{Binding SelectedCustomer.FullName}"
+                                                             materialDesign:TextFieldAssist.HasClearButton="True"
+                                                     
+                                                             materialDesign:HintAssist.Hint="Full Name"
+                                                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                                             materialDesign:TextFieldAssist.LeadingIcon="TextUser"
+                                                             Style="{StaticResource MaterialDesignFilledTextBox}" Margin="0,0,0,10">
+
+                                                    <!--<TextBox.Text>
+                                                            <Binding Path="SelectedCustomer.FullName" UpdateSourceTrigger="PropertyChanged">
+                                                                <Binding.ValidationRules>
+                                                                    <domain:NotEmptyValidationRule ValidatesOnTargetUpdated="True"/>      
+                                                                </Binding.ValidationRules>
+                                                            </Binding>
+                                                        </TextBox.Text>-->
+                                                </TextBox>
+                                                <TextBox Text="{Binding SelectedCustomer.ClientCode}" 
+                                                             materialDesign:HintAssist.Hint="Client Code" 
+                                                             materialDesign:TextFieldAssist.HasClearButton="True"
+                                                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                                             materialDesign:TextFieldAssist.LeadingIcon="Barcode"
+                                                             Style="{StaticResource MaterialDesignFilledTextBox}" Margin="0,0,0,10"/>
+                                                <TextBox Text="{Binding SelectedCustomer.Phone}" 
+                                                             materialDesign:HintAssist.Hint="Phone" 
+                                                             materialDesign:TextFieldAssist.HasClearButton="True"
+                                                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                                             materialDesign:TextFieldAssist.LeadingIcon="Phone"
+                                                             Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,0,0,10"/>
+                                                <TextBox Text="{Binding SelectedCustomer.MobilePhone}" 
+                                                             materialDesign:HintAssist.Hint="Mobile Phone" 
+                                                             materialDesign:TextFieldAssist.HasClearButton="True"
+                                                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                                             materialDesign:TextFieldAssist.LeadingIcon="MobilePhone"
+                                                             Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,0,0,10"/>
+
+                                                <ComboBox 
+                                                            ItemsSource="{Binding SpaceTypes}" 
+                                                            SelectedItem="{Binding SelectedSpaceType, Mode=TwoWay}" 
+                                                            DisplayMemberPath="ShowNameDescription" 
+                                                            SelectedValuePath="Id"
+                                                            Style="{StaticResource MaterialDesignComboBox}"
+                                                            Margin="0,0,0,10"
+                                                            materialDesign:HintAssist.Hint="Select Space Type" />
+
+                                                <ComboBox 
+                                                        ItemsSource="{Binding FundingSources}" 
+                                                        SelectedItem="{Binding SelectedFundingSource, Mode=TwoWay}" 
+                                                        DisplayMemberPath="Name" 
+                                                        SelectedValuePath="Id"
+                                                        Style="{StaticResource MaterialDesignComboBox}"
+                                                        Margin="0,0,0,10"
+                                                        materialDesign:HintAssist.Hint="Select Funding Source" />
+
+                                            </StackPanel>
+
+                                            <!-- Columna Derecha -->
+                                            <StackPanel Grid.Column="1">
+
+                                                <TextBox x:Name="GooglePlacesInput" Text="{Binding SelectedCustomer.Address}"
+                                                             materialDesign:HintAssist.Hint="Address"
+                                                    
+                                                             materialDesign:TextFieldAssist.HasClearButton="True"
+                                                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                                             materialDesign:TextFieldAssist.LeadingIcon="AddressMarker"
+                                                             Style="{StaticResource MaterialDesignFilledTextBox}" Margin="0,0,0,10"
+                                                             TextChanged="GooglePlacesInput_TextChanged" />
+
+                                                <TextBox x:Name="City" Text="{Binding SelectedCustomer.City}" 
+                                                             materialDesign:HintAssist.Hint="City" 
+                                                             materialDesign:TextFieldAssist.HasClearButton="True"
+                                                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                                             materialDesign:TextFieldAssist.LeadingIcon="City"
+                                                             Style="{StaticResource MaterialDesignFilledTextBox}" Margin="0,0,0,10"/>
+                                                <TextBox x:Name="State" Text="{Binding SelectedCustomer.State}" 
+                                                             materialDesign:HintAssist.Hint="State" 
+                                                             materialDesign:TextFieldAssist.HasClearButton="True"
+                                                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                                             materialDesign:TextFieldAssist.LeadingIcon="Estate"
+                                                             Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,0,0,10"/>
+                                                <TextBox x:Name="Zip" Text="{Binding SelectedCustomer.Zip}" 
+                                                             materialDesign:HintAssist.Hint="ZIP" 
+                                                             materialDesign:TextFieldAssist.HasClearButton="True"
+                                                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                                             materialDesign:TextFieldAssist.LeadingIcon="EnvelopeBox"
+                                                             Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,0,0,10"/>
+
+
+                                                <DatePicker SelectedDate="{Binding SelectedCustomer.DOB}" 
+                                                                materialDesign:HintAssist.Hint="Date of Birth" 
+                                                                Style="{StaticResource MaterialDesignDatePicker}" Margin="0,0,0,10"/>
+
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                                    <RadioButton Content="Male"
+                                                                     GroupName="Gender"
+                                                                     IsChecked="{Binding SelectedCustomer.IsMale}" 
+                                                                     Style="{StaticResource MaterialDesignRadioButton}" Margin="0,0,10,0"/>
+                                                    <RadioButton Content="Female"
+                                                                     GroupName="Gender"
+                                                                     IsChecked="{Binding SelectedCustomer.IsFemale}" 
+                                                                     Style="{StaticResource MaterialDesignRadioButton}"/>
+                                                </StackPanel>
+
+                                            </StackPanel>
+
+                                        </Grid>
+
+
+
+
+
+
+                                    </StackPanel>
+                                </materialDesign:Card>
+                            </StackPanel>
+                        <!-- </ScrollViewer> -->
+
+                        <!-- 📅 Trip Filters -->
+                        <materialDesign:Card Grid.Row="1" 
+                                             
+                                             Padding="0" 
+                                             Background="{DynamicResource MaterialDesignCardBackground}"
+                                             Margin="10,0,10,00">
+                        <StackPanel x:Name="TripFilterPanel">
+                            <TextBlock Text="Trip Filters" FontWeight="Bold" FontSize="16" Margin="0,0,0,0"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Fecha -->
+                                <DatePicker Grid.Column="0"
+                                SelectedDate="{Binding FilterDate}" 
+                                materialDesign:HintAssist.Hint="Filter by Date"
+                                Style="{StaticResource MaterialDesignDatePicker}" Margin="0,0,8,0"/>
+
+                                <!-- Checkbox -->
+                                <CheckBox Grid.Column="1"
+                              Content="Show Canceled"
+                              IsChecked="{Binding ShowCanceled}" 
+                              Style="{StaticResource MaterialDesignCheckBox}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+                                <!-- Botones -->
+                                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                    <Button Content="📥 Import"
+                                Command="{Binding ImportCommand}"
+                                Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,10,0"/>
+                                    <Button Content="📤 Export"
+                                Command="{Binding ExportCommand}"
+                                Style="{StaticResource MaterialDesignOutlinedButton}"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </materialDesign:Card>
+
+
+
+                    
+ 
+                        <!-- TabControl de viajes -->
+                    <TabControl x:Name="TripTabs"
+                                
+                                Grid.ColumnSpan="4"
+                                Margin="10"
+                                Visibility="Collapsed"
+                                Grid.Row="1">
+                        <TabItem Header="Location and Time">
+                            <TextBlock
+                              Margin="8"
+                              Text="Default Tab 1" />
+                        </TabItem>
+                        <TabItem Header="Space Type">
+                            <TextBlock
+                              Margin="8"
+                              Text="Default Tab 2" />
+                        </TabItem>
+                        <TabItem Header="Pickup">
+                            <TextBlock
+                              Margin="8"
+                              Text="Default Tab 3" />
+                        </TabItem>
+                        <TabItem Header="Dropoff">
+                            <TextBlock
+                              Margin="8"
+                              Text="Default Tab 4" />
+                        </TabItem>
+                    </TabControl>
+                    
+
+                </Grid>
+
+                <!-- Panel Billing (initially hidden) -->
+                    <StackPanel Grid.Column="1" x:Name="BillingPanel"
+                                Visibility="Hidden"
+                                Margin="10"
+                                Background="{DynamicResource MaterialDesignPaper}">
+                    <TextBlock Text="Información de Facturación"
+                               FontWeight="Bold"
+                               Margin="0,0,0,10"
+                               Style="{StaticResource MaterialDesignBody1TextBlock}" />
+                        <!-- Contenido de facturación se agregará luego -->
+                    </StackPanel>
+
+                    <!-- Vertical GridSplitter -->
+                    <GridSplitter Grid.Column="2"
+                                  Width="6"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch"
+                                  Background="#40CCCCCC"
+                                  ShowsPreview="True"
+                                  Cursor="SizeWE">
+                        <GridSplitter.Template>
+                            <ControlTemplate TargetType="GridSplitter">
+                                <Grid Background="{TemplateBinding Background}">
+                                    <Rectangle Fill="#808080" Width="2" HorizontalAlignment="Center" RadiusX="1" RadiusY="1" />
+                                </Grid>
+                            </ControlTemplate>
+                        </GridSplitter.Template>
+                    </GridSplitter>
+
+                    <!-- WebView2 con el mapa -->
+                    <wv2:WebView2 Grid.Column="3" x:Name="MapaWebView" Loaded="WebView_Loaded" />
+                </Grid>
+
+                <!-- Horizontal GridSplitter -->
+                <GridSplitter Grid.Row="1"
+                      Height="6"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch"
+                      Background="#40CCCCCC"
+                      ShowsPreview="True"
+                      Cursor="SizeNS">
+                    <GridSplitter.Template>
+                        <ControlTemplate TargetType="GridSplitter">
+                            <Grid Background="{TemplateBinding Background}">
+                                <Rectangle Fill="#808080" Height="2" VerticalAlignment="Center" RadiusX="1" RadiusY="1" />
+                            </Grid>
+                        </ControlTemplate>
+                    </GridSplitter.Template>
+                </GridSplitter>
+
+                <!-- DataGrid inferior -->
+                <DataGrid Grid.Row="2" ItemsSource="{Binding Trips}" 
+                          SelectedItem="{Binding SelectedTrip, Mode=TwoWay}"
+                          AutoGenerateColumns="False" SelectionMode="Single">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Day" Binding="{Binding Day}"/>
+                        <DataGridTextColumn Header="Date" Binding="{Binding Date}"/>
+                        <DataGridTextColumn Header="From Time" Binding="{Binding FromTime}"/>
+                        <DataGridTextColumn Header="To Time" Binding="{Binding ToTime}"/>
+                        <DataGridTextColumn Header="Patient" Binding="{Binding PatientName}"/>
+                        <DataGridTextColumn Header="Pickup Address" Binding="{Binding PickupAddress}"/>
+                        <DataGridTextColumn Header="Dropoff Address" Binding="{Binding DropoffAddress}"/>
+                        <DataGridTextColumn Header="Space" Binding="{Binding SpaceType}"/>
+                        <DataGridTextColumn Header="Charge" Binding="{Binding Charge}"/>
+                        <DataGridTextColumn Header="Paid" Binding="{Binding Paid}"/>
+                    <DataGridTextColumn Header="Pickup Comment" Binding="{Binding PickupComment}"/>
+                </DataGrid.Columns>
+                </DataGrid>
+
+            </Grid>
+
+        </Border>
+
+    
+    
 </UserControl>

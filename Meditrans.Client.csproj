@@ -10,6 +10,8 @@
 
   <ItemGroup>
     <None Remove="Assets\amazinggooglemap.html" />
+    <None Remove="Assets\autocomplete.html" />
+    <None Remove="Assets\basemap.html" />
     <None Remove="Assets\googlemap.html" />
     <None Remove="Assets\icons\dropoff.png" />
     <None Remove="Assets\icons\pickup.png" />
@@ -24,6 +26,12 @@
     <Content Include="Assets\amazinggooglemap.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Assets\autocomplete.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\basemap.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\googlemap.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -36,8 +44,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MaterialDesignColors" Version="2.1.4" />
-    <PackageReference Include="MaterialDesignThemes" Version="4.9.0" />
+    <PackageReference Include="MaterialDesignColors" Version="5.2.1" />
+    <PackageReference Include="MaterialDesignThemes" Version="5.2.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.4" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.4" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.4" />

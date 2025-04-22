@@ -6,7 +6,11 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using System.Xml.Linq;
+using Meditrans.Client.Helpers;
 using Meditrans.Client.Models;
 using Meditrans.Client.Services;
 
@@ -14,6 +18,27 @@ namespace Meditrans.Client.ViewModels
 {
     public class HomeViewModel : INotifyPropertyChanged
     {
+        protected virtual bool SetProperty<T>(ref T member, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(member, value))
+            {
+                return false;
+            }
+
+            member = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+
+        private string? _name;
+        public string? Name
+        {
+            get => _name;
+            set => SetProperty(ref _name, value);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
         //public ObservableCollection<Trip> Trips { get; set; }
         private ObservableCollection<Trip> _trips;
         public ObservableCollection<Trip> Trips
@@ -36,7 +61,101 @@ namespace Meditrans.Client.ViewModels
                 OnPropertyChanged();
             }
         }
+
+        #region Customer
+
+        private Customer _selectedCustomer;
+        public Customer SelectedCustomer
+        {
+            get => _selectedCustomer;
+            set
+            {
+                _selectedCustomer = value;
+                OnPropertyChanged();
+                if (value != null)
+                {
+                    FillCustomerFields(value);
+                }
+            }
+        }
+
+        private string _customerSearchText;
+        public string CustomerSearchText
+        {
+            get => _customerSearchText;
+            set
+            {
+                _customerSearchText = value;
+                OnPropertyChanged();
+                UpdateFilteredCustomers();
+            }
+        }
+
+        public ObservableCollection<Customer> Customers { get; set; } = new();
+        public ObservableCollection<Customer> FilteredCustomers { get; set; } = new();
+
+        // Campos individuales para edición
+        public string FullName { get; set; }
+        public string ClientCode { get; set; }
+        public string Address { get; set; }
+        public string City { get; set; }
+        public string State { get; set; }
+        public string Zip { get; set; }
+        public string Phone { get; set; }
+        public string MobilePhone { get; set; }
+        public DateTime? DOB { get; set; } = DateTime.Today;
+        public string Gender { get; set; } = "Male";
+
+        // Space Types
+        public ObservableCollection<SpaceType> SpaceTypes { get; set; } = new();
+
+        private SpaceType _selectedSpaceType;
+        public SpaceType SelectedSpaceType
+        {
+            get => _selectedSpaceType;
+            set
+            {
+                _selectedSpaceType = value;
+                OnPropertyChanged();
+            }
+        }
+
+        // Funding Sources
+        public ObservableCollection<FundingSource> FundingSources { get; set; } = new();
+        
+        private FundingSource _selectedFundingSource;
+        public FundingSource SelectedFundingSource
+        {
+            get => _selectedFundingSource;
+            set
+            {
+                _selectedFundingSource = value;
+                OnPropertyChanged();
+            }
+        }
+
+        #endregion
+
+        public DateTime? TripFilterDate { get; set; } = DateTime.Today;
+        public bool ShowCanceled { get; set; }
+
+        // === Commands ===
+        public ICommand SaveCustomerCommand { get; }
+        public ICommand NewCustomerCommand { get; }
+        public ICommand ImportCommand { get; }
+        public ICommand ExportCommand { get; }
+
+
         public HomeViewModel() {
+
+            SaveCustomerCommand = new RelayCommand(SaveCustomer);
+            NewCustomerCommand = new RelayCommand(NewCustomer);
+            ImportCommand = new RelayCommand(ImportTrips);
+            ExportCommand = new RelayCommand(ExportTrips);
+
+            LoadData();
+
+
             //GetTrips();
             /*var trips = new ObservableCollection<Trip>
             {
@@ -50,6 +169,162 @@ namespace Meditrans.Client.ViewModels
             Trips = trips;
             SelectedTrip = Trips[0];*/
         }
+
+        private async void LoadData()
+        {
+            LoadFundingSourcesAsync();
+            LoadSpaceTypesAsync();
+
+            LoadCustomersFromApi();
+            FilteredCustomers = Customers;
+            //UpdateFilteredCustomers();
+
+            // Simular algunos viajes
+            //Trips.Add(new Trip { PatientName = "John Smith", Date = DateTime.Today, FromTime = "10:00 AM", PickupAddress = "123 Main St", DropoffAddress = "456 Clinic Rd" });
+            //Trips.Add(new Trip { PatientName = "Maria Lopez", Date = DateTime.Today, FromTime = "11:30 AM", PickupAddress = "78 Elm St", DropoffAddress = "Hospital Ave" });
+        }
+
+        public async Task LoadSpaceTypesAsync()
+        {
+            SpaceTypeService _spaceTypeService = new SpaceTypeService();
+            var sources = await _spaceTypeService.GetSpaceTypesAsync();
+            SpaceTypes.Clear();
+            foreach (var source in sources)
+            {
+                source.ShowNameDescription = source.Description + " " + source.Name;
+                SpaceTypes.Add(source);
+            }
+                
+        }
+        public async Task LoadFundingSourcesAsync()
+        {
+            FundingSourceService _fundingSourceService = new FundingSourceService();
+            var sources = await _fundingSourceService.GetFundingSourcesAsync();
+            FundingSources.Clear();
+            foreach (var source in sources)
+                FundingSources.Add(source);
+        }
+
+        public async Task LoadCustomersFromApi()
+        {
+            var customerService = new CustomerService();
+            var sources = await customerService.GetAllAsync();
+            Customers.Clear();
+            foreach (var source in sources)
+                Customers.Add(source);
+
+            SelectedCustomer = Customers.First();
+        }
+
+        private void UpdateFilteredCustomers()
+        {
+            var filtered = string.IsNullOrWhiteSpace(CustomerSearchText)
+                ? Customers
+                : new ObservableCollection<Customer>(
+                    Customers.Where(c =>
+                        c.FullName.Contains(CustomerSearchText, StringComparison.InvariantCultureIgnoreCase) ||
+                        c.ClientCode.Contains(CustomerSearchText, StringComparison.InvariantCultureIgnoreCase) /*||
+                        c.MobilePhone.Contains(CustomerSearchText, StringComparison.InvariantCultureIgnoreCase)*/ ));
+
+            FilteredCustomers.Clear();
+            foreach (var c in filtered)
+                FilteredCustomers.Add(c);
+        }
+
+        private void FillCustomerFields(Customer customer)
+        {
+            FullName = customer.FullName;
+            ClientCode = customer.ClientCode;
+            Address = customer.Address;
+            City = customer.City;
+            State = customer.State;
+            Zip = customer.Zip;
+            Phone = customer.Phone;
+            MobilePhone = customer.MobilePhone;
+            DOB = customer.DOB;
+            Gender = customer.Gender;
+            SelectedSpaceType = customer.SpaceType;
+            SelectedFundingSource = customer.FundingSource;
+
+            OnPropertyChanged(nameof(FullName));
+            OnPropertyChanged(nameof(ClientCode));
+            OnPropertyChanged(nameof(Address));
+            OnPropertyChanged(nameof(City));
+            OnPropertyChanged(nameof(State));
+            OnPropertyChanged(nameof(Zip));
+            OnPropertyChanged(nameof(Phone));
+            OnPropertyChanged(nameof(MobilePhone));
+            OnPropertyChanged(nameof(DOB));
+            OnPropertyChanged(nameof(Gender));
+            OnPropertyChanged(nameof(SelectedSpaceType));
+            OnPropertyChanged(nameof(SelectedFundingSource));
+        }
+
+        private void SaveCustomer()
+        {
+            if (SelectedCustomer == null)
+            {
+                var newCustomer = new Customer();
+                Customers.Add(newCustomer);
+                SelectedCustomer = newCustomer;
+            }
+
+            SelectedCustomer.FullName = FullName;
+            SelectedCustomer.ClientCode = ClientCode;
+            SelectedCustomer.Address = Address;
+            SelectedCustomer.City = City;
+            SelectedCustomer.State = State;
+            SelectedCustomer.Zip = Zip;
+            SelectedCustomer.Phone = Phone;
+            SelectedCustomer.MobilePhone = MobilePhone;
+            SelectedCustomer.DOB = DOB;
+            SelectedCustomer.Gender = Gender;
+            //SelectedCustomer.SpaceType = SelectedSpaceType;
+            //SelectedCustomer.FundingSource = SelectedFundingSource;
+
+            UpdateFilteredCustomers();
+        }
+
+        private void NewCustomer()
+        {
+            SelectedCustomer = null;
+            FullName = "";
+            ClientCode = "";
+            Address = "";
+            City = "";
+            State = "";
+            Zip = "";
+            Phone = "";
+            MobilePhone = "";
+            DOB = DateTime.Today;
+            Gender = "Male";
+            SelectedSpaceType = null;
+            SelectedFundingSource = null;
+
+            OnPropertyChanged(nameof(FullName));
+            OnPropertyChanged(nameof(ClientCode));
+            OnPropertyChanged(nameof(Address));
+            OnPropertyChanged(nameof(City));
+            OnPropertyChanged(nameof(State));
+            OnPropertyChanged(nameof(Zip));
+            OnPropertyChanged(nameof(Phone));
+            OnPropertyChanged(nameof(MobilePhone));
+            OnPropertyChanged(nameof(DOB));
+            OnPropertyChanged(nameof(Gender));
+            OnPropertyChanged(nameof(SelectedSpaceType));
+            OnPropertyChanged(nameof(SelectedFundingSource));
+        }
+
+        private void ImportTrips()
+        {
+            // Por implementar
+        }
+
+        private void ExportTrips()
+        {
+            // Por implementar
+        }
+
 
         public async void GetTrips()
         {
@@ -74,7 +349,7 @@ namespace Meditrans.Client.ViewModels
             }  
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        
         protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));

@@ -5,9 +5,12 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
+using MaterialDesignThemes.Wpf;
 using Meditrans.Client.Views;
 
 namespace Meditrans.Client
@@ -17,11 +20,22 @@ namespace Meditrans.Client
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly DispatcherTimer themeTimer;
+        private int tabCounter = 1;
         public MainWindow()
         {
             InitializeComponent();
             OpenHomeView(null, null); // Load HomeView by default
             this.Loaded += MainWindow_Loaded;
+
+            /*UpdateTheme();
+
+            themeTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMinutes(30)
+            };
+            themeTimer.Tick += (s, e) => UpdateTheme();
+            themeTimer.Start();*/
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -51,12 +65,272 @@ namespace Meditrans.Client
 
         private void OpenHomeView(object sender, RoutedEventArgs e)
         {
-            MainContent.Content = new HomeView();
+            //MainContent.Content = new HomeView();
+            OpenTab("Home", new HomeView(), PackIconKind.HomeOutline);
+            
+            SetActiveMenu(btnHome);
+            CloseAllTabsOfType("Admin");
+
+
         }
 
         private void OpenAdminView(object sender, RoutedEventArgs e)
         {
-            MainContent.Content = new AdminView(); 
+            //MainContent.Content = new AdminView(); 
+            OpenTab("Admin", new AdminView(), PackIconKind.AccountBoxOutline);
+            
+            SetActiveMenu(btnAdmin);
+
+        }
+
+        private void OpenTab(string title, UserControl content, PackIconKind iconKind)
+        {
+            var tabItem = new TabItem
+            {
+                Tag = title // Guarda el tipo, como "Admin", "Home"
+            };
+
+            // --- ANIMACIÓN de aparición del contenido ---
+            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300));
+            var contentGrid = new Grid();
+            contentGrid.Children.Add(content);
+            contentGrid.BeginAnimation(OpacityProperty, fadeIn);
+
+            // --- HEADER con icono y botón cerrar ---
+            var dockPanel = new DockPanel { LastChildFill = false };
+
+            var icon = new PackIcon
+            {
+                Kind = iconKind,
+                Width = 16,
+                Height = 16,
+                Margin = new Thickness(0, 0, 5, 0),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            var text = new TextBlock
+            {
+                Text = $"{title} {tabCounter++}",
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            var contentStack = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            contentStack.Children.Add(icon);
+            contentStack.Children.Add(text);
+
+            DockPanel.SetDock(contentStack, Dock.Left);
+            dockPanel.Children.Add(contentStack);
+
+            var closeIcon = new PackIcon
+            {
+                Kind = PackIconKind.Close,
+                Width = 14,
+                Height = 14,
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = Brushes.Gray
+            };
+
+            var closeBtn = new Button
+            {
+                Content = closeIcon,
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                Cursor = Cursors.Hand,
+                Padding = new Thickness(4),
+                ToolTip = "Cerrar",
+                Width = 22,
+                Height = 22
+            };
+
+            closeBtn.MouseEnter += (s, e) => closeIcon.Foreground = Brushes.Red;
+            closeBtn.MouseLeave += (s, e) => closeIcon.Foreground = Brushes.Gray;
+
+            closeBtn.Click += (s, e) => CloseTabWithAnimation(tabItem);
+
+            DockPanel.SetDock(closeBtn, Dock.Right);
+            dockPanel.Children.Add(closeBtn);
+
+            tabItem.Header = dockPanel;
+            tabItem.Content = contentGrid;
+
+            // --- CONTEXT MENU ---
+            var contextMenu = new ContextMenu();
+
+            var closeThis = new MenuItem { Header = "Close this tab" };
+            closeThis.Click += (s, e) => CloseTabWithAnimation(tabItem);
+
+            var closeOthers = new MenuItem { Header = "Close all except this one" };
+            closeOthers.Click += (s, e) =>
+            {
+                var others = MainTabControl.Items.Cast<TabItem>().Where(t => t != tabItem).ToList();
+                foreach (var tab in others)
+                    CloseTabWithAnimation(tab);
+            };
+
+            var closeAll = new MenuItem { Header = "Close all" };
+            closeAll.Click += (s, e) =>
+            {
+                var allTabs = MainTabControl.Items.Cast<TabItem>().ToList();
+                foreach (var tab in allTabs)
+                    CloseTabWithAnimation(tab);
+            };
+
+            var closeSameType = new MenuItem { Header = $"Close all '{title}'" };
+            closeSameType.Click += (s, e) =>
+            {
+                var sameTabs = MainTabControl.Items.Cast<TabItem>()
+                    .Where(t => t.Tag?.ToString() == title && t != tabItem).ToList();
+
+                foreach (var tab in sameTabs)
+                    CloseTabWithAnimation(tab);
+            };
+
+            contextMenu.Items.Add(closeThis);
+            contextMenu.Items.Add(closeOthers);
+            contextMenu.Items.Add(closeAll);
+            contextMenu.Items.Add(new Separator());
+            contextMenu.Items.Add(closeSameType);
+
+            tabItem.ContextMenu = contextMenu;
+
+            MainTabControl.Items.Add(tabItem);
+            MainTabControl.SelectedItem = tabItem;
+        }
+        private void CloseTabWithAnimation(TabItem tabItem)
+        {
+            if (tabItem.Content is Grid grid)
+            {
+                var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(200));
+                fadeOut.Completed += (s, e) => MainTabControl.Items.Remove(tabItem);
+                grid.BeginAnimation(OpacityProperty, fadeOut);
+            }
+            else
+            {
+                MainTabControl.Items.Remove(tabItem);
+            }
+        }
+
+
+
+        private void OpenTab2(string title, UserControl content, PackIconKind iconKind)
+        {
+            var tabItem = new TabItem();
+
+            var headerPanel = new StackPanel { Orientation = Orientation.Horizontal };
+
+            var icon = new PackIcon
+            {
+                Kind = iconKind,
+                Width = 16,
+                Height = 16,
+                Margin = new Thickness(0, 0, 5, 0)
+            };
+
+            var text = new TextBlock
+            {
+                Text = $"{title} {tabCounter++}",
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            var closeIcon = new PackIcon
+            {
+                Kind = PackIconKind.Close,
+                Width = 16,
+                Height = 16,
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = Brushes.Gray,
+                Margin = new Thickness(5, 0, 0, 0)
+            };
+
+            var closeBtn = new Button
+            {
+                Content = closeIcon,
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                Cursor = Cursors.Hand,
+                Padding = new Thickness(2),
+                ToolTip = "Cerrar",
+                Width = 24,
+                Height = 24
+            };
+
+            closeBtn.Click += (s, e) => MainTabControl.Items.Remove(tabItem);
+
+            var headerStack = new StackPanel { Orientation = Orientation.Horizontal };
+            headerStack.Children.Add(icon);
+            headerStack.Children.Add(text);
+            headerStack.Children.Add(closeBtn);
+
+            tabItem.Header = headerStack;
+            tabItem.Content = content;
+           
+
+            MainTabControl.Items.Add(tabItem);
+            MainTabControl.SelectedItem = tabItem;
+        }
+        private void SetActiveMenu(Button activeButton)
+        {
+            if (activeButton == null) return;
+
+            foreach (var child in MenuPanel.Children)
+            {
+                if (child is Button btn)
+                    btn.Tag = "Inactive";
+            }
+            activeButton.Tag = "Active";
+        }
+
+        private void CloseAllTabsOfType(string headerText)
+        {
+            var tabsToRemove = MainTabControl.Items
+                .OfType<TabItem>()
+                .Where(tab => tab.Header is StackPanel stack &&
+                              stack.Children.OfType<TextBlock>().Any(t => t.Text == headerText))
+                .ToList();
+
+            foreach (var tab in tabsToRemove)
+                MainTabControl.Items.Remove(tab);
+        }
+
+        private void UpdateTheme()
+        {
+            ResourceDictionary themeResourceDictionary = GetThemeResourceDictionary();
+            Theme theme = themeResourceDictionary.GetTheme();
+
+            BaseTheme currentTheme = theme.GetBaseTheme();
+            /*BaseTheme newTheme = currentTheme switch
+            {
+                BaseTheme.Light => BaseTheme.Dark,
+                _ => BaseTheme.Light
+            };
+            theme.SetBaseTheme(newTheme);*/
+
+            theme.SetBaseTheme(BaseTheme.Light);
+
+            themeResourceDictionary.SetTheme(theme);
+
+
+
+            /*var paletteHelper = new PaletteHelper();
+            Theme theme = paletteHelper.GetTheme();
+
+            var now = DateTime.Now.TimeOfDay;
+            bool isNight = now >= new TimeSpan(18, 0, 0) || now < new TimeSpan(6, 0, 0);
+
+            theme.SetBaseTheme(isNight ? BaseTheme.Dark : BaseTheme.Light);
+            paletteHelper.SetTheme(theme);*/
+        }
+
+        private ResourceDictionary GetThemeResourceDictionary()
+        {
+            //We can't use PaletteHelper here because it will try to use Application.Current.Resource
+            //Instead we need to give it the resource dictionary that contains the material design theme dictionaries.
+            //In this case that is the theme dictionary inside of this Window's Resources.
+            return Resources.MergedDictionaries.Single(x => x is IMaterialDesignThemeDictionary);
         }
     }
 }
