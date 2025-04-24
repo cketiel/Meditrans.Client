@@ -5,39 +5,29 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System;
+using System.Windows;
 
 namespace Meditrans.Client.Services
 {
     public class CustomerService : ICustomerService
     {
         private readonly HttpClient _httpClient;
-        private string URI = App.Configuration["ApiAddress:TripsService"];
+        private readonly string EndPoint = "customers";
+        //private string URI = App.Configuration["ApiAddress:TripsService"];
 
         public CustomerService()
         {
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri(URI);
+            _httpClient = ApiClientFactory.Create();
+            //_httpClient = new HttpClient();
+            //_httpClient.BaseAddress = new Uri(URI);
         }
-
-        /*public async Task<List<Customer>> SearchCustomersAsync(string query)
-        {
-            try
-            {
-                var response = await _httpClient.GetFromJsonAsync<List<Customer>>($"/api/customers?search={query}");
-                return response ?? new List<Customer>();
-            }
-            catch (Exception)
-            {
-                return new List<Customer>();
-            }
-        }*/
-
+      
         public async Task<List<Customer>> GetAllAsync()
         {
             var customerList = new List<Customer>();
             try
             {
-                var response = await _httpClient.GetAsync("api/customers");
+                var response = await _httpClient.GetAsync(EndPoint);
                 if (response.IsSuccessStatusCode)
                 {
                     customerList = await response.Content.ReadFromJsonAsync<List<Customer>>();
@@ -54,25 +44,43 @@ namespace Meditrans.Client.Services
 
         public async Task<Customer> GetCustomerByIdAsync(int id)
         {
-            return await _httpClient.GetFromJsonAsync<Customer>($"/api/customers/{id}");
+            return await _httpClient.GetFromJsonAsync<Customer>($"{EndPoint}/{id}");
         }
 
-        public async Task<Customer> CreateCustomerAsync(Customer customer)
+        public async Task<(bool Success, string Message)> CreateCustomerAsync(Customer customer)
         {
-            var response = await _httpClient.PostAsJsonAsync("/api/customers", customer);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadFromJsonAsync<Customer>();
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync(EndPoint, customer);
+                //MessageBox.Show(response.ToString());
+                if (response.IsSuccessStatusCode)
+                {
+                    return (true, "Cliente creado correctamente.");
+                }
+
+                // Si el servidor responde con error, intenta extraer mensaje
+                string errorMessage = await response.Content.ReadAsStringAsync();
+                return (false, $"Error del servidor: {errorMessage}");
+            }
+            catch (HttpRequestException ex)
+            {
+                return (false, $"Error de conexión: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Error inesperado: {ex.Message}");
+            }
         }
 
         public async Task<bool> UpdateCustomerAsync(Customer customer)
         {
-            var response = await _httpClient.PutAsJsonAsync($"/api/customers/{customer.Id}", customer);
+            var response = await _httpClient.PutAsJsonAsync($"{EndPoint}/{customer.Id}", customer);
             return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> DeleteCustomerAsync(int id)
         {
-            var response = await _httpClient.DeleteAsync($"/api/customers/{id}");
+            var response = await _httpClient.DeleteAsync($"{EndPoint}/{id}");
             return response.IsSuccessStatusCode;
         }
     }

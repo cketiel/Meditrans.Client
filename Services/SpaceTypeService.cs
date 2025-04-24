@@ -12,16 +12,15 @@ namespace Meditrans.Client.Services
     public class SpaceTypeService : ISpaceTypeService
     {
         private readonly HttpClient _httpClient;
-        private string URI = App.Configuration["ApiAddress:TripsService"];
+        private readonly string EndPoint = "spacetypes";
         public SpaceTypeService()
         {
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri(URI);
+            _httpClient = ApiClientFactory.Create();
         }
 
         public async Task<List<SpaceType>> GetSpaceTypesAsync()
         {
-            var result = await _httpClient.GetFromJsonAsync<List<SpaceType>>("/api/spacetypes");
+            var result = await _httpClient.GetFromJsonAsync<List<SpaceType>>(EndPoint);
             return result ?? new List<SpaceType>();
         }
     }

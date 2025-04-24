@@ -22,6 +22,8 @@ using Meditrans.Client.Services;
 using System.Configuration;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
+using System.Globalization;
+using Meditrans.Client.Helpers;
 
 namespace Meditrans.Client.Views
 {
@@ -97,9 +99,7 @@ namespace Meditrans.Client.Views
                         }
                         else if(data.type == "autocomplete")
                         {
-
-                            var result = data.result;
-                            //var result = JsonSerializer.Deserialize<MapAddressResult>(data.result ?? "");
+                            var result = data.result;                     
 
                             if (result is null) return;
 
@@ -113,7 +113,15 @@ namespace Meditrans.Client.Views
 
                             _isUpdatingFromHtml = false;
 
-                            ShowLocationOnMap((double)result.lat, (double)result.lng);
+                            //ShowLocationOnMap((double)result.lat, (double)result.lng);
+                        }
+                        else if (data.type == "dropoff")
+                        {
+                            if (data.dropoff_address is null) return;
+
+                            _isUpdatingFromHtml = true;
+                            DropoffAddressTextBox.Text = data.dropoff_address;
+                            _isUpdatingFromHtml = false;
                         }
                     }
                     catch (Exception ex)
@@ -366,7 +374,7 @@ namespace Meditrans.Client.Views
             if (_isUpdatingFromHtml) return;
 
             var text = GooglePlacesInput.Text;
-            string js = $"document.getElementById('autocompleteInput').value = `{EscapeJs(text)}`;";
+            string js = $"document.getElementById('pickup').value = `{EscapeJs(text)}`;";
             MapaWebView.ExecuteScriptAsync(js);
             //AutocompleteOverlay.ExecuteScriptAsync(js);
         }
@@ -377,26 +385,95 @@ namespace Meditrans.Client.Views
             return input.Replace("\\", "\\\\").Replace("`", "\\`").Replace("\n", "").Replace("\r", "");
         }
 
-        private void OnSaveCustomerClick(object sender, RoutedEventArgs e)
+        private async void OnSaveCustomerClick(object sender, RoutedEventArgs e)
         {
-            // Customer save
-            // implementar
+            // Customer save           
+            /*var culture = System.Globalization.CultureInfo.CurrentCulture;
+            //culture = CultureInfo.InvariantCulture;
+
+            var customer = new Customer
+            {
+                FullName = FullNameTextBox.Text,
+                ClientCode = ClientCodeTextBox.Text,
+                Phone = PhoneTextBox.Text,
+                MobilePhone = MobilePhoneTextBox.Text,
+
+                SpaceTypeId = Convert.ToInt16(SpaceTypeComboBox.SelectedValue), 
+                FundingSourceId = Convert.ToInt16(FundingSourceComboBox.SelectedValue),
+
+                Address = GooglePlacesInput.Text,
+                City = City.Text,
+                State = State.Text,
+                Zip = Zip.Text,
+                //DOB = DateTime.ParseExact(DOBDatePicker.Text, "MM/dd/yyyy", culture),
+                Gender = MaleRadioButton.IsChecked == true? MaleRadioButton.Content.ToString(): FemaleRadioButton.Content.ToString(),
+
+                Created = DateTime.Now,
+                CreatedBy = SessionManager.Username
+
+            };
+
+            if (DOBDatePicker.SelectedDate == null)
+            {
+                MessageBox.Show("Por favor selecciona una fecha de nacimiento válida.");
+                return;
+            }
+            customer.DOB = DOBDatePicker.SelectedDate.Value;
+
+            // ✅ Intentamos convertir la fecha con TryParse
+            if (DateTime.TryParse(DOBDatePicker.Text, out var dob))
+            {
+                customer.DOB = dob;
+            }
+            else
+            {
+                MessageBox.Show("Fecha de nacimiento inválida. Usa un formato válido.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            
+
+            CustomerService _customerService = new CustomerService();
+            var (success, message) = await _customerService.CreateCustomerAsync(customer);*/
+
+            if (true/*success*/)
+            {
+                //MessageBox.Show(message); // luego crear servicios de mensajes, avisos y alertas
+
+                CustomerColumn.Width = new GridLength(3.2, GridUnitType.Star);
+                BillingColumn.Width = new GridLength(2.4, GridUnitType.Star); // 20%
+                MapColumn.Width = new GridLength(4.4, GridUnitType.Star);
+                MapaWebView.SetValue(Grid.ColumnProperty, 4); // El mapa se mueve a la columna 5 (índice 4)
+                BillingPanel.Visibility = Visibility.Visible;
+                ForDateCalendar.Visibility = Visibility.Visible;
+
+                // Hide travel filter
+                TripFilterPanel.Visibility = Visibility.Collapsed;
+
+                // Show TabControl
+                TripTabs.Visibility = Visibility.Visible;
+                //TripTabs.SetValue(Grid.RowProperty, 1);
+                PickupAddressTextBox.Text = GooglePlacesInput.Text;
+
+                // Adjust row size
+                TopRow.Height = new GridLength(7, GridUnitType.Star);
+                BottomRow.Height = new GridLength(3, GridUnitType.Star);
+
+                // Show Dropoff input in WebView map
+                await MapaWebView.ExecuteScriptAsync("showDropoff();");
+            }
+            else
+            {
+               // MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
 
 
-            BillingColumn.Width = new GridLength(1, GridUnitType.Star); // 25%
-            MapaWebView.SetValue(Grid.ColumnProperty, 3); // El mapa se mueve a la columna 4 (índice 3)
-            BillingPanel.Visibility = Visibility.Visible;
+            
 
-            // Hide travel filter
-            TripFilterPanel.Visibility = Visibility.Collapsed;
+        }
 
-            // Show TabControl
-            TripTabs.Visibility = Visibility.Visible;
-            //TripTabs.SetValue(Grid.RowProperty, 1);
-
-            // Adjust row size
-            TopRow.Height = new GridLength(7, GridUnitType.Star);
-            BottomRow.Height = new GridLength(3, GridUnitType.Star);
+        private async void OnNewCustomerClick(object sender, RoutedEventArgs e){
+            await MapaWebView.ExecuteScriptAsync("prepareNewCustomer();");
 
         }
     }

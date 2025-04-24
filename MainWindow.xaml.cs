@@ -11,6 +11,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using MaterialDesignThemes.Wpf;
+using Meditrans.Client.Helpers;
 using Meditrans.Client.Views;
 
 namespace Meditrans.Client
@@ -331,6 +332,14 @@ namespace Meditrans.Client
             //Instead we need to give it the resource dictionary that contains the material design theme dictionaries.
             //In this case that is the theme dictionary inside of this Window's Resources.
             return Resources.MergedDictionaries.Single(x => x is IMaterialDesignThemeDictionary);
+        }
+
+        private void Logout() {
+            SessionManager.Clear();
+            var loginWindow = new LoginWindow();
+            loginWindow.Show();
+            this.Close();
+
         }
     }
 }

@@ -12,7 +12,8 @@ namespace Meditrans.Client.Services
         //Task<List<Customer>> SearchCustomersAsync(string query);
         Task<List<Customer>> GetAllAsync();
         Task<Customer> GetCustomerByIdAsync(int id);
-        Task<Customer> CreateCustomerAsync(Customer customer);
+        Task<(bool Success, string Message)> CreateCustomerAsync(Customer customer);
+        //Task<Customer> CreateCustomerAsync(Customer customer);
         Task<bool> UpdateCustomerAsync(Customer customer);
         Task<bool> DeleteCustomerAsync(int id);
     }

@@ -12,16 +12,15 @@ namespace Meditrans.Client.Services
     public class FundingSourceService : IFundingSourceService
     {
         private readonly HttpClient _httpClient;
-        private string URI = App.Configuration["ApiAddress:TripsService"];
+        private readonly string EndPoint = "fundingsources";
         public FundingSourceService()
         {
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri(URI);
+            _httpClient = ApiClientFactory.Create();
         }
 
         public async Task<List<FundingSource>> GetFundingSourcesAsync()
         {
-            var result = await _httpClient.GetFromJsonAsync<List<FundingSource>>("/api/fundingsources");
+            var result = await _httpClient.GetFromJsonAsync<List<FundingSource>>(EndPoint);
             return result ?? new List<FundingSource>();
         }
     }

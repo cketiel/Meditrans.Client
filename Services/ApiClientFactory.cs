@@ -1,0 +1,62 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http.Headers;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using Meditrans.Client.Helpers;
+using Meditrans.Client.Views;
+using System.Windows;
+
+namespace Meditrans.Client.Services
+{
+    public static class ApiClientFactory
+    {
+        private static readonly string _baseUrl = App.Configuration["ApiAddress:TripsService"];// App.Configuration["ApiAddress:GatewayService"];
+        private static readonly string _prefix = "api/";
+        private static readonly string URI = _baseUrl + _prefix;
+        public static HttpClient Create()
+        {
+            var client = new HttpClient
+            {                 
+                BaseAddress = new Uri(URI)
+            };
+
+            if (!string.IsNullOrEmpty(SessionManager.Token))
+            {
+                if (JwtHelper.IsTokenExpired(SessionManager.Token))
+                {
+                    MessageBox.Show("Your session has expired. Please log in again.", "Session expired", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                    SessionManager.Clear();
+
+                    // Close all windows except the main one (if necessary)
+                    foreach (Window window in Application.Current.Windows)
+                    {
+                        if (window != Application.Current.MainWindow)
+                        {
+                            window.Close();
+                        }
+                    }
+
+                    // Close the main window (in case we are in MainWindow or another)
+                    Application.Current.MainWindow?.Close();
+
+                    // Open login window
+                    var login = new LoginWindow();
+                    login.Show();
+                
+                    Application.Current.MainWindow = login;
+
+                    return client;
+                }
+
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", SessionManager.Token);
+            }
+
+            return client;
+        }
+    }
+}
