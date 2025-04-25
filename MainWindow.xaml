@@ -12,19 +12,19 @@
 
     <DockPanel>
 
-        <!-- Menú Superior -->
+        <!-- Top Menu -->
         <Border Height="60" DockPanel.Dock="Top" Background="{DynamicResource MaterialDesign.Brush.Primary}">
             <DockPanel LastChildFill="True">
 
-                <!-- Usuario Logueado con icono -->
+                <!-- Logged in user with icon -->
                 <StackPanel DockPanel.Dock="Left"
                             Orientation="Horizontal"
                             VerticalAlignment="Center"
                             Margin="20,0,0,0"
                             HorizontalAlignment="Left"
-                            >       
+                            >
 
-                    <!-- Icono como avatar -->
+                    <!-- Icon as avatar -->
                     <Border Width="32" Height="32"
                             Background="White"
                             CornerRadius="16"
@@ -36,7 +36,7 @@
                                  VerticalAlignment="Center"/>
                     </Border>
 
-                    <!-- Nombre del usuario -->
+                    <!-- User name -->
                     <TextBlock x:Name="UserNameTextBlock"
                                VerticalAlignment="Center"
                                Foreground="White"
@@ -58,38 +58,80 @@
                         materialDesign:NavigationRailAssist.SelectionCornerRadius="50 10 10 10"
                         materialDesign:NavigationRailAssist.ShowSelectionBackground="True" PreviewMouseLeftButtonUp="MenuTabControl_PreviewMouseLeftButtonUp">
 
-                <TabItem x:Name="HomeTabMenu" Tag="{x:Static local:MENU.Home}">
-                    <TabItem.Header>
+                    <TabItem x:Name="HomeTabMenu" Tag="{x:Static local:MENU.Home}">
+                        <TabItem.Header>
                         
-                        <StackPanel>
-                            <materialDesign:PackIcon Kind="HomeOutline" Width="24" Height="24" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Home" HorizontalAlignment="Center"/>
-                        </StackPanel>
+                            <StackPanel>
+                                <materialDesign:PackIcon Kind="HomeOutline" Width="24" Height="24" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Home" HorizontalAlignment="Center"/>
+                            </StackPanel>
                         
-                    </TabItem.Header>
-                </TabItem>
+                        </TabItem.Header>
+                    </TabItem>
 
-                <TabItem x:Name="AdminTabMenu" Tag="{x:Static local:MENU.Admin}">
-                    <TabItem.Header>
+                    <TabItem x:Name="DataTabMenu" Tag="{x:Static local:MENU.Data}">
+                        <TabItem.Header>
                         
-                        <StackPanel>
-                            <materialDesign:PackIcon Kind="AccountBoxOutline" Width="24" Height="24" HorizontalAlignment="Center"/>
-                            <TextBlock Text="Admin" HorizontalAlignment="Center"/>
-                        </StackPanel>
+                            <StackPanel>
+                                <materialDesign:PackIcon Kind="Database" Width="24" Height="24" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Data" HorizontalAlignment="Center"/>
+                            </StackPanel>
                         
-                    </TabItem.Header>
-                </TabItem>
+                        </TabItem.Header>
+                    </TabItem>
+                    <TabItem x:Name="SchedulesTabMenu" Tag="{x:Static local:MENU.Schedules}">
+                        <TabItem.Header>
 
-            </TabControl>
+                            <StackPanel>
+                                <materialDesign:PackIcon Kind="TableClock" Width="24" Height="24" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Schedules" HorizontalAlignment="Center"/>
+                            </StackPanel>
+
+                        </TabItem.Header>
+                    </TabItem>
+
+                    <TabItem x:Name="DispatchTabMenu" Tag="{x:Static local:MENU.Dispatch}">
+                        <TabItem.Header>
+
+                            <StackPanel>
+                                <materialDesign:PackIcon Kind="WrenchClock" Width="24" Height="24" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Dispatch" HorizontalAlignment="Center"/>
+                            </StackPanel>
+
+                        </TabItem.Header>
+                    </TabItem>
+                    <TabItem x:Name="ReportsTabMenu" Tag="{x:Static local:MENU.Reports}">
+                        <TabItem.Header>
+
+                            <StackPanel>
+                                <materialDesign:PackIcon Kind="FileChart" Width="24" Height="24" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Reports" HorizontalAlignment="Center"/>
+                            </StackPanel>
+
+                        </TabItem.Header>
+                    </TabItem>
+
+                    <TabItem x:Name="AdminTabMenu" Tag="{x:Static local:MENU.Admin}">
+                        <TabItem.Header>
+
+                            <StackPanel>
+                                <materialDesign:PackIcon Kind="Security" Width="24" Height="24" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Admin" HorizontalAlignment="Center"/>
+                            </StackPanel>
+
+                        </TabItem.Header>
+                    </TabItem>
+
+                </TabControl>
 
             </DockPanel>
             
         </Border>
 
-        <!-- Contenido principal -->
+        <!-- Main content -->
         <TabControl x:Name="MainTabControl"
                     HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    />
+                    VerticalAlignment="Stretch"/>
+        
     </DockPanel>
 </Window>

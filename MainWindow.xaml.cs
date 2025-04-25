@@ -384,8 +384,20 @@ namespace Meditrans.Client
                     case MENU.Home:
                         OpenTab("Home", new HomeView(), PackIconKind.HomeOutline);
                         break;
+                    case MENU.Data:
+                        OpenTab("Data", new DataView(), PackIconKind.Database);
+                        break;
+                    case MENU.Schedules:
+                        OpenTab("Schedules", new SchedulesView(), PackIconKind.TableClock);
+                        break;
+                    case MENU.Dispatch:
+                        OpenTab("Dispatch", new DispatchView(), PackIconKind.WrenchClock);
+                        break;
+                    case MENU.Reports:
+                        OpenTab("Reports", new ReportsView(), PackIconKind.FileChart);
+                        break;
                     case MENU.Admin:
-                        OpenTab("Admin", new AdminView(), PackIconKind.AccountBoxOutline);
+                        OpenTab("Admin", new AdminView(), PackIconKind.Security);
                         break;
                 }
             }
@@ -405,6 +417,10 @@ namespace Meditrans.Client
     public enum MENU
     {
         Home,
+        Data,
+        Schedules,
+        Dispatch,
+        Reports,
         Admin
     }
 
