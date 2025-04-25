@@ -90,20 +90,22 @@
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
+                mapTypeControl: false,
+                //disableDefaultUI: true,
                 zoom: 5, // 3
                 center: { lat: originLat, lng: originLng },
                 mapTypeId: 'roadmap'
             });
 
             initPickupAutocomplete();
-            initDropoffAutocomplete();          
+            initDropoffAutocomplete();       
         }
 
         function initPickupAutocomplete() {
             const pickupInput = document.getElementById("pickup");
             pickupAutocomplete = new google.maps.places.Autocomplete(pickupInput);
             pickupAutocomplete.bindTo("bounds", map);
-
+            //map.controls[google.maps.ControlPosition.TOP_LEFT].push(pickupInput); 
             pickupAutocomplete.addListener("place_changed", () => {
                 pickupPlaceChange();
             });

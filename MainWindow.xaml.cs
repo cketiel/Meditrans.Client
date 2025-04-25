@@ -45,6 +45,8 @@ namespace Meditrans.Client
             this.WindowState = WindowState.Maximized;
             //this.WindowStyle = WindowStyle.None;
             //this.Topmost = true; // To keep the window always in front
+
+            UserNameTextBlock.Text = SessionManager.Username;
         }
 
         private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -69,7 +71,7 @@ namespace Meditrans.Client
             //MainContent.Content = new HomeView();
             OpenTab("Home", new HomeView(), PackIconKind.HomeOutline);
             
-            SetActiveMenu(btnHome);
+            //SetActiveMenu(btnHome);
             CloseAllTabsOfType("Admin");
 
 
@@ -80,7 +82,7 @@ namespace Meditrans.Client
             //MainContent.Content = new AdminView(); 
             OpenTab("Admin", new AdminView(), PackIconKind.AccountBoxOutline);
             
-            SetActiveMenu(btnAdmin);
+            //SetActiveMenu(btnAdmin);
 
         }
 
@@ -200,6 +202,14 @@ namespace Meditrans.Client
 
             MainTabControl.Items.Add(tabItem);
             MainTabControl.SelectedItem = tabItem;
+            MainTabControl.HorizontalContentAlignment = HorizontalAlignment.Left;
+            MainTabControl.TabStripPlacement = Dock.Bottom;
+            var style = this.FindResource("MaterialDesignFilledTabControl") as Style;
+            if (style != null)
+            {
+                MainTabControl.Style = style;
+            }
+
         }
         private void CloseTabWithAnimation(TabItem tabItem)
         {
@@ -273,7 +283,7 @@ namespace Meditrans.Client
             MainTabControl.Items.Add(tabItem);
             MainTabControl.SelectedItem = tabItem;
         }
-        private void SetActiveMenu(Button activeButton)
+        /*private void SetActiveMenu(Button activeButton)
         {
             if (activeButton == null) return;
 
@@ -283,7 +293,7 @@ namespace Meditrans.Client
                     btn.Tag = "Inactive";
             }
             activeButton.Tag = "Active";
-        }
+        }*/
 
         private void CloseAllTabsOfType(string headerText)
         {
@@ -341,5 +351,61 @@ namespace Meditrans.Client
             this.Close();
 
         }
+
+        // If you click twice on the same tab, this event is not fired.
+        // This peculiarity does not allow you to open 2 tabs of the same type if you click twice in a row on the same tab.
+        // The solution is to use the event instead: PreviewMouseLeftButtonUp
+        private void MenuTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (MenuTabControl.SelectedItem is TabItem selectedTab && selectedTab.Tag is MENU menu)
+            {
+                switch (menu)
+                {
+                    case MENU.Home:
+                        OpenTab("Home", new HomeView(), PackIconKind.HomeOutline);
+                        break;
+                    case MENU.Admin:
+                        OpenTab("Admin", new AdminView(), PackIconKind.AccountBoxOutline);
+                        break;
+                }
+
+            }
+        }
+
+        private void MenuTabControl_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            var clickedElement = e.OriginalSource as DependencyObject;
+            var tabItem = FindParent<TabItem>(clickedElement);
+
+            if (tabItem != null && tabItem.Tag is MENU selectedMenu)
+            {
+                switch (selectedMenu)
+                {
+                    case MENU.Home:
+                        OpenTab("Home", new HomeView(), PackIconKind.HomeOutline);
+                        break;
+                    case MENU.Admin:
+                        OpenTab("Admin", new AdminView(), PackIconKind.AccountBoxOutline);
+                        break;
+                }
+            }
+        }
+
+        // Utilidad para encontrar el padre del tipo especificado
+        private T FindParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            DependencyObject parentObject = VisualTreeHelper.GetParent(child);
+            if (parentObject == null) return null;
+            if (parentObject is T parent) return parent;
+            return FindParent<T>(parentObject);
+        }
+
     }
+
+    public enum MENU
+    {
+        Home,
+        Admin
+    }
+
 }

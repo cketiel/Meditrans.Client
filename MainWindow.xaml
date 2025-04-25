@@ -7,45 +7,89 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:materialDesignIcons="http://materialdesigninxaml.net/winfx/xaml/shared"
         mc:Ignorable="d"
-        Opacity="0.8"
-        Icon="/Assets/logo.png"
-        Title="Milanes Transport" Height="600" Width="800">
-    <Grid>
-        <DockPanel>
-            <!-- Menú horizontal superior -->
-            <StackPanel x:Name="MenuPanel" DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right" Background="{DynamicResource MaterialDesignDrawerBackgroundBrush}" Margin="0,0,0,5">
-                <Button x:Name="btnHome" Style="{StaticResource MenuButtonStyle}" Click="OpenHomeView">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <materialDesign:PackIcon Kind="HomeOutline" Width="20" Height="20" Margin="0,0,5,0"/>
-                        <TextBlock Text="Home" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
+        Title="Milanes Transport" Height="600" Width="800"
+        Icon="/Assets/logo.png">
 
-                <Button x:Name="btnAdmin" Style="{StaticResource MenuButtonStyle}" Click="OpenAdminView">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <materialDesign:PackIcon Kind="AccountBoxOutline" Width="20" Height="20" Margin="0,0,5,0"/>
-                        <TextBlock Text="Admin" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
+    <DockPanel>
 
-            </StackPanel>
+        <!-- Menú Superior -->
+        <Border Height="60" DockPanel.Dock="Top" Background="{DynamicResource MaterialDesign.Brush.Primary}">
+            <DockPanel LastChildFill="True">
 
-            <!-- Tab Container -->
-            <TabControl x:Name="MainTabControl" Grid.Row="1"
-                                                Margin="0"
-                                                HorizontalAlignment="Stretch"
-                                                VerticalAlignment="Stretch">
+                <!-- Usuario Logueado con icono -->
+                <StackPanel DockPanel.Dock="Left"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center"
+                            Margin="20,0,0,0"
+                            HorizontalAlignment="Left"
+                            >       
+
+                    <!-- Icono como avatar -->
+                    <Border Width="32" Height="32"
+                            Background="White"
+                            CornerRadius="16"
+                            VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="AccountCircle"
+                                 Width="24" Height="24"
+                                 Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"/>
+                    </Border>
+
+                    <!-- Nombre del usuario -->
+                    <TextBlock x:Name="UserNameTextBlock"
+                               VerticalAlignment="Center"
+                               Foreground="White"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Margin="10,0,0,0"
+                               Text="Hello, User" />
+                </StackPanel>
+
+
+                <TabControl x:Name="MenuTabControl" 
+                        HorizontalAlignment="Right"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Padding="10"
+                        Style="{StaticResource MaterialDesignNavigationRailTabControl}"
+                        TabStripPlacement="Top"
+                        materialDesign:ColorZoneAssist.Mode="PrimaryMid"
+                        materialDesign:NavigationRailAssist.SelectionCornerRadius="50 10 10 10"
+                        materialDesign:NavigationRailAssist.ShowSelectionBackground="True" PreviewMouseLeftButtonUp="MenuTabControl_PreviewMouseLeftButtonUp">
+
+                <TabItem x:Name="HomeTabMenu" Tag="{x:Static local:MENU.Home}">
+                    <TabItem.Header>
+                        
+                        <StackPanel>
+                            <materialDesign:PackIcon Kind="HomeOutline" Width="24" Height="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Home" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        
+                    </TabItem.Header>
+                </TabItem>
+
+                <TabItem x:Name="AdminTabMenu" Tag="{x:Static local:MENU.Admin}">
+                    <TabItem.Header>
+                        
+                        <StackPanel>
+                            <materialDesign:PackIcon Kind="AccountBoxOutline" Width="24" Height="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Admin" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        
+                    </TabItem.Header>
+                </TabItem>
 
             </TabControl>
 
+            </DockPanel>
+            
+        </Border>
 
-
-
-        </DockPanel>
-
-        <TextBlock Text="Bienvenido a Meditrans" 
-                   FontSize="24" 
-                   VerticalAlignment="Center" 
-                   HorizontalAlignment="Center"/>
-    </Grid>
+        <!-- Contenido principal -->
+        <TabControl x:Name="MainTabControl"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    />
+    </DockPanel>
 </Window>

@@ -31,8 +31,21 @@ namespace Meditrans.Client.Services
 
                     SessionManager.Clear();
 
-                    // Close all windows except the main one (if necessary)
+                    // Open login window
+                    var login = new LoginWindow();
+                    login.Show();
+
                     foreach (Window window in Application.Current.Windows)
+                    {
+                        // If it is not the login window, it closes
+                        if (window is not LoginWindow)
+                        {
+                            window.Close();
+                        }
+                    }
+
+                    // Close all windows except the main one (if necessary)
+                    /*foreach (Window window in Application.Current.Windows)
                     {
                         if (window != Application.Current.MainWindow)
                         {
@@ -42,12 +55,9 @@ namespace Meditrans.Client.Services
 
                     // Close the main window (in case we are in MainWindow or another)
                     Application.Current.MainWindow?.Close();
-
-                    // Open login window
-                    var login = new LoginWindow();
-                    login.Show();
+                                     
                 
-                    Application.Current.MainWindow = login;
+                    Application.Current.MainWindow = login;*/
 
                     return client;
                 }
