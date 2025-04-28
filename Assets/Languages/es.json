@@ -4,12 +4,12 @@
     "Schedules": "Horarios",
     "Dispatch": "Despacho",
     "Reports": "Reportes",
-    "Admin": "Administración",
-    "Menu.Language": "Idioma",
-    "Menu.Logout": "Cerrar sesión",
-    "Logout": "Cerrar sesión",
-    "HelloUser": "Hola, Usuario",
+    "Admin": "Admin",
+            
+    "Settings": "Ajustes",
 
-
-    "ChangeLanguage": "Cambiar Idioma"
+    "MenuChangeLanguage": "Cambiar Idioma",
+    "MenuEnglishLanguage": "Inglés",
+    "MenuSpanishLanguage": "Español",
+    "MenuLogout": "Cerrar sesión"
 }

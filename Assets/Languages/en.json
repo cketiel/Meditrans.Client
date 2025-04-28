@@ -5,10 +5,12 @@
     "Dispatch": "Dispatch",
     "Reports": "Reports",
     "Admin": "Admin",
-    "Menu.Language": "Language",
-    "Menu.Logout": "Logout",
-    "Logout": "Logout",
-    "HelloUser": "Hello, User",
+    
+    "Settings": "Settings",
 
-    "ChangeLanguage": "Change Language"
+    "MenuChangeLanguage": "Change Language",
+    "MenuEnglishLanguage": "English",
+    "MenuSpanishLanguage": "Spanish",
+    "MenuLogout": "Logout"
+
 }

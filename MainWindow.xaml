@@ -47,27 +47,63 @@
                                FontWeight="SemiBold"
                                Margin="10,0,0,0"
                                Text="Hello, User" />
+                   
 
-                    <!-- User name with ContextMenu -->
+                    <!-- Button with ContextMenu -->
                     <Button x:Name="UserMenuButton"
-        VerticalAlignment="Center"
-        Background="Transparent"
-        BorderThickness="0"
-        Foreground="White"
-        FontSize="14"
-        FontWeight="SemiBold"
-        Margin="10,0,0,0"
-        Content="{Binding LoggedUserName}"
-        ContextMenuService.IsEnabled="True"
-        Style="{StaticResource MaterialDesignFlatButton}">
+                            VerticalAlignment="Center"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="White"
+                            FontSize="14"
+                            FontWeight="SemiBold"
+                            Margin="10,0,0,0"
+                            
+                            ContextMenuService.IsEnabled="True"
+                            Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                            ToolTip="{Binding Settings}">
+
+                        <materialDesign:PackIcon
+                            Width="30"
+                            Height="30"
+                            Kind="Cog"
+                            />
+                        
                         <Button.ContextMenu>
                             <ContextMenu>
                                 <MenuItem Header="{Binding MenuChangeLanguage}" >
-                                    <MenuItem Header="Ingles" Command="{Binding ChangeLanguageCommand}" CommandParameter="en" />
-                                    <MenuItem Header="Español" Command="{Binding ChangeLanguageCommand}" CommandParameter="es"/>
+                                    <MenuItem.Icon>
+                                        <materialDesign:PackIcon Kind="Translate"/>
+                                    </MenuItem.Icon>
+                                    <MenuItem Command="{Binding ChangeLanguageCommand}" CommandParameter="en">
+                                        <MenuItem.Header>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Image Source="/Assets/icons/en.png" Width="20" Height="15" Margin="0,0,5,0"/>
+                                                <TextBlock Text="{Binding MenuEnglishLanguage}"/>
+                                                <materialDesign:PackIcon Kind="CheckBold" Foreground="Green" Margin="5,0,0,0"  Visibility="{Binding EnglishCheckVisibility}" />
+                                            </StackPanel>
+                                        </MenuItem.Header>
+                                        
+                                    </MenuItem>
+                                                             
+                                    <MenuItem Command="{Binding ChangeLanguageCommand}" CommandParameter="es">
+                                        <MenuItem.Header>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Image Source="/Assets/icons/es.png" Width="20" Height="15" Margin="0,0,5,0"/>
+                                                <TextBlock Text="{Binding MenuSpanishLanguage}"/>
+                                                <materialDesign:PackIcon Kind="CheckBold" Foreground="Green" Margin="5,0,0,0"  Visibility="{Binding SpanishCheckVisibility}" />
+                                                <!-- <TextBlock Text="✔" Visibility="{Binding SpanishCheckVisibility}" Margin="5,0,0,0" Foreground="Green"/>-->
+                                            </StackPanel>
+                                        </MenuItem.Header>
+                                    </MenuItem>
+                                    
                                 </MenuItem>
                                 <Separator/>
-                                <MenuItem Header="{helpers:Loc Logout}" Command="{Binding LogoutCommand}"/>
+                                <MenuItem Header="{Binding MenuLogout}" Command="{Binding LogoutCommand}">
+                                    <MenuItem.Icon>
+                                        <materialDesign:PackIcon Kind="LogoutVariant"/>
+                                    </MenuItem.Icon>
+                                </MenuItem>
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>
@@ -75,7 +111,7 @@
 
                 </StackPanel>
 
-
+                <!-- Main Menu -->
                 <TabControl x:Name="MenuTabControl" 
                         HorizontalAlignment="Right"
                         Background="Transparent"
@@ -92,7 +128,7 @@
                         
                             <StackPanel>
                                 <materialDesign:PackIcon Kind="HomeOutline" Width="24" Height="24" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Home" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding MainMenuHome}" HorizontalAlignment="Center"/>
                             </StackPanel>
                         
                         </TabItem.Header>
@@ -103,7 +139,7 @@
                         
                             <StackPanel>
                                 <materialDesign:PackIcon Kind="Database" Width="24" Height="24" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Data" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding MainMenuData}" HorizontalAlignment="Center"/>
                             </StackPanel>
                         
                         </TabItem.Header>
@@ -113,7 +149,7 @@
 
                             <StackPanel>
                                 <materialDesign:PackIcon Kind="TableClock" Width="24" Height="24" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Schedules" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding MainMenuSchedules}" HorizontalAlignment="Center"/>
                             </StackPanel>
 
                         </TabItem.Header>
@@ -124,7 +160,7 @@
 
                             <StackPanel>
                                 <materialDesign:PackIcon Kind="WrenchClock" Width="24" Height="24" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Dispatch" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding MainMenuDispatch}" HorizontalAlignment="Center"/>
                             </StackPanel>
 
                         </TabItem.Header>
@@ -134,7 +170,7 @@
 
                             <StackPanel>
                                 <materialDesign:PackIcon Kind="FileChart" Width="24" Height="24" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Reports" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding MainMenuReports}" HorizontalAlignment="Center"/>
                             </StackPanel>
 
                         </TabItem.Header>
@@ -145,7 +181,7 @@
 
                             <StackPanel>
                                 <materialDesign:PackIcon Kind="Security" Width="24" Height="24" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Admin" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding MainMenuAdmin}" HorizontalAlignment="Center"/>
                             </StackPanel>
 
                         </TabItem.Header>
