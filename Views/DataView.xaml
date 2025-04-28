@@ -3,10 +3,28 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
              xmlns:local="clr-namespace:Meditrans.Client.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-            
+        <!-- User name -->
+        <TextBlock x:Name="testtTextBlock"
+           VerticalAlignment="Center"
+           Foreground="Black"
+           FontSize="14"
+           FontWeight="SemiBold"
+           Margin="10,0,0,0"
+           Text="{helpers:Loc Logout}" />
+        
+        <TextBlock x:Name="testTextBlock"
+   VerticalAlignment="Center"
+   Foreground="Black"
+   FontSize="14"
+   FontWeight="SemiBold"
+   Margin="10,0,0,0"
+   Text="{Binding MenuLogout}" />
+
+
     </Grid>
 </UserControl>

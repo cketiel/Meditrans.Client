@@ -12,6 +12,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using MaterialDesignThemes.Wpf;
 using Meditrans.Client.Helpers;
+using Meditrans.Client.ViewModels;
 using Meditrans.Client.Views;
 
 namespace Meditrans.Client
@@ -26,6 +27,8 @@ namespace Meditrans.Client
         public MainWindow()
         {
             InitializeComponent();
+            this.DataContext = new MainWindowViewModel();
+
             OpenHomeView(null, null); // Load HomeView by default
             this.Loaded += MainWindow_Loaded;
 

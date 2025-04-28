@@ -5,6 +5,8 @@ using Meditrans.Client.Views;
 using Microsoft.Extensions.Configuration;
 using MaterialDesignThemes.Wpf;
 using MaterialDesignColors;
+using Meditrans.Client.Services;
+
 
 
 namespace Meditrans.Client
@@ -22,6 +24,11 @@ namespace Meditrans.Client
             login.WindowState = WindowState.Normal;
             login.Topmost = true;
             login.Show();
+
+            // Load saved language in Settings
+            var language = Meditrans.Client.Properties.Settings.Default.Language ?? "en";
+            //language = "en"; 
+            LocalizationService.Instance.LoadLanguage(language);
 
             // Load configuration from appsettings.json
             var builder = new ConfigurationBuilder()

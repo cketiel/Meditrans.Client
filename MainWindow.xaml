@@ -6,10 +6,13 @@
         xmlns:local="clr-namespace:Meditrans.Client"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:materialDesignIcons="http://materialdesigninxaml.net/winfx/xaml/shared"
+        xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
+
         mc:Ignorable="d"
         Title="Milanes Transport" Height="600" Width="800"
         Icon="/Assets/logo.png">
-
+  
+    
     <DockPanel>
 
         <!-- Top Menu -->
@@ -44,6 +47,32 @@
                                FontWeight="SemiBold"
                                Margin="10,0,0,0"
                                Text="Hello, User" />
+
+                    <!-- User name with ContextMenu -->
+                    <Button x:Name="UserMenuButton"
+        VerticalAlignment="Center"
+        Background="Transparent"
+        BorderThickness="0"
+        Foreground="White"
+        FontSize="14"
+        FontWeight="SemiBold"
+        Margin="10,0,0,0"
+        Content="{Binding LoggedUserName}"
+        ContextMenuService.IsEnabled="True"
+        Style="{StaticResource MaterialDesignFlatButton}">
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="{Binding MenuChangeLanguage}" >
+                                    <MenuItem Header="Ingles" Command="{Binding ChangeLanguageCommand}" CommandParameter="en" />
+                                    <MenuItem Header="Español" Command="{Binding ChangeLanguageCommand}" CommandParameter="es"/>
+                                </MenuItem>
+                                <Separator/>
+                                <MenuItem Header="{helpers:Loc Logout}" Command="{Binding LogoutCommand}"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+
+
                 </StackPanel>
 
 
@@ -134,4 +163,9 @@
                     VerticalAlignment="Stretch"/>
         
     </DockPanel>
+
+   
+    
 </Window>
+    
+
