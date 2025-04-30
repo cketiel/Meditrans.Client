@@ -37,8 +37,10 @@
     "DOB": "DOB",
     "Gender": "Gender",
     "Created": "Created",
-    "CreatedBy": "CreatedBy"
+    "CreatedBy": "CreatedBy",
 
-
+    "Employees": "Employees",
+    "Billing": "Billing",
+    "Profile": "Profile"
 
 }

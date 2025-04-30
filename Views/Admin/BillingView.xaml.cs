@@ -12,19 +12,17 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Meditrans.Client.ViewModels;
 
-namespace Meditrans.Client.Views
+namespace Meditrans.Client.Views.Admin
 {
     /// <summary>
-    /// Lógica de interacción para AdminView.xaml
+    /// Lógica de interacción para Billing.xaml
     /// </summary>
-    public partial class AdminView : UserControl
+    public partial class BillingView : UserControl
     {
-        public AdminView()
+        public BillingView()
         {
             InitializeComponent();
-            DataContext = new AdminViewModel();
         }
     }
 }

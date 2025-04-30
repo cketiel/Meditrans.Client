@@ -18,9 +18,9 @@ namespace Meditrans.Client.Views.Admin
     /// <summary>
     /// Lógica de interacción para Employees.xaml
     /// </summary>
-    public partial class Employees : UserControl
+    public partial class EmployeesView : UserControl
     {
-        public Employees()
+        public EmployeesView()
         {
             InitializeComponent();
         }

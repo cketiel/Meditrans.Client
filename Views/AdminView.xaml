@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:local="clr-namespace:Meditrans.Client.Views"
+             xmlns:views="clr-namespace:Meditrans.Client.Views.Admin"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
@@ -12,10 +13,30 @@
         BorderBrush="#2196f3"
         Background="White">
 
-        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            
+        <Grid Margin="16">
+
+            <TabControl  HorizontalAlignment="Stretch"
+                         VerticalAlignment="Stretch"
+                         HorizontalContentAlignment="Stretch"
+                         VerticalContentAlignment="Stretch">
+
+                <TabItem Header="{Binding Employees}">
+                    <views:EmployeesView />
+                </TabItem>
+
+
+                <TabItem Header="{Binding Billing}">
+                    <views:BillingView />
+                </TabItem>
+
+                <TabItem Header="{Binding Profile}">
+                    <views:ProfileView />
+                </TabItem>
+
+            </TabControl>
+
         </Grid>
-        
+
     </Border>
     
 </UserControl>

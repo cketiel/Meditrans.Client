@@ -37,5 +37,10 @@
     "DOB": "Fecha de nacimiento",
     "Gender": "Género",
     "Created": "Creado",
-    "CreatedBy": "Creado por"
+    "CreatedBy": "Creado por",
+
+    "Employees": "Empleados",
+    "Billing": "Facturación",
+    "Profile": "Perfil"
+
 }
