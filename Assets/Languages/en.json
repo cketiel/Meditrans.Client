@@ -41,6 +41,10 @@
 
     "Employees": "Employees",
     "Billing": "Billing",
-    "Profile": "Profile"
+    "Profile": "Profile",
+
+    "Runs": "Runs",
+    "ManageVehicles": "Manage Vehicles",
+    "ViolationSets": "Violation Sets"
 
 }

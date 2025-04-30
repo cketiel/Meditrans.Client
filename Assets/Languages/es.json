@@ -41,6 +41,10 @@
 
     "Employees": "Empleados",
     "Billing": "Facturación",
-    "Profile": "Perfil"
+    "Profile": "Perfil",
+
+    "Runs": "Rutas",
+    "ManageVehicles": "Administrar vehículos",
+    "ViolationSets": "Conjuntos de violaciones"
 
 }
