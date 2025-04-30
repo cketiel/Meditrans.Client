@@ -17,14 +17,14 @@ using Meditrans.Client.ViewModels;
 namespace Meditrans.Client.Views
 {
     /// <summary>
-    /// Lógica de interacción para DataView.xaml
+    /// Lógica de interacción para DataCustomersView.xaml
     /// </summary>
-    public partial class DataView : UserControl
+    public partial class DataCustomersView : UserControl
     {
-        public DataView()
+        public DataCustomersView()
         {
             InitializeComponent();
-            DataContext = new DataViewModel();
+            DataContext = new CustomersViewModel();
         }
     }
 }

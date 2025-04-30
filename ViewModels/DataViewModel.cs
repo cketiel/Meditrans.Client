@@ -9,6 +9,13 @@ namespace Meditrans.Client.ViewModels
 {
     public class DataViewModel : BaseViewModel
     {
-        public string MenuLogout => LocalizationService.Instance["Logout"];
+        #region Translation
+
+        public string Customers => LocalizationService.Instance["Customers"];
+        public string Scheduling => LocalizationService.Instance["Scheduling"];
+        public string Location => LocalizationService.Instance["Location"];
+        public string Other => LocalizationService.Instance["Other"];
+
+        #endregion
     }
 }

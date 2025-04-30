@@ -23,7 +23,7 @@
 
 
                 <!-- Custom styles -->
-                <ResourceDictionary Source="Styles/GeneralStyles.xaml"/>
+                <!--<ResourceDictionary Source="Styles/GeneralStyles.xaml"/>-->
 
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

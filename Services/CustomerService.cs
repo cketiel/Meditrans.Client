@@ -21,7 +21,31 @@ namespace Meditrans.Client.Services
             //_httpClient = new HttpClient();
             //_httpClient.BaseAddress = new Uri(URI);
         }
-      
+
+        public async Task<List<Customer>> LoadAllCustomersAsync() {
+
+            await Task.Delay(500); // Simula latencia
+            var customerList = new List<Customer>();
+            try
+            {
+                var response = await _httpClient.GetAsync(EndPoint);
+                if (response.IsSuccessStatusCode)
+                {
+                    customerList = await response.Content.ReadFromJsonAsync<List<Customer>>();
+
+                }
+            }
+            catch (Exception ex)
+            {
+                // throw exception 
+            }
+
+            return customerList;
+        }
+
+
+
+
         public async Task<List<Customer>> GetAllAsync()
         {
             var customerList = new List<Customer>();

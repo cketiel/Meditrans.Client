@@ -5,12 +5,40 @@
     "Dispatch": "Dispatch",
     "Reports": "Reports",
     "Admin": "Admin",
-    
+
     "Settings": "Settings",
 
     "MenuChangeLanguage": "Change Language",
     "MenuEnglishLanguage": "English",
     "MenuSpanishLanguage": "Spanish",
-    "MenuLogout": "Logout"
+    "MenuLogout": "Logout",
+
+    "Customers": "Customers",
+    "Scheduling": "Scheduling",
+    "Location": "Location",
+    "Other": "Other",
+
+    "FullName": "Full Name",
+    "Phone": "Phone",
+    "ClientCode": "Client Code",
+    "SelectFundingSource": "Select Funding Source",
+    "Search": "Search",
+    "ExcelExport": "Excel export",
+    "Edit": "Edit",
+    "Address": "Address",
+    "City": "City",
+    "State": "State",
+    "Zip": "Zip",
+    "MobilePhone": "Mobile Phone",
+    "PolicyNumber": "Policy #",
+    "FundingSource": "Funding Source",
+    "SpaceType": "Space Type",
+    "Email": "Email",
+    "DOB": "DOB",
+    "Gender": "Gender",
+    "Created": "Created",
+    "CreatedBy": "CreatedBy"
+
+
 
 }

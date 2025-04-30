@@ -10,6 +10,7 @@ namespace Meditrans.Client.Services
     public interface ICustomerService
     {
         //Task<List<Customer>> SearchCustomersAsync(string query);
+        Task<List<Customer>> LoadAllCustomersAsync();
         Task<List<Customer>> GetAllAsync();
         Task<Customer> GetCustomerByIdAsync(int id);
         Task<(bool Success, string Message)> CreateCustomerAsync(Customer customer);

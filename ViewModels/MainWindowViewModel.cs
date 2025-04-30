@@ -15,6 +15,7 @@ namespace Meditrans.Client.ViewModels
 
         public ICommand ChangeLanguageCommand { get; }
         public ICommand LogoutCommand { get; }
+        public ICommand SelectionChangedCommand { get; }
 
         #region Translation
 

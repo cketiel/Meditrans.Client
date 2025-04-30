@@ -12,6 +12,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using MaterialDesignThemes.Wpf;
 using Meditrans.Client.Helpers;
+using Meditrans.Client.Services;
 using Meditrans.Client.ViewModels;
 using Meditrans.Client.Views;
 
@@ -72,7 +73,7 @@ namespace Meditrans.Client
         private void OpenHomeView(object sender, RoutedEventArgs e)
         {
             //MainContent.Content = new HomeView();
-            OpenTab("Home", new HomeView(), PackIconKind.HomeOutline);
+            OpenTab(LocalizationService.Instance["Home"], new HomeView(), PackIconKind.HomeOutline);
             
             //SetActiveMenu(btnHome);
             CloseAllTabsOfType("Admin");
@@ -385,22 +386,22 @@ namespace Meditrans.Client
                 switch (selectedMenu)
                 {
                     case MENU.Home:
-                        OpenTab("Home", new HomeView(), PackIconKind.HomeOutline);
+                        OpenTab(LocalizationService.Instance["Home"], new HomeView(), PackIconKind.HomeOutline);
                         break;
                     case MENU.Data:
-                        OpenTab("Data", new DataView(), PackIconKind.Database);
+                        OpenTab(LocalizationService.Instance["Data"], new DataView(), PackIconKind.Database);
                         break;
                     case MENU.Schedules:
-                        OpenTab("Schedules", new SchedulesView(), PackIconKind.TableClock);
+                        OpenTab(LocalizationService.Instance["Schedules"], new SchedulesView(), PackIconKind.TableClock);
                         break;
                     case MENU.Dispatch:
-                        OpenTab("Dispatch", new DispatchView(), PackIconKind.WrenchClock);
+                        OpenTab(LocalizationService.Instance["Dispatch"], new DispatchView(), PackIconKind.WrenchClock);
                         break;
                     case MENU.Reports:
-                        OpenTab("Reports", new ReportsView(), PackIconKind.FileChart);
+                        OpenTab(LocalizationService.Instance["Reports"], new ReportsView(), PackIconKind.FileChart);
                         break;
                     case MENU.Admin:
-                        OpenTab("Admin", new AdminView(), PackIconKind.Security);
+                        OpenTab(LocalizationService.Instance["Admin"], new AdminView(), PackIconKind.Security);
                         break;
                 }
             }

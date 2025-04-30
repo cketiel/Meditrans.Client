@@ -5,11 +5,37 @@
     "Dispatch": "Despacho",
     "Reports": "Reportes",
     "Admin": "Admin",
-            
+
     "Settings": "Ajustes",
 
     "MenuChangeLanguage": "Cambiar Idioma",
     "MenuEnglishLanguage": "Inglés",
     "MenuSpanishLanguage": "Español",
-    "MenuLogout": "Cerrar sesión"
+    "MenuLogout": "Cerrar sesión",
+
+    "Customers": "Clientes",
+    "Scheduling": "Programación",
+    "Location": "Ubicación",
+    "Other": "Otro",
+
+    "FullName": "Nombre completo",
+    "Phone": "Teléfono",
+    "ClientCode": "Código de cliente",
+    "SelectFundingSource": "Seleccionar fuente de financiamiento",
+    "Search": "Buscar",
+    "ExcelExport": "Exportar a excel",
+    "Edit": "Editar",
+    "Address": "Dirección",
+    "City": "Ciudad",
+    "State": "Estado",
+    "Zip": "Zip",
+    "MobilePhone": "Teléfono móvil",
+    "PolicyNumber": "Política #",
+    "FundingSource": "Fuente de financiamiento",
+    "SpaceType": "Tipo de espacio",
+    "Email": "Correo electrónico",
+    "DOB": "Fecha de nacimiento",
+    "Gender": "Género",
+    "Created": "Creado",
+    "CreatedBy": "Creado por"
 }

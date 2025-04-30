@@ -12,19 +12,17 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Meditrans.Client.ViewModels;
 
 namespace Meditrans.Client.Views
 {
     /// <summary>
-    /// Lógica de interacción para DataView.xaml
+    /// Lógica de interacción para DataOtherView.xaml
     /// </summary>
-    public partial class DataView : UserControl
+    public partial class DataOtherView : UserControl
     {
-        public DataView()
+        public DataOtherView()
         {
             InitializeComponent();
-            DataContext = new DataViewModel();
         }
     }
 }

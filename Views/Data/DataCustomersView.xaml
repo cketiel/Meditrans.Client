@@ -1,0 +1,295 @@
+﻿<UserControl x:Class="Meditrans.Client.Views.DataCustomersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:local="clr-namespace:Meditrans.Client.Views"
+             xmlns:vm="clr-namespace:Meditrans.Client.ViewModels"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             Height="Auto" Width="Auto">
+
+    <UserControl.DataContext>
+        <vm:CustomersViewModel />
+    </UserControl.DataContext>
+
+    <Grid VerticalAlignment="Stretch"
+          HorizontalAlignment="Stretch">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Filters -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10" >
+
+            <TextBox Width="250" 
+                     materialDesign:HintAssist.Hint="{Binding FullNameText}"
+                     materialDesign:TextFieldAssist.HasClearButton="True"
+                     Margin="0,0,10,1"
+                     Text="{Binding FilterFullName, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBox Width="120" 
+                     materialDesign:HintAssist.Hint="{Binding PhoneText}"
+                     materialDesign:TextFieldAssist.HasClearButton="True"
+                     Margin="0,0,10,1"
+                     Text="{Binding FilterPhone, UpdateSourceTrigger=PropertyChanged}" />
+
+            <TextBox Width="120" 
+                     materialDesign:HintAssist.Hint="{Binding ClientCode}"
+                     materialDesign:TextFieldAssist.HasClearButton="True"
+                     Margin="0,0,10,1"
+                     Text="{Binding FilterClientCode, UpdateSourceTrigger=PropertyChanged}" />
+
+            <ComboBox x:Name="FundingSourceComboBox"
+                    materialDesign:TextFieldAssist.HasClearButton="True"
+                    ItemsSource="{Binding FundingSources}" 
+                    SelectedItem="{Binding SelectedFundingSource, Mode=TwoWay}" 
+                    DisplayMemberPath="Name" 
+                    SelectedValuePath="Id"
+                    Style="{StaticResource MaterialDesignComboBox}"
+                    Margin="0,10,10,1"
+                    materialDesign:HintAssist.Hint="{Binding SelectFundingSource}" />
+
+            <Button Command="{Binding SearchCommand}"
+                    Style="{StaticResource MaterialDesignRaisedButton}">
+                
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <materialDesign:PackIcon Kind="Magnify" Width="20" Height="20" Margin="0,0,4,0" />
+                    <TextBlock Text="{Binding Search}" />
+                </StackPanel>
+            </Button>
+
+        </StackPanel>
+
+        <!-- DATAGRID -->
+        <DataGrid Grid.Row="2" 
+                  ItemsSource="{Binding Customers}"
+                  SelectedItem="{Binding SelectedCustomer, Mode=TwoWay}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  AlternationCount="2"
+              
+                  
+                  GridLinesVisibility="Horizontal"
+                  HorizontalGridLinesBrush="{DynamicResource MaterialDesignDivider}"
+              
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch"
+                  Margin="0,5,0,0">
+            
+            <DataGrid.Columns>
+
+                <DataGridTemplateColumn Width="Auto">
+                    
+                    <!-- Header with Excel icon -->
+                    <DataGridTemplateColumn.HeaderTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding DataContext.ExportToExcelCommand,
+                                    RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                    Style="{StaticResource MaterialDesignToolButton}"
+                                    ToolTip="{Binding DataContext.ExcelExport, RelativeSource={RelativeSource AncestorType=local:DataCustomersView}}">
+                                <materialDesign:PackIcon Kind="MicrosoftExcel" Width="20" Height="20"/>
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.HeaderTemplate>
+                    
+                    <!-- Cells with edit icon -->
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding DataContext.EditCustomerCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                CommandParameter="{Binding}"
+                                Style="{StaticResource MaterialDesignToolButton}"
+                                ToolTip="{Binding DataContext.Edit, RelativeSource={RelativeSource AncestorType=local:DataCustomersView}}">
+                                <materialDesign:PackIcon Kind="Pencil" Width="20" Height="20" />
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    
+                </DataGridTemplateColumn>
+
+                <DataGridTextColumn Binding="{Binding FullName}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                              Text="{Binding DataContext.FullNameText,
+                                     RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              FontWeight="SemiBold"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Center"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Binding="{Binding Address}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                              Text="{Binding DataContext.AddressText,
+                                RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              FontWeight="SemiBold"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Center"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Binding="{Binding City}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                              Text="{Binding DataContext.CityText,
+                                RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              FontWeight="SemiBold"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Center"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Binding="{Binding State}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                              Text="{Binding DataContext.StateText,
+                                RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              FontWeight="SemiBold"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Center"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Binding="{Binding Zip}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                              Text="{Binding DataContext.ZipText,
+                                RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              FontWeight="SemiBold"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Center"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Binding="{Binding Phone}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                              Text="{Binding DataContext.PhoneText,
+                                RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              FontWeight="SemiBold"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Center"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Binding="{Binding MobilePhone}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                              Text="{Binding DataContext.MobilePhoneText,
+                                RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              FontWeight="SemiBold"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Center"/>        
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Binding="{Binding ClientCode}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                              Text="{Binding DataContext.ClientCodeText,
+                                RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              FontWeight="SemiBold"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Center"/>    
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Binding="{Binding PolicyNumber}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                              Text="{Binding DataContext.PolicyNumberText,
+                                RelativeSource={RelativeSource AncestorType=UserControl}}"
+                              FontWeight="SemiBold"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Center"/>        
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Binding="{Binding FundingSource.Name}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                                  Text="{Binding DataContext.FundingSourceText,
+                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                  FontWeight="SemiBold"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Center"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Binding="{Binding SpaceType.Name}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                                  Text="{Binding DataContext.SpaceTypeText,
+                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                  FontWeight="SemiBold"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Center"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Binding="{Binding Email}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                                  Text="{Binding DataContext.EmailText,
+                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                  FontWeight="SemiBold"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Center"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Binding="{Binding DOB, StringFormat=\{0:d\}}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                                  Text="{Binding DataContext.DOBText,
+                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                  FontWeight="SemiBold"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Center"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Binding="{Binding Gender}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                                  Text="{Binding DataContext.GenderText,
+                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                  FontWeight="SemiBold"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Center"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Binding="{Binding Created, StringFormat=\{0:g\}}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                                  Text="{Binding DataContext.CreatedText,
+                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                  FontWeight="SemiBold"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Center"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+
+                <DataGridTextColumn Binding="{Binding CreatedBy}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock
+                                  Text="{Binding DataContext.CreatedByText,
+                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                  FontWeight="SemiBold"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Center"/>
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+    
+</UserControl>
