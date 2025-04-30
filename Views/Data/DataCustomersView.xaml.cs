@@ -14,7 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Meditrans.Client.ViewModels;
 
-namespace Meditrans.Client.Views
+namespace Meditrans.Client.Views.Data
 {
     /// <summary>
     /// Lógica de interacción para DataCustomersView.xaml

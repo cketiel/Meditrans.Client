@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Meditrans.Client.Views
+namespace Meditrans.Client.Views.Data
 {
     /// <summary>
     /// Lógica de interacción para DataOtherView.xaml

@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Meditrans.Client.Views.Data
+namespace Meditrans.Client.Views.Admin
 {
     /// <summary>
-    /// Lógica de interacción para DataLocationView.xaml
+    /// Lógica de interacción para Employees.xaml
     /// </summary>
-    public partial class DataLocationView : UserControl
+    public partial class Employees : UserControl
     {
-        public DataLocationView()
+        public Employees()
         {
             InitializeComponent();
         }
