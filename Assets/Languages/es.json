@@ -45,6 +45,12 @@
 
     "Runs": "Rutas",
     "ManageVehicles": "Administrar vehículos",
-    "ViolationSets": "Conjuntos de violaciones"
+    "ViolationSets": "Conjuntos de violaciones",
+
+    "Vehicles": "Vehículos",
+    "SpaceTypes": "Tipos de espacio",
+    "Capacities": "Capacidades",
+    "Speeds": "Velocidades",
+    "Groups": "Grupos"
 
 }

@@ -11,20 +11,18 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using Meditrans.Client.ViewModels;
 using System.Windows.Shapes;
 
-namespace Meditrans.Client.Views.Data.Scheduling
+namespace Meditrans.Client.Views.Data.Scheduling.Vehicles
 {
     /// <summary>
-    /// Lógica de interacción para ManageVehiclesView.xaml
+    /// Lógica de interacción para SpaceTypesView.xaml
     /// </summary>
-    public partial class ManageVehiclesView : UserControl
+    public partial class SpaceTypesView : UserControl
     {
-        public ManageVehiclesView()
+        public SpaceTypesView()
         {
             InitializeComponent();
-            DataContext = new ManageVehiclesViewModel();
         }
     }
 }

@@ -45,6 +45,12 @@
 
     "Runs": "Runs",
     "ManageVehicles": "Manage Vehicles",
-    "ViolationSets": "Violation Sets"
+    "ViolationSets": "Violation Sets",
+
+    "Vehicles": "Vehicles",
+    "SpaceTypes": "Space Types",
+    "Capacities": "Capacities",
+    "Speeds": "Speeds",
+    "Groups": "Groups"
 
 }
