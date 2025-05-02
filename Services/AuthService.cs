@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
+using System.Windows;
 using Meditrans.Client.Models;
 
 namespace Meditrans.Client.Services
@@ -8,7 +9,9 @@ namespace Meditrans.Client.Services
     public class AuthService
     {
         private readonly HttpClient _httpClient;
-        private string URI = App.Configuration["ApiAddress:UsersService"];
+        private string URI = App.Configuration["ApiAddress:ApiTest"];
+        //private string URI = App.Configuration["ApiAddress:ApiService"];
+        //private string URI = App.Configuration["ApiAddress:UsersService"];
         public AuthService()
         {
             _httpClient = new HttpClient();

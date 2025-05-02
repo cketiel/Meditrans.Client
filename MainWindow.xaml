@@ -194,7 +194,7 @@
         </Border>
 
         <!-- Main content -->
-        <TabControl x:Name="MainTabControl"
+        <TabControl  x:Name="MainTabControl"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Stretch"/>
         
