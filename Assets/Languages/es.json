@@ -51,6 +51,15 @@
     "SpaceTypes": "Tipos de espacio",
     "Capacities": "Capacidades",
     "Speeds": "Velocidades",
-    "Groups": "Grupos"
+    "Groups": "Grupos",
+
+    "SpaceTypeName": "Tipo de espacio",
+    "Description": "Descripción",
+    "LoadTime": "Tiempo de carga",
+    "UnloadTime": "Tiempo de descarga",
+    "CapacityType": "Tipo de capacidad",
+    "Inactive": "Inactivo",
+    "AddSpaceType": "Agregar tipo de espacio",
+    "DeleteSpaceType": "Eliminar tipo de espacio"
 
 }

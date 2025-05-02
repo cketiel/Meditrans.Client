@@ -207,12 +207,12 @@ namespace Meditrans.Client
             MainTabControl.Items.Add(tabItem);
             MainTabControl.SelectedItem = tabItem;
             MainTabControl.HorizontalContentAlignment = HorizontalAlignment.Left;
-            MainTabControl.TabStripPlacement = Dock.Bottom;
+            /*MainTabControl.TabStripPlacement = Dock.Bottom;
             var style = this.FindResource("MaterialDesignFilledTabControl") as Style;
             if (style != null)
             {
                 MainTabControl.Style = style;
-            }
+            }*/
 
         }
         private void CloseTabWithAnimation(TabItem tabItem)
