@@ -1,0 +1,28 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Base colors -->
+    <Color x:Key="BorderColor">#bbdefb</Color>
+    <Color x:Key="HoverBorderColor">#bbdefb</Color>
+
+    <Color x:Key="HeaderBackgroundColor">#E2E5E8</Color>
+    <Color x:Key="SelectedBackgroundColor">#D5E9F1</Color>
+    <Color x:Key="EvenRowBackgroundColor">#F1F4F8</Color>
+    <Color x:Key="OddRowBackgroundColor">#FFFFFF</Color>
+    
+    <!--<Color x:Key="HeaderBackgroundColor">#CFDCEC</Color>
+    <Color x:Key="SelectedBackgroundColor">#E5F3FF</Color>
+    <Color x:Key="EvenRowBackgroundColor">#FEFEFE</Color>
+    <Color x:Key="OddRowBackgroundColor">#F1F1F1</Color>-->
+       
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}"/>
+    <SolidColorBrush x:Key="HoverBorderBrush" Color="{StaticResource HoverBorderColor}"/>
+
+    <SolidColorBrush x:Key="HeaderBackgroundBrush" Color="{StaticResource HeaderBackgroundColor}"/>
+    <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="{StaticResource SelectedBackgroundColor}"/>
+    <SolidColorBrush x:Key="EvenRowBackgroundBrush" Color="{StaticResource EvenRowBackgroundColor}"/>
+    <SolidColorBrush x:Key="OddRowBackgroundBrush" Color="{StaticResource OddRowBackgroundColor}"/>
+
+</ResourceDictionary>

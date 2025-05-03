@@ -21,6 +21,7 @@
         <!-- vmProxy “captures” the current DataContext (SpacrTypeViewModel) -->
         <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
         <helpers:MinutesToTimeStringConverter x:Key="MinutesConverter" />
+
     </UserControl.Resources>
 
 
@@ -28,20 +29,30 @@
             BorderBrush="#2196f3"
             Background="White">
 
-        <Grid Margin="16"
+        <Grid Margin="4"
               VerticalAlignment="Stretch"
               HorizontalAlignment="Stretch">
 
             <!-- DATAGRID -->
             <DataGrid x:Name="SpaceTypesDataGrid"
+                      
                       ItemsSource="{Binding SpaceTypes}"
                       SelectedItem="{Binding SelectedSpaceType, Mode=TwoWay}"
                       SelectionMode="Single"
                       AutoGenerateColumns="False"
-                      IsReadOnly="True"
+                      IsReadOnly="False"
                       AlternationCount="2"
-                      AlternatingRowBackground="Green"
-                      GridLinesVisibility="Vertical">
+                      AlternatingRowBackground="White"
+                      
+                      
+                      Style="{StaticResource CustomDataGridStyle}"
+                      ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                      RowStyle="{StaticResource CustomRowStyle}"
+                      CellStyle="{StaticResource CustomCellStyle}"
+                      SelectionUnit="FullRow"
+                      
+                      
+                      >
 
                 <DataGrid.Columns>
 
@@ -65,6 +76,7 @@
                                 <Button Command="{Binding DataContext.DeleteSpaceTypeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}"
                                         Style="{StaticResource MaterialDesignToolButton}"
+                                        VerticalAlignment="Center"
                                         ToolTip="{Binding DataContext.DeleteSpaceTypeToolTip, RelativeSource={RelativeSource AncestorType=local:SpaceTypesView}}"> 
                                     <materialDesign:PackIcon Kind="DeleteForever" Width="20" Height="20" />
                                 </Button>

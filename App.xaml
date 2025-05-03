@@ -11,19 +11,12 @@
 
                 <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="DeepPurple" SecondaryColor="Lime" />
 
-                <!-- Tema base -->
-                <!-- <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" /> -->
+                <!-- Base theme-->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
 
-                <!-- Recommended colors -->
-                <!--<ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.DeepPurple.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Teal.xaml"/>
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Pink.xaml" /> -->
-
-
-
                 <!-- Custom styles -->
-                <!--<ResourceDictionary Source="Styles/GeneralStyles.xaml"/>-->
+                <ResourceDictionary Source="Styles/Colors.xaml"/>
+                <ResourceDictionary Source="Styles/CustomDataGridStyles.xaml"/>
 
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
