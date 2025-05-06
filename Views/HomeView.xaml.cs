@@ -476,5 +476,37 @@ namespace Meditrans.Client.Views
             await MapaWebView.ExecuteScriptAsync("prepareNewCustomer();");
 
         }
+
+        private void CustomersAutoSuggestBox_SuggestionChosen(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            //MessageBox.Show((DataContext as HomeViewModel).FilteredCustomers.Count().ToString() + " cantidad de customer c");
+            if (DataContext is HomeViewModel vm)
+            {
+                //MessageBox.Show(e.NewValue.ToString() + " new value");
+                //MessageBox.Show(vm.FilteredCustomers[0]?.FullName.ToString() + " FilteredCustomers");
+                //vm.SelectedCustomer = e.NewValue as Customer;
+
+                Customer customer = vm.Customers.FirstOrDefault(c => c.Id == int.Parse(e.NewValue.ToString()));
+
+               // MessageBox.Show(a?.FullName + " a.FullName");
+                vm.SelectedCustomer = customer;
+                vm.SearchText = customer?.FullName;
+
+                //vm.flag = true;
+              
+
+               // MessageBox.Show(vm.SelectedCustomer?.FullName + " nombre");
+
+                
+
+
+            }
+           
+        }
+
+        private void CustomersAutoSuggestBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            
+        }
     }
 }

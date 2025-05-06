@@ -12,7 +12,7 @@ namespace Meditrans.Client.Models
     {
         public int Id { get; set; }
         [Required]
-        public string FullName { get; set; }
+        public string FullName { get; set; } = string.Empty;
         [Required]
         public string Address { get; set; }
         [Required]
@@ -21,9 +21,9 @@ namespace Meditrans.Client.Models
         public string State { get; set; }
         [Required]
         public string Zip { get; set; }
-        public string? Phone { get; set; }
+        public string? Phone { get; set; } = string.Empty;
         public string? MobilePhone { get; set; }
-        public string? ClientCode { get; set; }
+        public string? ClientCode { get; set; } = string.Empty;
         public string? PolicyNumber { get; set; }
         [Required]
         public int FundingSourceId { get; set; }
@@ -40,11 +40,12 @@ namespace Meditrans.Client.Models
         [Required]
         public string CreatedBy { get; set; }
         public ICollection<Trip> Trips { get; set; }
-        public override string ToString()
+
+        /*public override string ToString()
         {
-            // Esto se usa para mostrar el texto por defecto si no se especifica DisplayMemberPath
+            // This is used to display the default text if DisplayMemberPath is not specified
             return $"{FullName} ({ClientCode}) - {MobilePhone}";
-        }
+        }*/
 
     }
 }

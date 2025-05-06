@@ -40,7 +40,7 @@
                       SelectedItem="{Binding SelectedSpaceType, Mode=TwoWay}"
                       SelectionMode="Single"
                       AutoGenerateColumns="False"
-                      IsReadOnly="False"
+                      IsReadOnly="True"
                       AlternationCount="2"
                       AlternatingRowBackground="White"
                       

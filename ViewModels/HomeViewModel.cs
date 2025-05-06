@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -16,9 +17,9 @@ using Meditrans.Client.Services;
 
 namespace Meditrans.Client.ViewModels
 {
-    public class HomeViewModel : INotifyPropertyChanged
+    public class HomeViewModel : BaseViewModel
     {
-        protected virtual bool SetProperty<T>(ref T member, T value, [CallerMemberName] string? propertyName = null)
+        /*protected virtual bool SetProperty<T>(ref T member, T value, [CallerMemberName] string? propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(member, value))
             {
@@ -28,7 +29,7 @@ namespace Meditrans.Client.ViewModels
             member = value;
             OnPropertyChanged(propertyName);
             return true;
-        }
+        }*/
 
         private string? _name;
         public string? Name
@@ -37,7 +38,7 @@ namespace Meditrans.Client.ViewModels
             set => SetProperty(ref _name, value);
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        //public event PropertyChangedEventHandler PropertyChanged;
 
         //public ObservableCollection<Trip> Trips { get; set; }
         private ObservableCollection<Trip> _trips;
@@ -64,8 +65,59 @@ namespace Meditrans.Client.ViewModels
 
         #region Customer
 
+        private ObservableCollection<Customer> _customers;
+        private ObservableCollection<Customer> _filteredCustomers;
         private Customer _selectedCustomer;
+        private string _searchText;
+
+        public ObservableCollection<Customer> Customers
+        {
+            get => _customers;           
+            set
+            {
+                _customers = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<Customer> FilteredCustomers
+        {
+            get => _filteredCustomers;
+            //set => SetProperty(ref _filteredCustomers, value);
+            set
+            {
+                _filteredCustomers = value;
+                OnPropertyChanged();
+            }
+        }
+
         public Customer SelectedCustomer
+        {
+            get => _selectedCustomer;
+            /*set
+            {
+                _selectedCustomer = value; MessageBox.Show("entro en Set Selected Customer " + value?.FullName);
+                if (SetProperty(ref _selectedCustomer, value))
+                {
+                    // Lógica adicional al seleccionar
+                }
+            }*/
+            set
+            {
+                _selectedCustomer = value; //MessageBox.Show("entro");
+                OnPropertyChanged();              
+                if (value != null)
+                {
+                    SearchText = value.FullName; 
+                }
+                //OnPropertyChanged(nameof(true));
+                //OnPropertyChanged(nameof(IsCustomerSelected));
+               // OnPropertyChanged(nameof(FullName));
+            }
+        }
+       // public bool IsCustomerSelected => SelectedCustomer != null;
+
+        /*public Customer SelectedCustomer
         {
             get => _selectedCustomer;
             set
@@ -77,7 +129,43 @@ namespace Meditrans.Client.ViewModels
                     FillCustomerFields(value);
                 }
             }
+        }*/
+
+        public string SearchText
+        {
+            get => _searchText;
+            /*set
+            {
+                if (SetProperty(ref _searchText, value))
+                {
+                    FilterCustomers();
+                }
+            }*/
+            set
+            {
+                _searchText = value;
+                OnPropertyChanged();
+                if (string.IsNullOrEmpty(value))
+                {
+                    SelectedCustomer = null; //MessageBox.Show("SearchText null");
+                    flag = true;
+                } 
+                //if(flag)
+                    FilterCustomers();
+                //flag = false;
+            }
         }
+
+        public bool flag = true;
+
+
+
+
+        // --------------
+
+
+
+
 
         private string _customerSearchText;
         public string CustomerSearchText
@@ -91,8 +179,9 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
-        public ObservableCollection<Customer> Customers { get; set; } = new();
-        public ObservableCollection<Customer> FilteredCustomers { get; set; } = new();
+        //public ObservableCollection<Customer> Customers { get; set; } = new();
+
+        //public ObservableCollection<Customer> FilteredCustomers { get; set; } = new();
 
         // Campos individuales para edición
         public string FullName { get; set; }
@@ -155,6 +244,13 @@ namespace Meditrans.Client.ViewModels
 
             LoadData();
 
+            // Suscripción manual para debug
+            /*this.PropertyChanged += (s, e) => {
+                if (e.PropertyName == nameof(SelectedCustomer))
+                    MessageBox.Show($"Customer seleccionado: {SelectedCustomer?.FullName}");
+                    //Debug.WriteLine($"Customer seleccionado: {SelectedCustomer?.FullName}");
+            };*/
+
 
             //GetTrips();
             /*var trips = new ObservableCollection<Trip>
@@ -172,11 +268,12 @@ namespace Meditrans.Client.ViewModels
 
         private async void LoadData()
         {
-            LoadFundingSourcesAsync();
-            LoadSpaceTypesAsync();
+            await LoadFundingSourcesAsync();
+            await LoadSpaceTypesAsync();
 
-            LoadCustomersFromApi();
-            FilteredCustomers = Customers;
+            await LoadCustomersFromApi();
+
+            //FilteredCustomers = Customers;
             //UpdateFilteredCustomers();
 
             // Simular algunos viajes
@@ -204,16 +301,45 @@ namespace Meditrans.Client.ViewModels
             foreach (var source in sources)
                 FundingSources.Add(source);
         }
-
         public async Task LoadCustomersFromApi()
         {
+            _customers = new ObservableCollection<Customer>();
+
             var customerService = new CustomerService();
             var sources = await customerService.GetAllAsync();
-            Customers.Clear();
+            foreach (var source in sources)
+                _customers.Add(source);
+
+            Customers = new ObservableCollection<Customer>(_customers);
+            FilteredCustomers = new ObservableCollection<Customer>(_customers);
+            
+            /*Customers.Clear();
             foreach (var source in sources)
                 Customers.Add(source);
 
-            SelectedCustomer = Customers.First();
+            SelectedCustomer = Customers.First();*/
+
+
+        }
+
+        private void FilterCustomers()
+        {
+            if (string.IsNullOrWhiteSpace(SearchText))
+            {
+                FilteredCustomers = new ObservableCollection<Customer>(_customers);
+                return;
+            }
+
+            var searchLower = SearchText.Trim().ToLower();  // Optimization: pre-process the text. Avoid multiple calls to Trim() and ToLower()
+            //Other type of filter (c.FullName.StartsWith)
+            var filtered = _customers
+                .Where(c => (c.FullName?.Contains(searchLower, StringComparison.OrdinalIgnoreCase) ?? false)
+                         || (c.ClientCode?.Contains(searchLower, StringComparison.OrdinalIgnoreCase) ?? false)
+                         || (c.Phone?.Contains(searchLower, StringComparison.OrdinalIgnoreCase) ?? false))
+                .ToList();
+
+            FilteredCustomers = new ObservableCollection<Customer>(filtered);
+            //MessageBox.Show(FilteredCustomers.Count().ToString() + " cantidad de customer");
         }
 
         private void UpdateFilteredCustomers()
@@ -350,10 +476,10 @@ namespace Meditrans.Client.ViewModels
         }
 
         
-        protected void OnPropertyChanged([CallerMemberName] string name = null)
+        /*protected void OnPropertyChanged([CallerMemberName] string name = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }
+        }*/
 
     }
 }
