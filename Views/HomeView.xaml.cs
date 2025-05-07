@@ -446,6 +446,7 @@ namespace Meditrans.Client.Views
                 MapaWebView.SetValue(Grid.ColumnProperty, 4); // El mapa se mueve a la columna 5 (índice 4)
                 BillingPanel.Visibility = Visibility.Visible;
                 ForDateCalendar.Visibility = Visibility.Visible;
+                
 
                 // Hide travel filter
                 TripFilterPanel.Visibility = Visibility.Collapsed;
@@ -507,6 +508,16 @@ namespace Meditrans.Client.Views
         private void CustomersAutoSuggestBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             
+        }
+
+        private void AppointmentRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            BillingSectionTabItem.Header = TripType.Appointment + " " + ForDateCalendar.SelectedDate.Value.Date.ToShortDateString() + " " + "Hora";
+        }
+
+        private void ReturnRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            BillingSectionTabItem.Header = TripType.Return + " " + ForDateCalendar.SelectedDate.Value.Date.ToShortDateString() + " " + "Hora";
         }
     }
 }

@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 
 namespace Meditrans.Client.Models
 {
+    public static class Gender
+    {
+        public static string Male = "Male";
+        public static string Female = "Female";
+    }
     public class Customer
     {
         public int Id { get; set; }

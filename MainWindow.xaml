@@ -13,7 +13,7 @@
         Icon="/Assets/logo.png">
   
     
-    <DockPanel>
+    <DockPanel Background="Transparent">
 
         <!-- Top Menu -->
         <Border Height="60" DockPanel.Dock="Top" Background="{DynamicResource MaterialDesign.Brush.Primary}">

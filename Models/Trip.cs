@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 
 namespace Meditrans.Client.Models
 {
+    public static class TripType
+    {
+        public static string Appointment = "Appointment";
+        public static string Return = "Return";
+    }
     public class Trip
     {
         public int Id { get; set; }

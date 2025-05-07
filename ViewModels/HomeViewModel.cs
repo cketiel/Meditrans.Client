@@ -19,6 +19,46 @@ namespace Meditrans.Client.ViewModels
 {
     public class HomeViewModel : BaseViewModel
     {
+        public string TextHeaderBillingSection;
+
+        private bool _genderMale;
+        public bool GenderMale
+        {
+            get => _genderMale;
+            set
+            {
+                _genderMale = value;
+                OnPropertyChanged();
+            }
+        }
+        private bool _genderFemale;
+        public bool GenderFemale
+        {
+            get => _genderFemale;
+            set
+            {
+                _genderFemale = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private DateTime _filterDate;
+        public DateTime FilterDate
+        {
+            get => _filterDate;
+            set
+            {
+                _filterDate = value;
+                OnPropertyChanged();
+            }
+            /*set
+            {
+                _filterDate = value;
+                OnPropertyChanged(nameof(FilterDate));
+            }*/
+        }
+
+
         /*protected virtual bool SetProperty<T>(ref T member, T value, [CallerMemberName] string? propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(member, value))
@@ -104,15 +144,28 @@ namespace Meditrans.Client.ViewModels
             }*/
             set
             {
-                _selectedCustomer = value; //MessageBox.Show("entro");
+                _selectedCustomer = value; 
                 OnPropertyChanged();              
                 if (value != null)
                 {
                     SearchText = value.FullName; 
                 }
-                //OnPropertyChanged(nameof(true));
-                //OnPropertyChanged(nameof(IsCustomerSelected));
-               // OnPropertyChanged(nameof(FullName));
+                if(_selectedCustomer != null)
+                {
+                    SelectedSpaceType = SpaceTypes.FirstOrDefault(s => s.Id == _selectedCustomer.SpaceTypeId);
+                    SelectedFundingSource = FundingSources.FirstOrDefault(f => f.Id == _selectedCustomer.FundingSourceId);
+                    // That doesn't work
+                    //SelectedFundingSource = (FundingSource)_selectedCustomer.FundingSource;
+                    GenderMale = _selectedCustomer.Gender == Gender.Male;
+                    GenderFemale = _selectedCustomer.Gender == Gender.Female;
+                }
+                else
+                {
+                    SelectedSpaceType = null;
+                    SelectedFundingSource = null;
+                }
+
+
             }
         }
        // public bool IsCustomerSelected => SelectedCustomer != null;
@@ -184,7 +237,7 @@ namespace Meditrans.Client.ViewModels
         //public ObservableCollection<Customer> FilteredCustomers { get; set; } = new();
 
         // Campos individuales para edición
-        public string FullName { get; set; }
+        /*public string FullName { get; set; }
         public string ClientCode { get; set; }
         public string Address { get; set; }
         public string City { get; set; }
@@ -193,7 +246,7 @@ namespace Meditrans.Client.ViewModels
         public string Phone { get; set; }
         public string MobilePhone { get; set; }
         public DateTime? DOB { get; set; } = DateTime.Today;
-        public string Gender { get; set; } = "Male";
+        public string Gender { get; set; } = "Male";*/
 
         // Space Types
         public ObservableCollection<SpaceType> SpaceTypes { get; set; } = new();
@@ -237,7 +290,9 @@ namespace Meditrans.Client.ViewModels
 
         public HomeViewModel() {
 
-            SaveCustomerCommand = new RelayCommand(SaveCustomer);
+            FilterDate = DateTime.Today; // DateTime.Now
+
+            //SaveCustomerCommand = new RelayCommand(SaveCustomer);
             NewCustomerCommand = new RelayCommand(NewCustomer);
             ImportCommand = new RelayCommand(ImportTrips);
             ExportCommand = new RelayCommand(ExportTrips);
@@ -357,7 +412,7 @@ namespace Meditrans.Client.ViewModels
                 FilteredCustomers.Add(c);
         }
 
-        private void FillCustomerFields(Customer customer)
+        /*private void FillCustomerFields(Customer customer)
         {
             FullName = customer.FullName;
             ClientCode = customer.ClientCode;
@@ -384,11 +439,11 @@ namespace Meditrans.Client.ViewModels
             OnPropertyChanged(nameof(Gender));
             OnPropertyChanged(nameof(SelectedSpaceType));
             OnPropertyChanged(nameof(SelectedFundingSource));
-        }
+        }*/
 
         private void SaveCustomer()
         {
-            if (SelectedCustomer == null)
+            /*if (SelectedCustomer == null)
             {
                 var newCustomer = new Customer();
                 Customers.Add(newCustomer);
@@ -408,12 +463,12 @@ namespace Meditrans.Client.ViewModels
             //SelectedCustomer.SpaceType = SelectedSpaceType;
             //SelectedCustomer.FundingSource = SelectedFundingSource;
 
-            UpdateFilteredCustomers();
+            UpdateFilteredCustomers();*/
         }
 
         private void NewCustomer()
         {
-            SelectedCustomer = null;
+            /*SelectedCustomer = null;
             FullName = "";
             ClientCode = "";
             Address = "";
@@ -438,7 +493,7 @@ namespace Meditrans.Client.ViewModels
             OnPropertyChanged(nameof(DOB));
             OnPropertyChanged(nameof(Gender));
             OnPropertyChanged(nameof(SelectedSpaceType));
-            OnPropertyChanged(nameof(SelectedFundingSource));
+            OnPropertyChanged(nameof(SelectedFundingSource));*/
         }
 
         private void ImportTrips()

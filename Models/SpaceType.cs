@@ -27,5 +27,9 @@ namespace Meditrans.Client.Models
         public ICollection<Trip> Trips { get; set; }
         public ICollection<CapacityDetail> CapacityDetails { get; set; }
         public ICollection<FundingSourceBillingItem> FundingSourceBillingItems { get; set; }
+
+        public SpaceType() {
+            this.ShowNameDescription = this.Description + " " + this.Name;
+        }
     }
 }
