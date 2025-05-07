@@ -60,6 +60,26 @@
     "CapacityType": "Capacity Type",
     "Inactive": "Inactive",
     "AddSpaceType": "Add Space Type",
-    "DeleteSpaceType": "Delete Space Type"
+    "DeleteSpaceType": "Delete Space Type",
+
+    "BillingSection": "This is the way to group the translations corresponding to Billing Section",
+    "Charges": "Charges",
+    "History": "History",
+    "Signature": "Signature",
+    "TotalTripChargeTextLabel": "Total Trip Charge",
+    "DistanceTextLabel": "Distance",
+    "Imported": "Imported",
+    "Routed": "Routed",
+    "SelectedChargesTextLabel": "Selected Charges",
+    "AllowUpdateText": "Allow Update",
+    "ChargesDescriptionText": "Description",
+    "ChargesRateText": "Rate",
+    "ChargesQtyText": "Qty",
+    "ChargesPerText": "Unit",
+    "ChargesProcedureCodeText": "Code",
+    "ChargesCostText": "Cost",
+    "NonDefaultChargesTextLabel": "Available, Non-default Charges",
+    "IsDefaultText": "Is Default",
+    "Authorization": "Authorization"
 
 }

@@ -60,6 +60,26 @@
     "CapacityType": "Tipo de capacidad",
     "Inactive": "Inactivo",
     "AddSpaceType": "Agregar tipo de espacio",
-    "DeleteSpaceType": "Eliminar tipo de espacio"
+    "DeleteSpaceType": "Eliminar tipo de espacio",
+
+    "BillingSection": "Esta es la forma de agrupar las traducciones correspondientes a la Sección de Facturación.",
+    "Charges": "Cargos",
+    "History": "Historia",
+    "Signature": "Firma",
+    "TotalTripChargeTextLabel": "Cargo Total del Viaje",
+    "DistanceTextLabel": "Distancia",
+    "Imported": "Importado",
+    "Routed": "Enrutado",
+    "SelectedChargesTextLabel": "Cargos Seleccionados",
+    "AllowUpdateText": "Permitir Actualización",
+    "ChargesDescriptionText": "Descripción",
+    "ChargesRateText": "Tarifa",
+    "ChargesQtyText": "Cant",
+    "ChargesPerText": "Unidad",
+    "ChargesProcedureCodeText": "Código",
+    "ChargesCostText": "Costo",
+    "NonDefaultChargesTextLabel": "Cargos disponibles, no predeterminados",
+    "IsDefaultText": "Es predeterminado",
+    "Authorization": "Autorización"
 
 }
