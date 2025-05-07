@@ -35,9 +35,13 @@ namespace Meditrans.Client.ViewModels
         public string ChargesDescriptionText => LocalizationService.Instance["ChargesDescriptionText"]; // Description
         public string ChargesRateText => LocalizationService.Instance["ChargesRateText"]; // Rate
         public string ChargesQtyText => LocalizationService.Instance["ChargesQtyText"]; // Qty
-        public string ChargesPerText => LocalizationService.Instance["ChargesPerText"]; // Per
+        public string ChargesPerText => LocalizationService.Instance["ChargesPerText"]; // Unit
+        public string ChargesProcedureCodeText => LocalizationService.Instance["ChargesProcedureCodeText"]; // Code
         public string ChargesCostText => LocalizationService.Instance["ChargesCostText"]; // Cost
-
+        public string NonDefaultChargesTextLabel => LocalizationService.Instance["NonDefaultChargesTextLabel"]; // Available, Non-default Charges
+        public string IsDefaultText => LocalizationService.Instance["IsDefaultText"]; // Is Default
+        public string FundingSourceText => LocalizationService.Instance["FundingSource"];
+        public string AuthorizationText => LocalizationService.Instance["Authorization"];
 
         #endregion
 
@@ -88,6 +92,7 @@ namespace Meditrans.Client.ViewModels
                 OnPropertyChanged();
             }
         }
+        
         private string _eta;
         public string ETA
         {
@@ -121,6 +126,8 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
+        private FundingSourceBillingItem _allFundingSourceBillingItem;
+
         private FundingSourceBillingItem _charges;
         public FundingSourceBillingItem SelectedCharges // Hay que armar Qty y Cost segun el tipo de BillingItem. Y Se debe actualizar cuando se editen: Distance, Pickup Address, Dropoof Address, (ya que en estos 2 ultimos se recalcula la distacia)
         {
@@ -128,6 +135,28 @@ namespace Meditrans.Client.ViewModels
             set
             {
                 _charges = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private FundingSourceBillingItem _nonDefaultCharges;
+        public FundingSourceBillingItem NonDefaultCharges
+        {
+            get => _nonDefaultCharges;
+            set
+            {
+                _nonDefaultCharges = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _authorization;
+        public string Authorization
+        {
+            get => _authorization;
+            set
+            {
+                _authorization = value;
                 OnPropertyChanged();
             }
         }
