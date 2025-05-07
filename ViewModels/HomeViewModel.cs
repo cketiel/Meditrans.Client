@@ -19,7 +19,120 @@ namespace Meditrans.Client.ViewModels
 {
     public class HomeViewModel : BaseViewModel
     {
-        public string TextHeaderBillingSection;
+        #region Translation
+
+        // Billing section
+        public string Charges => LocalizationService.Instance["Charges"];
+        public string History => LocalizationService.Instance["History"];
+        public string Signature => LocalizationService.Instance["Signature"];
+        public string TotalTripChargeTextLabel => LocalizationService.Instance["TotalTripChargeTextLabel"]; // Total Trip Charge
+        public string DistanceTextLabel => LocalizationService.Instance["DistanceTextLabel"]; // Distance
+        public string Imported => LocalizationService.Instance["Imported"];
+        public string Routed => LocalizationService.Instance["Routed"];
+        public string SelectedChargesTextLabel => LocalizationService.Instance["SelectedChargesTextLabel"]; // Selected Charges
+        public string AllowUpdateText => LocalizationService.Instance["AllowUpdateText"]; // Allow Update
+
+        public string ChargesDescriptionText => LocalizationService.Instance["ChargesDescriptionText"]; // Description
+        public string ChargesRateText => LocalizationService.Instance["ChargesRateText"]; // Rate
+        public string ChargesQtyText => LocalizationService.Instance["ChargesQtyText"]; // Qty
+        public string ChargesPerText => LocalizationService.Instance["ChargesPerText"]; // Per
+        public string ChargesCostText => LocalizationService.Instance["ChargesCostText"]; // Cost
+
+
+        #endregion
+
+        #region Billing Section
+
+        private string _textHeaderBillingSection;
+        public string TextHeaderBillingSection
+        {
+            get => _textHeaderBillingSection;
+            set
+            {
+                _textHeaderBillingSection = value;
+                OnPropertyChanged();
+            }
+        }
+       
+        private double _totalTripCharge;  
+        public double TotalTripCharge
+        {
+            //get => "$" + _textTotalTripCharge.ToString();
+            get => _totalTripCharge;
+            set
+            {
+                _totalTripCharge = value;
+                OnPropertyChanged();
+            }
+
+        }
+        
+        private string _tripType;
+        public string TripType
+        {
+            get => _tripType; // LocalizationService.Instance[_tripType]; // _tripType;
+            set
+            {
+                _tripType = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private string _distance;
+        public string Distance
+        {
+            get => _distance;
+            set
+            {
+                _distance = value;
+                OnPropertyChanged();
+            }
+        }
+        private string _eta;
+        public string ETA
+        {
+            get => _eta;
+            set
+            {
+                _eta = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private bool _originImported;
+        public bool OriginImported
+        {
+            get => _originImported;
+            set
+            {
+                _originImported = value;
+                OnPropertyChanged();
+            }
+        }
+        
+        private bool _originRouted;
+        public bool OriginRouted
+        {
+            get => _originRouted;
+            set
+            {
+                _originRouted = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private FundingSourceBillingItem _charges;
+        public FundingSourceBillingItem SelectedCharges // Hay que armar Qty y Cost segun el tipo de BillingItem. Y Se debe actualizar cuando se editen: Distance, Pickup Address, Dropoof Address, (ya que en estos 2 ultimos se recalcula la distacia)
+        {
+            get => _charges;
+            set
+            {
+                _charges = value;
+                OnPropertyChanged();
+            }
+        }
+
+        #endregion
 
         private bool _genderMale;
         public bool GenderMale
@@ -298,6 +411,7 @@ namespace Meditrans.Client.ViewModels
             ExportCommand = new RelayCommand(ExportTrips);
 
             LoadData();
+            InitializeData();
 
             // Suscripción manual para debug
             /*this.PropertyChanged += (s, e) => {
@@ -321,6 +435,10 @@ namespace Meditrans.Client.ViewModels
             SelectedTrip = Trips[0];*/
         }
 
+        private async void InitializeData()
+        {
+            TripType = Meditrans.Client.Models.TripType.Appointment;
+        }
         private async void LoadData()
         {
             await LoadFundingSourcesAsync();

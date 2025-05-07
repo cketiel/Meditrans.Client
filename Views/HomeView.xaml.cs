@@ -92,6 +92,11 @@ namespace Meditrans.Client.Views
                             // Show on Label
                             Dispatcher.Invoke(() =>
                             {
+                                if (DataContext is HomeViewModel vm)
+                                {
+                                    vm.Distance = distance; // double.Parse(distance); // meters
+                                    vm.ETA = eta; // double.Parse(eta); // seconds
+                                }
                                 //TripInfoLabel.Content = $"ETA: {eta} | Distance: {distance}";
                             });
                             // Here you can display the message
@@ -512,11 +517,19 @@ namespace Meditrans.Client.Views
 
         private void AppointmentRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            BillingSectionTabItem.Header = TripType.Appointment + " " + ForDateCalendar.SelectedDate.Value.Date.ToShortDateString() + " " + "Hora";
+            string tripType = TripType.Appointment;
+            //TripTypeTextBlock.Text = tripType;  
+            BillingSectionTabItem.Header = tripType + " " + ForDateCalendar.SelectedDate.Value.Date.ToShortDateString() + " " + "Hora";
+            if (DataContext is HomeViewModel vm)
+            {
+                vm.TripType = tripType;
+            }
         }
 
         private void ReturnRadioButton_Checked(object sender, RoutedEventArgs e)
         {
+            string tripType = TripType.Return;
+            TripTypeTextBlock.Text = tripType;
             BillingSectionTabItem.Header = TripType.Return + " " + ForDateCalendar.SelectedDate.Value.Date.ToShortDateString() + " " + "Hora";
         }
     }

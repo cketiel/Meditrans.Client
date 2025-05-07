@@ -26,5 +26,9 @@ namespace Meditrans.Client.Models
         public int FreeQty { get; set; }
         public DateTime FromDate { get; set; }
         public DateTime ToDate { get; set; }
+
+        // It is only used to calculate the cost in the billing session
+        public decimal Qty { get; set; }
+        public decimal Cost { get; set; }
     }
 }

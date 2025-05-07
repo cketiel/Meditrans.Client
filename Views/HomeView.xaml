@@ -8,10 +8,18 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:md="http://materialdesigninxaml.net/winfx/xaml/shared"
              xmlns:domain="clr-namespace:Meditrans.Client.Validations"
+             xmlns:vm="clr-namespace:Meditrans.Client.ViewModels"
+             xmlns:helpers="clr-namespace:Meditrans.Client.Helpers" 
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
+    <UserControl.DataContext>
+        <vm:HomeViewModel />
+    </UserControl.DataContext>
+    
     <UserControl.Resources>
+        <!-- vmProxy “captures” the current DataContext (HomeViewModel) -->
+        <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
     </UserControl.Resources>
 
@@ -46,7 +54,7 @@
 
                         <StackPanel Grid.Row="0" Background="Transparent">
 
-                        <!-- 🔎 Customer Search Section -->
+                            <!-- 🔎 Customer Search Section -->
 
                             <StackPanel Margin="2" Background="Transparent">
 
@@ -187,7 +195,7 @@
                                                     <ColumnDefinition Width="*" />
                                                 </Grid.ColumnDefinitions>
 
-                                                <!-- Columna Izquierda -->
+                                                <!-- Left Column -->
                                                 <StackPanel Grid.Column="0" Margin="0,0,4,0">
                                                     <TextBox x:Name="FullNameTextBox"
                                                              Text="{Binding SelectedCustomer.FullName}"
@@ -254,7 +262,7 @@
 
                                                 </StackPanel>
 
-                                                <!-- Columna Derecha -->
+                                                <!-- Right Column -->
                                                 <StackPanel Grid.Column="1">
 
                                                     <TextBox x:Name="GooglePlacesInput" Text="{Binding SelectedCustomer.Address}"
@@ -578,20 +586,14 @@
                                   Background="#40CCCCCC"
                                   ShowsPreview="True"
                                   Cursor="SizeWE">
-                        <GridSplitter.Template>
-                            <ControlTemplate TargetType="GridSplitter">
-                                <Grid Background="{TemplateBinding Background}">
-                                    <Rectangle Fill="#808080" Width="2" HorizontalAlignment="Center" RadiusX="1" RadiusY="1" />
-                                </Grid>
-                            </ControlTemplate>
-                        </GridSplitter.Template>
+                        
                     </GridSplitter>
                     
                 <!-- Panel Billing (initially hidden) -->
                     <StackPanel Grid.Column="2" x:Name="BillingPanel"
                                 Visibility="Hidden"
                                 Margin="10"
-                                Background="{DynamicResource MaterialDesignPaper}">
+                                Background="Transparent">
 
                         <TabControl  
                                 HorizontalAlignment="Stretch"
@@ -599,28 +601,141 @@
                                 HorizontalContentAlignment="Stretch"
                                 VerticalContentAlignment="Stretch">
 
-                        <TabItem x:Name="BillingSectionTabItem" Header="{Binding TextHeaderBillingSection}">
+                            <TabItem x:Name="BillingSectionTabItem" Header="{Binding TextHeaderBillingSection}">
 
+                                <TabControl  
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch"
+                                    HorizontalContentAlignment="Stretch"
+                                    VerticalContentAlignment="Stretch">
+
+                                    <TabItem x:Name="ChargesTabItem" Header="{Binding Charges}">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition/>
+                                            <RowDefinition/>
+                                            <RowDefinition/>
+                                            <RowDefinition/>
+                                            <RowDefinition/>
+                                            <RowDefinition/>
+                                            <RowDefinition/>
+                                            <RowDefinition/>
+                                        </Grid.RowDefinitions>
+                                    
+                                        <StackPanel Grid.Row="0" Margin="5 10 0 5" Orientation="Horizontal">
+                                            <TextBlock Text="{Binding TotalTripChargeTextLabel}" Margin="0 0 0 0" FontWeight="Bold" Foreground="Green"/>
+                                            <TextBlock Text=": " Margin="0 0 8 0" FontWeight="Bold" Foreground="Green"/>
+                                            <TextBlock Text="{Binding TotalTripCharge}" Margin="0 0 40 0" FontWeight="Bold" Foreground="Green"/>
+                                            <TextBlock x:Name="TripTypeTextBlock" Text="{Binding TripType}" Margin="0 0 8 0" FontWeight="Bold"/>
+                                        </StackPanel>
+                                        
+                                        <StackPanel Grid.Row="1" Margin="5 10 0 0" Orientation="Horizontal">
+                                            <TextBlock Text="{Binding DistanceTextLabel}" Margin="0 0 0 0" FontWeight="Bold"/>
+                                            <TextBlock Text=": " Margin="0 0 8 0" FontWeight="Bold" />
+                                            <TextBlock Text="{Binding Distance}" Margin="0 0 8 0" FontWeight="Bold"/>
+                                        </StackPanel>
+                                        
+                                        <StackPanel Grid.Row="2"
+                                            Orientation="Horizontal" Margin="10,10,0,0"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Center">
+                                            
+                                            <RadioButton x:Name="ImportedRadioButton" Content="{Binding Imported}"
+                                                 GroupName="OriginRadioButtonGroup"
+                                                 IsChecked="{Binding OriginImported}" 
+                                                 Style="{StaticResource MaterialDesignRadioButton}" Margin="0,0,10,0"/>     
+                                            <RadioButton x:Name="RoutedRadioButton" Content="{Binding Routed}"
+                                                 GroupName="OriginRadioButtonGroup"
+                                                 IsChecked="{Binding OriginRouted}" 
+                                                 Style="{StaticResource MaterialDesignRadioButton}"/>
+                                        </StackPanel>
+                                        
+                                        <StackPanel Grid.Row="3" Margin="5 10 0 0" Orientation="Horizontal">
+                                            <TextBlock Text="{Binding SelectedChargesTextLabel}" Margin="0 0 15 0" FontWeight="Bold"/>
+                                            <CheckBox x:Name="AllowUdateCheckBox" Content="{Binding AllowUpdateText}"/>
+                                        </StackPanel>
+                                        
+                                        <Border Grid.Row="4" BorderThickness="1,1,1,1" 
+                                                BorderBrush="{StaticResource MainBorderBrush}"
+                                                Background="White">
+
+                                            <Grid Margin="4"
+                                                VerticalAlignment="Stretch"
+                                                HorizontalAlignment="Stretch">
+
+                                                <!-- DATAGRID -->
+                                                <DataGrid x:Name="SelectedChargesDataGrid"          
+                                                      ItemsSource="{Binding SelectedCharges}"                                                      
+                                                      SelectionMode="Single"
+                                                      AutoGenerateColumns="False"
+                                                      IsReadOnly="True"
+                                                      AlternationCount="2"
+                                                      AlternatingRowBackground="White"   
+          
+                                                      Style="{StaticResource CustomDataGridStyle}"
+                                                      ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                                                      RowStyle="{StaticResource CustomRowStyle}"
+                                                      CellStyle="{StaticResource CustomCellStyle}"
+                                                      SelectionUnit="FullRow">
+
+                                                    <DataGrid.Columns>
+                                                        
+                                                        <DataGridTextColumn 
+                                                            Binding="{Binding BillingItem.Description}"
+                                                            Header="{Binding Data.ChargesDescriptionText, Source={StaticResource vmProxy}}"/>
+                                                        
+                                                        <DataGridTextColumn 
+                                                            Binding="{Binding Rate}"
+                                                            Header="{Binding Data.ChargesRateText, Source={StaticResource vmProxy}}"/>
+
+                                                        <DataGridTextColumn 
+                                                            Binding="{Binding Qty}"
+                                                            Header="{Binding Data.ChargesQtyText, Source={StaticResource vmProxy}}"/>
+
+                                                        <DataGridTextColumn 
+                                                            Binding="{Binding Per}"
+                                                            Header="{Binding Data.ChargesPerText, Source={StaticResource vmProxy}}"/>
+
+                                                        <DataGridTextColumn 
+                                                            Binding="{Binding Cost}"
+                                                            Header="{Binding Data.ChargesCostText, Source={StaticResource vmProxy}}"/>
+
+                                                    </DataGrid.Columns>
+                                                    
+                                                </DataGrid>
+
+                                            </Grid>
+
+                                        </Border>
+                                        
+                                    </Grid>
+                                    
+                                </TabItem>
+                                
+                                    <TabItem x:Name="HistoryTabItem" Header="{Binding History}">
+
+                                    </TabItem>
+                                    <TabItem x:Name="SignatureTabItem" Header="{Binding Signature}">
+
+                                    </TabItem>
+
+
+                                </TabControl>
+                                
                             </TabItem>
 
                         </TabControl>
                     </StackPanel>
 
                     <!-- Vertical GridSplitter -->
-                    <GridSplitter Grid.Column="3"
+                    <GridSplitter Grid.Column="3" x:Name="BillingGridSplitter"
                                   Width="6"
                                   HorizontalAlignment="Stretch"
                                   VerticalAlignment="Stretch"
                                   Background="#40CCCCCC"
                                   ShowsPreview="True"
                                   Cursor="SizeWE">
-                        <GridSplitter.Template>
-                            <ControlTemplate TargetType="GridSplitter">
-                                <Grid Background="{TemplateBinding Background}">
-                                    <Rectangle Fill="#808080" Width="2" HorizontalAlignment="Center" RadiusX="1" RadiusY="1" />
-                                </Grid>
-                            </ControlTemplate>
-                        </GridSplitter.Template>
+                        
                     </GridSplitter>
 
                     <!-- WebView2 con el mapa -->

@@ -384,8 +384,8 @@
                     directionsRenderer.setDirections(result);
 
                     const leg = result.routes[0].legs[0];
-                    const eta = leg.duration_in_traffic.text;
-                    const distance = leg.distance.text;
+                    const eta = leg.duration_in_traffic.text; // leg.duration_in_traffic.value; // text = minutes, value = seconds
+                    const distance = leg.distance.text; // leg.distance.value; // text = miles, value = meters
 
                     const info = `ETA: ${eta} — Distance: ${distance}`;
                     infoWindow = new google.maps.InfoWindow({
