@@ -166,6 +166,7 @@
             });
 
             focusMap(position, 17);
+            geocodePosition(position);
 
             google.maps.event.addListener(pickupMarker, 'dragend', function () {
                 const currentPosition = pickupMarker.getPosition();

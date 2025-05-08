@@ -13,10 +13,13 @@
 
                 <!-- Base theme-->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
-
+                           
                 <!-- Custom styles -->
                 <ResourceDictionary Source="Styles/Colors.xaml"/>
                 <ResourceDictionary Source="Styles/CustomDataGridStyles.xaml"/>
+                <ResourceDictionary Source="Styles/Icons.xaml"/>
+
+                
 
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

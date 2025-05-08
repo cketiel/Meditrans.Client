@@ -186,9 +186,6 @@
                                     <materialDesign:Card Padding="4" Background="{DynamicResource MaterialDesignCardBackground}">
                                         <StackPanel>
                                             
-
-                                           
-
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
@@ -263,9 +260,21 @@
                                                 </StackPanel>
 
                                                 <!-- Right Column -->
-                                                <StackPanel Grid.Column="1">
+                                        <StackPanel Grid.Column="1">
 
-                                                    <TextBox x:Name="GooglePlacesInput" Text="{Binding SelectedCustomer.Address}"
+                                                    <Grid>
+                                                        
+                                                        <Button x:Name="GeolocateFloatingButton" Width="30" Height="30"
+                                                                Panel.ZIndex="100"
+                                                                Margin="8,6,16,-20"
+                                                                HorizontalAlignment="Left"
+                                                                VerticalAlignment="Top"
+                                                                ToolTip="Find Address"
+                                                                Style="{StaticResource MaterialDesignFloatingActionMiniButton}" MouseEnter="GeolocateFloatingButton_MouseEnter" MouseLeave="GeolocateFloatingButton_MouseLeave" Click="GeolocateFloatingButton_Click">
+                                                            <materialDesign:PackIcon Kind="AddressMarker" />
+                                                        </Button>
+                                                        
+                                                        <TextBox x:Name="GooglePlacesInput" Text="{Binding SelectedCustomer.Address}"
                                                                  materialDesign:HintAssist.Hint="Address"
                                                     
                                                                  materialDesign:TextFieldAssist.HasClearButton="True"
@@ -273,6 +282,8 @@
                                                                  materialDesign:TextFieldAssist.LeadingIcon="AddressMarker"
                                                                  Style="{StaticResource MaterialDesignFilledTextBox}" Margin="0,0,0,2"
                                                                  TextChanged="GooglePlacesInput_TextChanged" />
+                                                        
+                                                    </Grid>
 
                                                     <TextBox x:Name="City" Text="{Binding SelectedCustomer.City}" 
                                                                  materialDesign:HintAssist.Hint="City" 
@@ -347,9 +358,10 @@
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto"/>
+                                        
+                                </Grid.ColumnDefinitions>
 
                                     <!-- Fecha -->
                                     <DatePicker 
@@ -358,7 +370,7 @@
                                         
                                         SelectedDate="{Binding FilterDate, Mode=TwoWay}" 
                                         materialDesign:HintAssist.Hint="Filter by Date"
-                                        Style="{StaticResource MaterialDesignDatePicker}" Margin="0,0,8,0"/>
+                                        Style="{StaticResource MaterialDesignFilledDatePicker}" Margin="0,0,8,0"/>
 
                                     <!-- Checkbox -->
                                     <CheckBox Grid.Column="1"
@@ -367,15 +379,22 @@
                                           Style="{StaticResource MaterialDesignCheckBox}" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
                                     <!-- Botones -->
-                                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                        <Button Content="📥 Import"
-                                    Command="{Binding ImportCommand}"
-                                    Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,10,0"/>
-                                        <Button Content="📤 Export"
-                                    Command="{Binding ExportCommand}"
-                                    Style="{StaticResource MaterialDesignOutlinedButton}"/>
-                                    </StackPanel>
-                                </Grid>
+                                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                    <Button 
+                                                ToolTip="Import Trips"
+                                                Command="{Binding ImportCommand}"
+                                                Style="{StaticResource MaterialDesignToolForegroundButton}" Margin="0,0,10,0">
+                                        <materialDesign:PackIcon Kind="DatabaseImport" Width="25" Height="25" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                    </Button>
+
+                                    <Button  ToolTip="Export Trip"
+                                                    Command="{Binding ExportCommand}"
+                                                    Style="{StaticResource MaterialDesignToolForegroundButton}">
+                                        <materialDesign:PackIcon Kind="MicrosoftExcel" Width="25" Height="25" Foreground="Green"/>
+                                    </Button>
+                                </StackPanel>
+
+                            </Grid>
                             </StackPanel>
                         </materialDesign:Card>
 
@@ -383,37 +402,28 @@
 
                         <Grid Grid.Row="1">
                             <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="1*" />
                             <ColumnDefinition Width="3*" />
+                            <ColumnDefinition Width="7*" />
                             </Grid.ColumnDefinitions>
 
 
                             <!-- ForDateCalendar -->
-                        
-                            <Grid Grid.Column="0">
-                            
-                                <Viewbox Width="230" Height="200" Margin="5 25 5 5">
-                                
-                                    <Calendar x:Name="ForDateCalendar" 
-                                              Visibility="Collapsed"
-                                                SelectedDate="{Binding FilterDate, Mode=TwoWay}" 
-                                               
-                                                Margin="0,0,0,0" 
-                                                VerticalAlignment="Top" 
-                                                Width="205"
-                                              materialDesign:ElevationAssist.Elevation="Dp2"/>
-                                
-                                </Viewbox>
 
-                                <!--<Calendar>
-                                    <Calendar.LayoutTransform>
-                                        <ScaleTransform ScaleX="0.5" ScaleY="0.5"/>
-                                    </Calendar.LayoutTransform>
-                                </Calendar>-->
+                        <!-- Calendar ajustado -->
+                        <Calendar x:Name="ForDateCalendar" Visibility="Collapsed"
+                              Grid.Column="0"
+                              SelectedDate="{Binding FilterDate, Mode=TwoWay}"
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Center"
+                              Margin="0"
+                              materialDesign:ElevationAssist.Elevation="Dp2"
+                              >     
+                            <Calendar.LayoutTransform>
+                                <ScaleTransform ScaleX="0.75" ScaleY="0.685"/>
+                            </Calendar.LayoutTransform>
+                        </Calendar>
 
-                            </Grid>
-                        
-                            <!-- Trips TabControl -->
+                        <!-- Trips TabControl -->
                         
                             <TabControl x:Name="TripTabs" Grid.Column="1" Visibility="Collapsed"
                                     MinHeight="240"
@@ -424,154 +434,262 @@
                                 
                                     TabStripPlacement="Top"
                                     materialDesign:NavigationRailAssist.SelectionCornerRadius="50 10 10 10">
-                            <!-- Tab 1: Location and Time -->
-                            <TabItem Header="Location and Time" >
-                                <Grid Margin="10" Background="LightGreen">
+                                <!-- Tab 1: Location and Time -->
+                                <TabItem Header="Location and Time" >
+                                    <Grid Margin="0,0,2,0" >
+                                        
+                                    <Grid.Background>
+                                        <RadialGradientBrush GradientOrigin="0.5,0.5" 
+                                            Center="0.5,0.5" 
+                                            RadiusX="0.5" 
+                                            RadiusY="0.5">  
+                                            <GradientStop Color="#FFFFFFFF" Offset="0.0"/>
+                                            <!-- Blanco (100% opaco) -->
+                                            <GradientStop Color="#D3FFD6" Offset="0.94"/>
+                                            <!-- Verde en 94% -->
+                                            <GradientStop Color="#D3FFD6" Offset="1.0"/>
+                                            <!-- Verde en 100% -->
+                                        </RadialGradientBrush>
+                                    </Grid.Background>
+                                        
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="6*" />
+                                            <ColumnDefinition Width="4*" />
+                                        </Grid.ColumnDefinitions>
 
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                            <RowDefinition />
+                                        </Grid.RowDefinitions>
 
                                     <!-- Columna izquierda -->
-                                    <TextBlock Text="Pickup Address:" Grid.Row="0" Grid.Column="0" Margin="0,0,0,2"/>
-                                    <TextBox x:Name="PickupAddressTextBox" Grid.Row="0" Grid.Column="0" Margin="0,18,10,5"/>
 
-                                    <TextBlock Text="Dropoff Address:" Grid.Row="1" Grid.Column="0" Margin="0,0,0,2"/>
-                                    <TextBox x:Name="DropoffAddressTextBox" Grid.Row="1" Grid.Column="0" Margin="0,18,10,5"/>
+                                    <Button x:Name="InverterFloatingButton" Width="30" Height="30"
+                                        Panel.ZIndex="100"
+                                        Margin="12,9,16,-17"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Bottom"
+                                        ToolTip="Reverse Location"
+                                        Style="{StaticResource MaterialDesignFloatingActionMiniButton}" Click="InverterFloatingButton_Click" >
+                                        <materialDesign:PackIcon x:Name="InverterIcon" Kind="AutorenewOff" />
 
-                                    <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Margin="0,10,10,5">
-                                        <TextBlock Text="Trip Type:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <RadioButton Content="Round Trip" GroupName="TripType" Margin="0,0,10,0"/>
-                                        <RadioButton Content="One Way" GroupName="TripType"/>
-                                    </StackPanel>
 
-                                    <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="0" Margin="0,10,10,5">
-                                        <TextBlock Text="One Way Kind:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <RadioButton x:Name="AppointmentRadioButton" Content="Appt" GroupName="OneWayKind" Margin="0,0,10,0" Checked="AppointmentRadioButton_Checked"/>
-                                        <RadioButton x:Name="ReturnRadioButton" Content="Return" GroupName="OneWayKind" Checked="ReturnRadioButton_Checked"/>
-                                    </StackPanel>
+                                    </Button>
+                                        
+                                    <TextBox
+                                            x:Name="PickupAddressTextBox" Grid.Row="0" Grid.Column="0" Margin="0,3,0,2"
+                                            Text="{Binding SelectedCustomer.Address}"
+                                            materialDesign:HintAssist.Hint="Pickup Address"                                                    
+                                            materialDesign:TextFieldAssist.HasClearButton="True"
+                                            materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                            materialDesign:TextFieldAssist.LeadingIcon="HomeMapMarker"
+                                            Style="{StaticResource MaterialDesignFilledTextBox}" 
+                                            TextChanged="GooglePlacesInput_TextChanged"/>
 
-                                    <!-- Columna derecha -->
-                                    <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,5">
-                                        <TextBlock Text="Pickup Time:"/>
-                                        <materialDesign:TimePicker x:Name="PickupTimePicker"
-                                                                   Width="100"
-                                                                   Margin="0,2,0,0"
-                                                                   materialDesign:HintAssist.Hint="Pickup"
-                                                                   Is24Hours="False"/>
-                                    
-                                    </StackPanel>
+                                        <TextBox
+                                            x:Name="DropoffAddressTextBox" Grid.Row="1" Grid.Column="0" Margin="0,0,0,2"
+                                            Text="{Binding DropoffAddress}"
+                                            materialDesign:HintAssist.Hint="Dropoff Address"                                                    
+                                            materialDesign:TextFieldAssist.HasClearButton="True"
+                                            materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                            materialDesign:TextFieldAssist.LeadingIcon="MapMarkerCheck"
+                                            Style="{StaticResource MaterialDesignFilledTextBox}" 
+                                            TextChanged="DropoffAddressTextBox_TextChanged"/>
 
-                                    <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,0,0,5">
-                                        <TextBlock Text="Appt Time:"/>
-                                        <materialDesign:TimePicker x:Name="ApptTimePicker"
-                                                                   Width="100"
-                                                                   Margin="0,2,0,0"
-                                                                   materialDesign:HintAssist.Hint="Appt"
-                                                                   Is24Hours="False"/>
-                                    
-                                    </StackPanel>
 
-                                    <StackPanel Grid.Row="2" Grid.Column="1" Margin="10,0,0,5">
-                                        <TextBlock Text="Return Time:"/>
-                                        <materialDesign:TimePicker x:Name="ReturnTimePicker"
-                                                                   Width="100"
-                                                                   Margin="0,2,0,0"
-                                                                   materialDesign:HintAssist.Hint="Return"
-                                                                   Is24Hours="False"/>
-                                    
-                                    </StackPanel>
 
-                                    <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="1" Margin="10,10,0,5">
-                                        <CheckBox x:Name="WillCallCheckBox" Content="Will Call"/>
-                                    </StackPanel>
-                                </Grid>
-                            </TabItem>
+                                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Margin="0,10,10,5">
+                                            <RadioButton x:Name="RoundTripRadioButton" Content="Round Trip" GroupName="TripType" Margin="0,0,10,0" Checked="RoundTripRadioButton_Checked"/>
+                                            <RadioButton x:Name="OneWayRadioButton" Content="One Way" GroupName="TripType" Checked="OneWayRadioButton_Checked"/>
+                                        </StackPanel>
 
-                            <!-- Tab 2: Space Type -->
-                            <TabItem Header="Space Type">
-                                <Grid Margin="10" Background="LightCyan">
+                                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Grid.Row="3" Grid.Column="0" Margin="0,10,10,5">
+                                            <RadioButton x:Name="AppointmentRadioButton" Content="Appt" GroupName="OneWayKind" Margin="0,0,10,0" Checked="AppointmentRadioButton_Checked"/>
+                                            <RadioButton x:Name="ReturnRadioButton" Content="Return" GroupName="OneWayKind" Checked="ReturnRadioButton_Checked"/>
+                                        </StackPanel>
+
+                                        <!-- Columna derecha -->                                   
+
+                                        <materialDesign:TimePicker Grid.Row="0" Grid.Column="1"
+                                            x:Name="PickupTimePicker"
+                                            SelectedTime="{Binding PickupTimePicker, Mode=TwoWay}"
+                                            VerticalAlignment="Bottom"
+                                            Margin="10,0,0,0"
+                                            materialDesign:HintAssist.Hint="Pickup"
+                                            materialDesign:TextFieldAssist.HasClearButton="True"
+                                            materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                            materialDesign:TextFieldAssist.LeadingIcon="ClockTimeFour"
+                                            Style="{StaticResource MaterialDesignFilledTimePicker}"
+                                            Is24Hours="False"/>
+
+                                        <materialDesign:TimePicker Grid.Row="1" Grid.Column="1"
+                                            x:Name="ApptTimePicker"
+                                            SelectedTime="{Binding ApptTimePicker, Mode=TwoWay}"              
+                                            VerticalAlignment="Bottom"
+                                            Margin="10,0,0,0"
+                                            materialDesign:HintAssist.Hint="Appt"
+                                            materialDesign:TextFieldAssist.HasClearButton="True"
+                                            materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                            materialDesign:TextFieldAssist.LeadingIcon="CalendarClock"
+                                            Style="{StaticResource MaterialDesignFilledTimePicker}"
+                                            Is24Hours="False"/>
+
+                                        <materialDesign:TimePicker Grid.Row="2" Grid.Column="1"
+                                            x:Name="ReturnTimePicker"
+                                            SelectedTime="{Binding ReturnTimePicker, Mode=TwoWay}" 
+                                            VerticalAlignment="Bottom"
+                                            Margin="10,0,0,0"
+                                            materialDesign:HintAssist.Hint="Return"
+                                            materialDesign:TextFieldAssist.HasClearButton="True"
+                                            materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                            materialDesign:TextFieldAssist.LeadingIcon="ClockAlert"
+                                            Style="{StaticResource MaterialDesignFilledTimePicker}"
+                                            Is24Hours="False"/>
+
+                                        <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="1" Margin="10,10,0,5">
+                                            <CheckBox x:Name="WillCallCheckBox" Content="Will Call"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </TabItem>
+
+                                <!-- Tab 2: Space Type -->
+                                <TabItem Header="Space Type">
+                                    <Grid Margin="0" >
+
+                                    <Grid.Background>
+                                        <RadialGradientBrush GradientOrigin="0.5,0.5" 
+                                            Center="0.5,0.5" 
+                                            RadiusX="0.5" 
+                                            RadiusY="0.5">          
+                                            <GradientStop Color="#FFFFFFFF" Offset="0.0"/>
+                                            <!-- Blanco (100% opaco) -->
+                                            <GradientStop Color="#D1ECF8" Offset="0.94"/>
+                                            <!-- Verde en 94% -->
+                                            <GradientStop Color="#D1ECF8" Offset="1.0"/>
+                                            <!-- Verde en 100% -->
+                                        </RadialGradientBrush>
+                                    </Grid.Background>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="2*" />
-                                        <ColumnDefinition Width="3*" />
-                                    </Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="1*" />
+                                            <ColumnDefinition Width="2*" />
+                                        </Grid.ColumnDefinitions>
 
-                                    <!-- ComboBox Space Type -->
-                                    <StackPanel Grid.Column="0" VerticalAlignment="Top" Margin="0,0,10,0">
-                                        <TextBlock Text="Space Type:" Margin="0,0,0,5"/>
-                                        <ComboBox x:Name="TripSpaceTypeComboBox"/>
-                                    </StackPanel>
+                                        <!-- ComboBox Space Type -->
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Top" Margin="0,0,00,0">
 
-                                    <!-- DataGrid Additional Passengers -->
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Top">
-                                        <TextBlock Text="Additional Passengers:" Margin="0,0,0,5"/>
-                                        <DataGrid x:Name="AdditionalPassengersDataGrid" AutoGenerateColumns="False" Height="200">
-                                            <DataGrid.Columns>
-                                                <DataGridTextColumn Header="Space" Binding="{Binding Space}" Width="*"/>
-                                                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*"/>
-                                                <DataGridTextColumn Header="Count" Binding="{Binding Count}" Width="*"/>
-                                            </DataGrid.Columns>
-                                        </DataGrid>
-                                    </StackPanel>
-                                </Grid>
-                            </TabItem>
+                                            <ComboBox   x:Name="TripSpaceTypeComboBox"
+                                                ItemsSource="{Binding SpaceTypes}" 
+                                                SelectedItem="{Binding SelectedSpaceType, Mode=TwoWay}" 
+                                                DisplayMemberPath="ShowNameDescription" 
+                                                SelectedValuePath="Id"
+                                                Style="{StaticResource MaterialDesignFilledComboBox}"
+                                                materialDesign:TextFieldAssist.HasClearButton="True"
+                                                materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                                materialDesign:TextFieldAssist.LeadingIcon="HumanWheelchair"
+                                                Margin="0,0,0,2"
+                                                materialDesign:HintAssist.Hint="Select Space Type" />
+                                        </StackPanel>
 
-                            <!-- Tab 3: Pickup -->
-                            <TabItem Header="Pickup">
-                                <Grid Margin="10">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="3*" />
-                                        <ColumnDefinition Width="2*" />
-                                    </Grid.ColumnDefinitions>
+                                        <!-- DataGrid Additional Passengers -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Top">
+                                            <TextBlock Text="Additional Passengers:" Margin="0,0,0,5"/>
+                                            <DataGrid x:Name="AdditionalPassengersDataGrid" AutoGenerateColumns="False" Height="200">
+                                                <DataGrid.Columns>
+                                                    <DataGridTextColumn Header="Space" Binding="{Binding Space}" Width="*"/>
+                                                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*"/>
+                                                    <DataGridTextColumn Header="Count" Binding="{Binding Count}" Width="*"/>
+                                                </DataGrid.Columns>
+                                            </DataGrid>
+                                        </StackPanel>
+                                    </Grid>
+                                </TabItem>
 
-                                    <!-- Name and Phone -->
-                                    <TextBox x:Name="PickupNameTextBox" Grid.Row="0" Grid.Column="0" Margin="0,0,10,5" materialDesign:HintAssist.Hint="Name"/>
-                                    <TextBox x:Name="PickupPhoneTextBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,5" materialDesign:HintAssist.Hint="Phone"/>
+                                <!-- Tab 3: Pickup -->
+                                <TabItem Header="Pickup">
+                                    <Grid Margin="0">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="6*" />
+                                            <ColumnDefinition Width="4*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Name and Phone -->
+                                        <TextBox x:Name="PickupNameTextBox" Grid.Row="0" Grid.Column="0"
+                                             Text="{Binding PickupName}"
+                                             materialDesign:TextFieldAssist.HasClearButton="True"
+ 
+                                             materialDesign:HintAssist.Hint="Name"
+                                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                             materialDesign:TextFieldAssist.LeadingIcon="TextUser"
+                                             Style="{StaticResource MaterialDesignFilledTextBox}" Margin="0,0,0,2"/>
+
+                                        <TextBox x:Name="PickupPhoneTextBox" Grid.Row="0" Grid.Column="1"
+                                             Text="{Binding PickupPhone}"
+                                             materialDesign:TextFieldAssist.HasClearButton="True"
+ 
+                                             materialDesign:HintAssist.Hint="Phone"
+                                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                             materialDesign:TextFieldAssist.LeadingIcon="Phone"
+                                             Style="{StaticResource MaterialDesignFilledTextBox}" Margin="10,0,2,2"/>
 
                                     <!-- Comment -->
-                                    <TextBox x:Name="PickupCommentTextBox" Grid.Row="1" Grid.ColumnSpan="2" 
-                                                Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                             AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
-                                             materialDesign:HintAssist.Hint="Comment"/>
-                                </Grid>
-                            </TabItem>
+                                        <TextBox x:Name="PickupCommentTextBox" Grid.Row="1" Grid.ColumnSpan="2" 
+                                                 Margin="2,10,4,2"
+                                                 Text="{Binding PickupComment}"
+                                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                                 AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                                                 materialDesign:HintAssist.Hint="Comment"/>
+                                    </Grid>
+                                </TabItem>
 
-                            <!-- Tab 4: Dropoff -->
-                            <TabItem Header="Dropoff">
-                                <Grid Margin="10">
+                                <!-- Tab 4: Dropoff -->
+                                <TabItem Header="Dropoff">
+                                <Grid Margin="0">
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="3*" />
-                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="6*" />
+                                        <ColumnDefinition Width="4*" />
                                     </Grid.ColumnDefinitions>
 
                                     <!-- Name and Phone -->
-                                    <TextBox x:Name="DropoffNameTextBox" Grid.Row="0" Grid.Column="0" Margin="0,0,10,5" materialDesign:HintAssist.Hint="Name"/>
-                                    <TextBox x:Name="DropoffPhoneTextBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,5" materialDesign:HintAssist.Hint="Phone"/>
+                                    <TextBox x:Name="DropoffNameTextBox" Grid.Row="0" Grid.Column="0"
+                                         Text="{Binding DropoffName}"
+                                         materialDesign:TextFieldAssist.HasClearButton="True"
+ 
+                                         materialDesign:HintAssist.Hint="Name"
+                                         materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                         materialDesign:TextFieldAssist.LeadingIcon="TextUser"
+                                         Style="{StaticResource MaterialDesignFilledTextBox}" Margin="0,0,0,2"/>
+
+                                    <TextBox x:Name="DropoffPhoneTextBox" Grid.Row="0" Grid.Column="1"
+                                         Text="{Binding DropoffPhone}"
+                                         materialDesign:TextFieldAssist.HasClearButton="True"
+ 
+                                         materialDesign:HintAssist.Hint="Phone"
+                                         materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                         materialDesign:TextFieldAssist.LeadingIcon="Phone"
+                                         Style="{StaticResource MaterialDesignFilledTextBox}" Margin="10,0,2,2"/>
 
                                     <!-- Comment -->
                                     <TextBox x:Name="DropoffCommentTextBox" Grid.Row="1" Grid.ColumnSpan="2" 
-                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                         Margin="2,10,4,2"
+                                             Text="{Binding DropoffComment}"
+                                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                          AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
                                          materialDesign:HintAssist.Hint="Comment"/>
+                                    
                                 </Grid>
                             </TabItem>
 
-                        </TabControl>
+                            </TabControl>
 
                         </Grid>
 
@@ -590,11 +708,14 @@
                     </GridSplitter>
                     
                 <!-- Panel Billing (initially hidden) -->
+                <Border  Grid.Column="2" BorderThickness="1,1,1,1" BorderBrush="{StaticResource MainBorderBrush}">
                     <StackPanel Grid.Column="2" x:Name="BillingPanel"
                                 Visibility="Hidden"
                                 Margin="10"
+                                
                                 Background="Transparent">
 
+                    
                         <TabControl  
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Stretch"
@@ -650,7 +771,7 @@
                                                  Style="{StaticResource MaterialDesignRadioButton}"/>
                                         </StackPanel>
                                         
-                                        <StackPanel Grid.Row="3" Margin="5 10 0 0" Orientation="Horizontal">
+                                        <StackPanel Grid.Row="3" Margin="5 10 0 5" Orientation="Horizontal">
                                             <TextBlock Text="{Binding SelectedChargesTextLabel}" Margin="0 0 15 0" FontWeight="Bold"/>
                                             <CheckBox x:Name="AllowUdateCheckBox" Content="{Binding AllowUpdateText}"/>
                                         </StackPanel>
@@ -821,9 +942,14 @@
                             </TabItem>
 
                         </TabControl>
-                    </StackPanel>
+                        
+                    
+                        
+                </StackPanel>
 
-                    <!-- Vertical GridSplitter -->
+                </Border>
+                    
+                <!-- Vertical GridSplitter -->
                     <GridSplitter Grid.Column="3" x:Name="BillingGridSplitter"
                                   Width="6"
                                   HorizontalAlignment="Stretch"

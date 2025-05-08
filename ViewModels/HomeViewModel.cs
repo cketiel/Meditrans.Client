@@ -90,6 +90,7 @@ namespace Meditrans.Client.ViewModels
             {
                 _distance = value;
                 OnPropertyChanged();
+                UpdateSelectedCharges();
             }
         }
         
@@ -126,29 +127,15 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
-        private FundingSourceBillingItem _allFundingSourceBillingItem;
+        private ObservableCollection<FundingSourceBillingItem> _allFundingSourceBillingItem;
 
-        private FundingSourceBillingItem _charges;
-        public FundingSourceBillingItem SelectedCharges // Hay que armar Qty y Cost segun el tipo de BillingItem. Y Se debe actualizar cuando se editen: Distance, Pickup Address, Dropoof Address, (ya que en estos 2 ultimos se recalcula la distacia)
-        {
-            get => _charges;
-            set
-            {
-                _charges = value;
-                OnPropertyChanged();
-            }
-        }
+        //private ObservableCollection<FundingSourceBillingItem> _charges;
+        public ObservableCollection<FundingSourceBillingItem> SelectedCharges { get; set; } = new(); // Hay que armar Qty y Cost segun el tipo de BillingItem. Y Se debe actualizar cuando se editen: Distance, Pickup Address, Dropoof Address, (ya que en estos 2 ultimos se recalcula la distacia)
 
-        private FundingSourceBillingItem _nonDefaultCharges;
-        public FundingSourceBillingItem NonDefaultCharges
-        {
-            get => _nonDefaultCharges;
-            set
-            {
-                _nonDefaultCharges = value;
-                OnPropertyChanged();
-            }
-        }
+
+        //private ObservableCollection<FundingSourceBillingItem> _nonDefaultCharges;
+        public ObservableCollection<FundingSourceBillingItem> NonDefaultCharges { get; set; } = new();
+
 
         private string _authorization;
         public string Authorization
@@ -159,6 +146,60 @@ namespace Meditrans.Client.ViewModels
                 _authorization = value;
                 OnPropertyChanged();
             }
+        }
+
+        public void UpdateSelectedCharges()
+        {
+            if (_allFundingSourceBillingItem != null) {
+                var selected = (SelectedFundingSource == null && SelectedSpaceType == null) ? _allFundingSourceBillingItem : new ObservableCollection<FundingSourceBillingItem>(
+                    _allFundingSourceBillingItem.Where(f => f.FundingSourceId == SelectedFundingSource?.Id && f.SpaceTypeId == SelectedSpaceType?.Id && f.IsDefault == true));
+
+                if (selected != null)
+                {
+                    SelectedCharges.Clear();
+                    foreach (var c in selected)
+                    {
+                        if (c.BillingItem.Unit.Abbreviation == "MILE")
+                        {
+                            string[] parts = Distance.Split(' '); // format => 11.5 mi
+                            c.Qty = decimal.Parse(parts[0]);
+                        }
+                        else if (c.BillingItem.Unit.Abbreviation == "UNIT")
+                        {
+                            c.Qty = 1;
+                        }
+                        else
+                        {
+                            c.Qty = 1; // Despues ver todas las opciones, por el momento, para que no de error de referencia.
+                        }
+
+                        c.Cost = c.Rate * c.Qty;
+                        SelectedCharges.Add(c);
+
+                    }
+                }
+            }
+                     
+            
+        }
+
+        public void UpdateNonDefaultCharges()
+        {
+            if (_allFundingSourceBillingItem != null) {
+                var nonDefault = (SelectedFundingSource == null && SelectedSpaceType == null) ? _allFundingSourceBillingItem : new ObservableCollection<FundingSourceBillingItem>(
+                _allFundingSourceBillingItem.Where(f => f.FundingSourceId == SelectedFundingSource?.Id && f.SpaceTypeId == SelectedSpaceType?.Id && f.IsDefault != true));
+
+                if (nonDefault != null)
+                {
+                    NonDefaultCharges.Clear();
+                    foreach (var s in nonDefault)
+                    {
+                        NonDefaultCharges.Add(s);
+                    }
+                }
+            }
+            
+            
         }
 
         #endregion
@@ -343,7 +384,7 @@ namespace Meditrans.Client.ViewModels
                 if (string.IsNullOrEmpty(value))
                 {
                     SelectedCustomer = null; //MessageBox.Show("SearchText null");
-                    flag = true;
+                    //flag = true;
                 } 
                 //if(flag)
                     FilterCustomers();
@@ -351,8 +392,55 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
-        public bool flag = true;
+        private string _drogoffAddress;
+        public string DrogoffAddress
+        {
+            get => _drogoffAddress;
+            set
+            {
+                _drogoffAddress = value;
+                OnPropertyChanged();
+                //UpdateSelectedCharges();
+            }
+        }
 
+        // Trip data section
+
+        private TimeSpan _pickupTimePicker;
+
+        public TimeSpan PickupTimePicker
+        {
+            get => _pickupTimePicker;
+            set
+            {
+                _pickupTimePicker = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private TimeSpan _apptTimePicker;
+
+        public TimeSpan ApptTimePicker
+        {
+            get => _apptTimePicker;
+            set
+            {
+                _apptTimePicker = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private TimeSpan _returnTimePicker;
+
+        public TimeSpan ReturnTimePicker
+        {
+            get => _returnTimePicker;
+            set
+            {
+                _returnTimePicker = value;
+                OnPropertyChanged();
+            }
+        }
 
 
 
@@ -401,6 +489,8 @@ namespace Meditrans.Client.ViewModels
             {
                 _selectedSpaceType = value;
                 OnPropertyChanged();
+                UpdateSelectedCharges();
+                UpdateNonDefaultCharges();
             }
         }
 
@@ -415,6 +505,8 @@ namespace Meditrans.Client.ViewModels
             {
                 _selectedFundingSource = value;
                 OnPropertyChanged();
+                UpdateSelectedCharges();
+                UpdateNonDefaultCharges();
             }
         }
 
@@ -468,12 +560,14 @@ namespace Meditrans.Client.ViewModels
         {
             TripType = Meditrans.Client.Models.TripType.Appointment;
         }
-        private async void LoadData()
+        private void LoadData()
         {
-            await LoadFundingSourcesAsync();
-            await LoadSpaceTypesAsync();
+            LoadFundingSourcesAsync();
+            LoadSpaceTypesAsync();
 
-            await LoadCustomersFromApi();
+            LoadCustomersFromApi();
+
+            LoadFundingSourceBillingItemAsync();
 
             //FilteredCustomers = Customers;
             //UpdateFilteredCustomers();
@@ -483,6 +577,14 @@ namespace Meditrans.Client.ViewModels
             //Trips.Add(new Trip { PatientName = "Maria Lopez", Date = DateTime.Today, FromTime = "11:30 AM", PickupAddress = "78 Elm St", DropoffAddress = "Hospital Ave" });
         }
 
+        public async Task LoadFundingSourceBillingItemAsync()
+        {
+            IFundingSourceBillingItemService _fundingSourceService = new FundingSourceBillingItemService();
+            var sources = await _fundingSourceService.GetAllAsync();
+            
+            foreach (var source in sources)
+                _allFundingSourceBillingItem.Add(source);
+        }
         public async Task LoadSpaceTypesAsync()
         {
             SpaceTypeService _spaceTypeService = new SpaceTypeService();

@@ -24,6 +24,9 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using System.Globalization;
 using Meditrans.Client.Helpers;
+using System.Windows.Media.Animation;
+using MaterialDesignColors;
+using System.Windows.Media.Media3D;
 
 namespace Meditrans.Client.Views
 {
@@ -53,7 +56,7 @@ namespace Meditrans.Client.Views
         {
             ViewModel.LoadTripsFromApi();
             //InitializeWebView();
-            
+
         }
 
         private void MapaWebView_CoreWebView2InitializationCompleted(object? sender, CoreWebView2InitializationCompletedEventArgs e)
@@ -69,7 +72,7 @@ namespace Meditrans.Client.Views
         }
 
         private async void WebView_Loaded(object sender, RoutedEventArgs e)
-        {        
+        {
             try
             {
                 await MapaWebView.EnsureCoreWebView2Async();
@@ -102,9 +105,9 @@ namespace Meditrans.Client.Views
                             // Here you can display the message
                             //MessageBox.Show($"ETA: {eta}\nDistance: {distance}", "Trip Info");
                         }
-                        else if(data.type == "autocomplete")
+                        else if (data.type == "autocomplete")
                         {
-                            var result = data.result;                     
+                            var result = data.result;
 
                             if (result is null) return;
 
@@ -167,7 +170,7 @@ namespace Meditrans.Client.Views
 
                 htmlPath = htmlPath.Replace("{ORIGIN_LAT}", "25.77427")
                                    .Replace("{ORIGIN_LNG}", "-80.19366");
-                                  
+
 
                 MapaWebView.NavigateToString(htmlPath);
             }
@@ -193,7 +196,7 @@ namespace Meditrans.Client.Views
 
 
 
-                
+
         }
 
         private async void GeoLocateButton_Click(object sender, RoutedEventArgs e)
@@ -227,7 +230,7 @@ namespace Meditrans.Client.Views
 
         private async Task<Coordinates?> GetCoordinatesFromAddress(string address)
         {
-            
+
             string apiKey = App.Configuration["GoogleMaps:ApiKey"];
             var url = $"https://maps.googleapis.com/maps/api/geocode/json?address={Uri.EscapeDataString(address)}&key={apiKey}";
 
@@ -251,7 +254,7 @@ namespace Meditrans.Client.Views
             return null;
         }
 
-        public void aa ()
+        public void aa()
         {
             // Ruta del archivo HTML de plantilla
             string templatePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "googlemap.html");
@@ -324,7 +327,7 @@ namespace Meditrans.Client.Views
         {
 
             string apiKey = App.Configuration["GoogleMaps:ApiKey"];
-            
+
 
             string path = File.ReadAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "autocomplete.html"));
             //string path = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "html", "autocomplete.html");
@@ -451,7 +454,7 @@ namespace Meditrans.Client.Views
                 MapaWebView.SetValue(Grid.ColumnProperty, 4); // El mapa se mueve a la columna 5 (índice 4)
                 BillingPanel.Visibility = Visibility.Visible;
                 ForDateCalendar.Visibility = Visibility.Visible;
-                
+
 
                 // Hide travel filter
                 TripFilterPanel.Visibility = Visibility.Collapsed;
@@ -459,64 +462,57 @@ namespace Meditrans.Client.Views
                 // Show TabControl
                 TripTabs.Visibility = Visibility.Visible;
                 //TripTabs.SetValue(Grid.RowProperty, 1);
-                PickupAddressTextBox.Text = GooglePlacesInput.Text;
+               // PickupAddressTextBox.Text = GooglePlacesInput.Text;
 
                 // Adjust row size
-                TopRow.Height = new GridLength(7, GridUnitType.Star);
-                BottomRow.Height = new GridLength(3, GridUnitType.Star);
+                TopRow.Height = new GridLength(6.73, GridUnitType.Star);
+                BottomRow.Height = new GridLength(3.27, GridUnitType.Star);
 
                 // Show Dropoff input in WebView map
                 await MapaWebView.ExecuteScriptAsync("showDropoff();");
             }
             else
             {
-               // MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                // MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
 
-            
+
 
         }
 
-        private async void OnNewCustomerClick(object sender, RoutedEventArgs e){
+        private async void OnNewCustomerClick(object sender, RoutedEventArgs e) {
             await MapaWebView.ExecuteScriptAsync("prepareNewCustomer();");
 
         }
 
         private void CustomersAutoSuggestBox_SuggestionChosen(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            //MessageBox.Show((DataContext as HomeViewModel).FilteredCustomers.Count().ToString() + " cantidad de customer c");
+        {           
             if (DataContext is HomeViewModel vm)
-            {
-                //MessageBox.Show(e.NewValue.ToString() + " new value");
-                //MessageBox.Show(vm.FilteredCustomers[0]?.FullName.ToString() + " FilteredCustomers");
-                //vm.SelectedCustomer = e.NewValue as Customer;
-
+            {              
                 Customer customer = vm.Customers.FirstOrDefault(c => c.Id == int.Parse(e.NewValue.ToString()));
 
-               // MessageBox.Show(a?.FullName + " a.FullName");
+                // MessageBox.Show(a?.FullName + " a.FullName");
                 vm.SelectedCustomer = customer;
                 vm.SearchText = customer?.FullName;
 
-                //vm.flag = true;
-              
-
-               // MessageBox.Show(vm.SelectedCustomer?.FullName + " nombre");
-
-                
-
-
+                ShowPickupInMap();
             }
-           
+
         }
 
         private void CustomersAutoSuggestBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            
+
         }
 
         private void AppointmentRadioButton_Checked(object sender, RoutedEventArgs e)
         {
+            PickupTimePicker.Visibility = Visibility.Visible;
+            ApptTimePicker.Visibility = Visibility.Visible;
+            ReturnTimePicker.Visibility = Visibility.Collapsed;
+            WillCallCheckBox.Visibility = Visibility.Collapsed;
+
             string tripType = TripType.Appointment;
             //TripTypeTextBlock.Text = tripType;  
             BillingSectionTabItem.Header = tripType + " " + ForDateCalendar.SelectedDate.Value.Date.ToShortDateString() + " " + "Hora";
@@ -528,9 +524,152 @@ namespace Meditrans.Client.Views
 
         private void ReturnRadioButton_Checked(object sender, RoutedEventArgs e)
         {
+            PickupTimePicker.Visibility = Visibility.Collapsed;
+            ApptTimePicker.Visibility = Visibility.Collapsed;
+            ReturnTimePicker.Visibility = Visibility.Visible;
+            WillCallCheckBox.Visibility = Visibility.Visible;
+
             string tripType = TripType.Return;
             TripTypeTextBlock.Text = tripType;
             BillingSectionTabItem.Header = TripType.Return + " " + ForDateCalendar.SelectedDate.Value.Date.ToShortDateString() + " " + "Hora";
+        }
+
+        private void GeolocateFloatingButton_MouseEnter(object sender, MouseEventArgs e)
+        {
+            Color primaryColor;
+            SolidColorBrush backgroundBrush;
+            if (GeolocateFloatingButton.Background is SolidColorBrush brush)
+            {
+                primaryColor = brush.Color;
+            }
+
+            GeolocateFloatingButton.Background = Brushes.Transparent;
+
+            // Crear animaciones
+            var widthAnimation = new DoubleAnimation(35, TimeSpan.FromSeconds(0.3));
+            var heightAnimation = new DoubleAnimation(35, TimeSpan.FromSeconds(0.3));
+            var colorAnimation = new ColorAnimation(primaryColor, TimeSpan.FromSeconds(0.3));
+
+            // Configurar interpolación suave
+            widthAnimation.EasingFunction = new QuadraticEase();
+            heightAnimation.EasingFunction = new QuadraticEase();
+
+            // Aplicar animaciones
+            GeolocateFloatingButton.BeginAnimation(WidthProperty, widthAnimation);
+            GeolocateFloatingButton.BeginAnimation(HeightProperty, heightAnimation);
+
+            // Animación del color de fondo
+            backgroundBrush = new SolidColorBrush(Colors.Transparent);
+            GeolocateFloatingButton.Background = backgroundBrush;
+            backgroundBrush.BeginAnimation(SolidColorBrush.ColorProperty, colorAnimation);
+        }
+
+        private void GeolocateFloatingButton_MouseLeave(object sender, MouseEventArgs e)
+        {
+            SolidColorBrush backgroundBrush = new SolidColorBrush(Colors.Transparent);
+
+            if (GeolocateFloatingButton.Background is SolidColorBrush brush)
+            {
+                backgroundBrush = new SolidColorBrush(brush.Color);
+            }
+            // Animaciones inversas
+            var widthAnimation = new DoubleAnimation(30, TimeSpan.FromSeconds(0.3));
+            var heightAnimation = new DoubleAnimation(30, TimeSpan.FromSeconds(0.3));
+            var colorAnimation = new ColorAnimation(Colors.Transparent, TimeSpan.FromSeconds(0.3));
+
+            // Configurar interpolación suave
+            widthAnimation.EasingFunction = new QuadraticEase();
+            heightAnimation.EasingFunction = new QuadraticEase();
+
+            // Aplicar animaciones
+            GeolocateFloatingButton.BeginAnimation(WidthProperty, widthAnimation);
+            GeolocateFloatingButton.BeginAnimation(HeightProperty, heightAnimation);
+
+            // Animación del color de fondo
+            backgroundBrush.BeginAnimation(SolidColorBrush.ColorProperty, colorAnimation);
+        }
+
+        private void GeolocateFloatingButton_Click(object sender, RoutedEventArgs e)
+        {
+            ShowPickupInMap();
+        }
+
+        private async void ShowPickupInMap()
+        {
+            var street = GooglePlacesInput.Text;
+            var city = City.Text;
+            var state = State.Text;
+            var zip = Zip.Text;
+            
+            var fullAddress = $"{street}, {city}, {state}, {zip}";
+
+            var coordinates = await GetCoordinatesFromAddress(fullAddress);
+
+            if (coordinates != null)
+            {
+                //position = { lat, lng }
+                // Format using CultureInfo.InvariantCulture to avoid issues with commas/points
+                var positionJson = $"{{ lat: {coordinates.Latitude.ToString(CultureInfo.InvariantCulture)}, lng: {coordinates.Longitude.ToString(CultureInfo.InvariantCulture)} }}";
+                string script = $@"
+                    if (typeof setPickupMarker === 'function') {{
+                        setPickupMarker({positionJson});
+                    }} else {{
+                        console.error('setPickupMarker function is not defined');
+                    }}
+                ";
+                //string script = $"setPickupMarker({positionJson});"; 
+                // Call a JS function in the WebView to locate on the map
+                //string script = $"setPickupMarker({coordinates.Latitude}, {coordinates.Longitude});"; 
+
+                await MapaWebView.CoreWebView2.ExecuteScriptAsync(script);
+            }
+            else
+            {
+                MessageBox.Show("No se pudo obtener la ubicación", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void RoundTripRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            AppointmentRadioButton.Visibility = Visibility.Collapsed;
+            ReturnRadioButton.Visibility = Visibility.Collapsed;
+
+            PickupTimePicker.Visibility = Visibility.Visible;
+            ApptTimePicker.Visibility = Visibility.Visible;
+            ReturnTimePicker.Visibility = Visibility.Visible;
+            WillCallCheckBox.Visibility = Visibility.Visible;
+        }
+
+        private void OneWayRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            AppointmentRadioButton.Visibility = Visibility.Visible;
+            ReturnRadioButton.Visibility = Visibility.Visible;
+        }
+
+        private void DropoffAddressTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isUpdatingFromHtml) return;
+
+            var text = DropoffAddressTextBox.Text;
+            string js = $"document.getElementById('dropoff').value = `{EscapeJs(text)}`;";
+            MapaWebView.ExecuteScriptAsync(js);
+            //AutocompleteOverlay.ExecuteScriptAsync(js);
+        }
+
+        // State variable to control the icon
+        private bool isAutorenewOn = false;
+        private double currentRotation = 0;
+        private void InverterFloatingButton_Click(object sender, RoutedEventArgs e)
+        {       
+            // Toggle status
+            isAutorenewOn = !isAutorenewOn;
+
+            // Change icon based on status
+            InverterIcon.Kind = isAutorenewOn ?
+                MaterialDesignThemes.Wpf.PackIconKind.Autorenew :
+                MaterialDesignThemes.Wpf.PackIconKind.AutorenewOff;
+
+            //invertir los valores y luego llamar a ShowPickupInMap() y ShowDropoffInMap()
         }
     }
 }
