@@ -204,66 +204,8 @@ namespace Meditrans.Client.ViewModels
 
         #endregion
 
-        private bool _genderMale;
-        public bool GenderMale
-        {
-            get => _genderMale;
-            set
-            {
-                _genderMale = value;
-                OnPropertyChanged();
-            }
-        }
-        private bool _genderFemale;
-        public bool GenderFemale
-        {
-            get => _genderFemale;
-            set
-            {
-                _genderFemale = value;
-                OnPropertyChanged();
-            }
-        }
+        #region Trip
 
-        private DateTime _filterDate;
-        public DateTime FilterDate
-        {
-            get => _filterDate;
-            set
-            {
-                _filterDate = value;
-                OnPropertyChanged();
-            }
-            /*set
-            {
-                _filterDate = value;
-                OnPropertyChanged(nameof(FilterDate));
-            }*/
-        }
-
-
-        /*protected virtual bool SetProperty<T>(ref T member, T value, [CallerMemberName] string? propertyName = null)
-        {
-            if (EqualityComparer<T>.Default.Equals(member, value))
-            {
-                return false;
-            }
-
-            member = value;
-            OnPropertyChanged(propertyName);
-            return true;
-        }*/
-
-        private string? _name;
-        public string? Name
-        {
-            get => _name;
-            set => SetProperty(ref _name, value);
-        }
-
-        //public event PropertyChangedEventHandler PropertyChanged;
-
-        //public ObservableCollection<Trip> Trips { get; set; }
         private ObservableCollection<Trip> _trips;
         public ObservableCollection<Trip> Trips
         {
@@ -286,111 +228,19 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
-        #region Customer
-
-        private ObservableCollection<Customer> _customers;
-        private ObservableCollection<Customer> _filteredCustomers;
-        private Customer _selectedCustomer;
-        private string _searchText;
-
-        public ObservableCollection<Customer> Customers
+        private DateTime _filterDate;
+        public DateTime FilterDate
         {
-            get => _customers;           
+            get => _filterDate;
             set
             {
-                _customers = value;
+                _filterDate = value;
                 OnPropertyChanged();
             }
         }
 
-        public ObservableCollection<Customer> FilteredCustomers
-        {
-            get => _filteredCustomers;
-            //set => SetProperty(ref _filteredCustomers, value);
-            set
-            {
-                _filteredCustomers = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public Customer SelectedCustomer
-        {
-            get => _selectedCustomer;
-            /*set
-            {
-                _selectedCustomer = value; MessageBox.Show("entro en Set Selected Customer " + value?.FullName);
-                if (SetProperty(ref _selectedCustomer, value))
-                {
-                    // Lógica adicional al seleccionar
-                }
-            }*/
-            set
-            {
-                _selectedCustomer = value; 
-                OnPropertyChanged();              
-                if (value != null)
-                {
-                    SearchText = value.FullName; 
-                }
-                if(_selectedCustomer != null)
-                {
-                    SelectedSpaceType = SpaceTypes.FirstOrDefault(s => s.Id == _selectedCustomer.SpaceTypeId);
-                    SelectedFundingSource = FundingSources.FirstOrDefault(f => f.Id == _selectedCustomer.FundingSourceId);
-                    // That doesn't work
-                    //SelectedFundingSource = (FundingSource)_selectedCustomer.FundingSource;
-                    GenderMale = _selectedCustomer.Gender == Gender.Male;
-                    GenderFemale = _selectedCustomer.Gender == Gender.Female;
-                }
-                else
-                {
-                    SelectedSpaceType = null;
-                    SelectedFundingSource = null;
-                }
-
-
-            }
-        }
-       // public bool IsCustomerSelected => SelectedCustomer != null;
-
-        /*public Customer SelectedCustomer
-        {
-            get => _selectedCustomer;
-            set
-            {
-                _selectedCustomer = value;
-                OnPropertyChanged();
-                if (value != null)
-                {
-                    FillCustomerFields(value);
-                }
-            }
-        }*/
-
-        public string SearchText
-        {
-            get => _searchText;
-            /*set
-            {
-                if (SetProperty(ref _searchText, value))
-                {
-                    FilterCustomers();
-                }
-            }*/
-            set
-            {
-                _searchText = value;
-                OnPropertyChanged();
-                if (string.IsNullOrEmpty(value))
-                {
-                    SelectedCustomer = null; //MessageBox.Show("SearchText null");
-                    //flag = true;
-                } 
-                //if(flag)
-                    FilterCustomers();
-                //flag = false;
-            }
-        }
+        public DateTime? TripFilterDate { get; set; } = DateTime.Today;
+        public bool ShowCanceled { get; set; }
 
         private string _drogoffAddress;
         public string DrogoffAddress
@@ -442,41 +292,100 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
-
-
-        // --------------
-
-
-
-
-
-        private string _customerSearchText;
-        public string CustomerSearchText
+        /*private string? _name;
+        public string? Name
         {
-            get => _customerSearchText;
+            get => _name;
+            set => SetProperty(ref _name, value);
+        }*/
+
+        #endregion
+
+        #region Customer
+
+        private ObservableCollection<Customer> _customers;
+        private ObservableCollection<Customer> _filteredCustomers;
+        private Customer _selectedCustomer;
+        private string _searchText;
+
+        public ObservableCollection<Customer> Customers
+        {
+            get => _customers;           
             set
             {
-                _customerSearchText = value;
+                _customers = value;
                 OnPropertyChanged();
-                UpdateFilteredCustomers();
             }
         }
 
-        //public ObservableCollection<Customer> Customers { get; set; } = new();
+        public ObservableCollection<Customer> FilteredCustomers
+        {
+            get => _filteredCustomers;
+            //set => SetProperty(ref _filteredCustomers, value);
+            set
+            {
+                _filteredCustomers = value;
+                OnPropertyChanged();
+            }
+        }
 
-        //public ObservableCollection<Customer> FilteredCustomers { get; set; } = new();
+        public Customer SelectedCustomer
+        {
+            get => _selectedCustomer;           
+            set
+            {
+                _selectedCustomer = value; 
+                OnPropertyChanged();              
+                if (value != null)
+                {
+                    SearchText = value.FullName; // Patch to autocomplete bug.
+                }
+                if(_selectedCustomer != null)
+                {
+                    SelectedSpaceType = SpaceTypes.FirstOrDefault(s => s.Id == _selectedCustomer.SpaceTypeId);
+                    SelectedFundingSource = FundingSources.FirstOrDefault(f => f.Id == _selectedCustomer.FundingSourceId);
+                    // That doesn't work
+                    //SelectedFundingSource = (FundingSource)_selectedCustomer.FundingSource;
+                    GenderMale = _selectedCustomer.Gender == Gender.Male;
+                    GenderFemale = _selectedCustomer.Gender == Gender.Female;
+                }
+                else
+                {
+                    SelectedSpaceType = null;
+                    SelectedFundingSource = null;
+                }
+            }
+        }
+       // public bool IsCustomerSelected => SelectedCustomer != null;
 
-        // Campos individuales para edición
-        /*public string FullName { get; set; }
-        public string ClientCode { get; set; }
-        public string Address { get; set; }
-        public string City { get; set; }
-        public string State { get; set; }
-        public string Zip { get; set; }
-        public string Phone { get; set; }
-        public string MobilePhone { get; set; }
-        public DateTime? DOB { get; set; } = DateTime.Today;
-        public string Gender { get; set; } = "Male";*/
+        /*public Customer SelectedCustomer
+        {
+            get => _selectedCustomer;
+            set
+            {
+                _selectedCustomer = value;
+                OnPropertyChanged();
+                if (value != null)
+                {
+                    FillCustomerFields(value);
+                }
+            }
+        }*/
+
+        public string SearchText
+        {
+            get => _searchText;            
+            set
+            {
+                _searchText = value;
+                OnPropertyChanged();
+                if (string.IsNullOrEmpty(value))
+                {
+                    SelectedCustomer = null; 
+                } 
+                FilterCustomers();              
+            }
+        }
 
         // Space Types
         public ObservableCollection<SpaceType> SpaceTypes { get; set; } = new();
@@ -496,7 +405,7 @@ namespace Meditrans.Client.ViewModels
 
         // Funding Sources
         public ObservableCollection<FundingSource> FundingSources { get; set; } = new();
-        
+
         private FundingSource _selectedFundingSource;
         public FundingSource SelectedFundingSource
         {
@@ -510,17 +419,34 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
-        #endregion
+        private bool _genderMale;
+        public bool GenderMale
+        {
+            get => _genderMale;
+            set
+            {
+                _genderMale = value;
+                OnPropertyChanged();
+            }
+        }
+        private bool _genderFemale;
+        public bool GenderFemale
+        {
+            get => _genderFemale;
+            set
+            {
+                _genderFemale = value;
+                OnPropertyChanged();
+            }
+        }
 
-        public DateTime? TripFilterDate { get; set; } = DateTime.Today;
-        public bool ShowCanceled { get; set; }
+        #endregion
 
         // === Commands ===
         public ICommand SaveCustomerCommand { get; }
         public ICommand NewCustomerCommand { get; }
         public ICommand ImportCommand { get; }
         public ICommand ExportCommand { get; }
-
 
         public HomeViewModel() {
 
@@ -534,49 +460,16 @@ namespace Meditrans.Client.ViewModels
             LoadData();
             InitializeData();
 
-            // Suscripción manual para debug
+            // Manual subscription for debug
             /*this.PropertyChanged += (s, e) => {
                 if (e.PropertyName == nameof(SelectedCustomer))
                     MessageBox.Show($"Customer seleccionado: {SelectedCustomer?.FullName}");
                     //Debug.WriteLine($"Customer seleccionado: {SelectedCustomer?.FullName}");
             };*/
 
-
-            //GetTrips();
-            /*var trips = new ObservableCollection<Trip>
-            {
-                new Trip { SpaceType = "AMB", PatientName="Alicia Ambrose", Date="2025-04-04", FromTime="09:10 AM", PickupAddress="1401 16th Street, Sarasota, FL 34236, EE. UU.", DropoffAddress="240b South Tuttle Avenue, Sarasota, FL 34237, EE. UU.", PickupLatitude=27.351814, PickupLongitude=-82.542549, DropoffLatitude=27.334042, DropoffLongitude=-82.514795 },
-                new Trip { SpaceType = "AMB", PatientName="Alicia Ambrose", Date="2025-04-04", FromTime="01:00 PM", PickupAddress="240b South Tuttle Avenue, Sarasota, FL 34237, EE. UU.", DropoffAddress="1401 16th Street, Sarasota, FL 34236, EE. UU.", PickupLatitude=27.334042, PickupLongitude=-82.514795, DropoffLatitude=27.351814, DropoffLongitude=-82.542549 },
-
-                new Trip { SpaceType = "AMB", PatientName="Regina Baker", Date="2025-04-04", FromTime="08:50 AM", PickupAddress="7059 Jarvis Road, Sarasota, FL 34241, EE. UU.", DropoffAddress="2540 South Tamiami Trail, Sarasota, FL 34239, EE. UU.", PickupLatitude=27.292011, PickupLongitude=-82.429845, DropoffLatitude=27.310791, DropoffLongitude=-82.530251 },
-                new Trip { SpaceType = "AMB", PatientName="Regina Baker", Date="2025-04-04", FromTime="11:31 AM", PickupAddress="2540 South Tamiami Trail, Sarasota, FL 34239, EE. UU.", DropoffAddress="7059 Jarvis Road, Sarasota, FL 34241, EE. UU.", PickupLatitude=27.310791, PickupLongitude=-82.530251, DropoffLatitude=27.292011, DropoffLongitude=-82.429845 }
-
-            };
-            Trips = trips;
-            SelectedTrip = Trips[0];*/
         }
 
-        private async void InitializeData()
-        {
-            TripType = Meditrans.Client.Models.TripType.Appointment;
-        }
-        private void LoadData()
-        {
-            LoadFundingSourcesAsync();
-            LoadSpaceTypesAsync();
-
-            LoadCustomersFromApi();
-
-            LoadFundingSourceBillingItemAsync();
-
-            //FilteredCustomers = Customers;
-            //UpdateFilteredCustomers();
-
-            // Simular algunos viajes
-            //Trips.Add(new Trip { PatientName = "John Smith", Date = DateTime.Today, FromTime = "10:00 AM", PickupAddress = "123 Main St", DropoffAddress = "456 Clinic Rd" });
-            //Trips.Add(new Trip { PatientName = "Maria Lopez", Date = DateTime.Today, FromTime = "11:30 AM", PickupAddress = "78 Elm St", DropoffAddress = "Hospital Ave" });
-        }
-
+        #region API
         public async Task LoadFundingSourceBillingItemAsync()
         {
             IFundingSourceBillingItemService _fundingSourceService = new FundingSourceBillingItemService();
@@ -625,7 +518,25 @@ namespace Meditrans.Client.ViewModels
 
 
         }
+        public async void LoadTripsFromApi()
+        {
+            var tripList = new List<Trip>();
+            var tripService = new TripService();
+            tripList = await tripService.GetTripList();
+            if (tripList != null && tripList.Any())
+            {
+                Trips = new ObservableCollection<Trip>(tripList);
+                SelectedTrip = Trips.First(); // 
+            }
+            else
+            {
+                // Show message or log: no data arrived
+            }
+        }
 
+        #endregion
+
+        #region Filters
         private void FilterCustomers()
         {
             if (string.IsNullOrWhiteSpace(SearchText))
@@ -646,103 +557,29 @@ namespace Meditrans.Client.ViewModels
             //MessageBox.Show(FilteredCustomers.Count().ToString() + " cantidad de customer");
         }
 
-        private void UpdateFilteredCustomers()
-        {
-            var filtered = string.IsNullOrWhiteSpace(CustomerSearchText)
-                ? Customers
-                : new ObservableCollection<Customer>(
-                    Customers.Where(c =>
-                        c.FullName.Contains(CustomerSearchText, StringComparison.InvariantCultureIgnoreCase) ||
-                        c.ClientCode.Contains(CustomerSearchText, StringComparison.InvariantCultureIgnoreCase) /*||
-                        c.MobilePhone.Contains(CustomerSearchText, StringComparison.InvariantCultureIgnoreCase)*/ ));
+        #endregion
 
-            FilteredCustomers.Clear();
-            foreach (var c in filtered)
-                FilteredCustomers.Add(c);
+        #region Class Methods
+        private async void InitializeData()
+        {
+            TripType = Meditrans.Client.Models.TripType.Appointment;
         }
-
-        /*private void FillCustomerFields(Customer customer)
+        private void LoadData()
         {
-            FullName = customer.FullName;
-            ClientCode = customer.ClientCode;
-            Address = customer.Address;
-            City = customer.City;
-            State = customer.State;
-            Zip = customer.Zip;
-            Phone = customer.Phone;
-            MobilePhone = customer.MobilePhone;
-            DOB = customer.DOB;
-            Gender = customer.Gender;
-            SelectedSpaceType = customer.SpaceType;
-            SelectedFundingSource = customer.FundingSource;
-
-            OnPropertyChanged(nameof(FullName));
-            OnPropertyChanged(nameof(ClientCode));
-            OnPropertyChanged(nameof(Address));
-            OnPropertyChanged(nameof(City));
-            OnPropertyChanged(nameof(State));
-            OnPropertyChanged(nameof(Zip));
-            OnPropertyChanged(nameof(Phone));
-            OnPropertyChanged(nameof(MobilePhone));
-            OnPropertyChanged(nameof(DOB));
-            OnPropertyChanged(nameof(Gender));
-            OnPropertyChanged(nameof(SelectedSpaceType));
-            OnPropertyChanged(nameof(SelectedFundingSource));
-        }*/
+            LoadFundingSourcesAsync();
+            LoadSpaceTypesAsync();
+            LoadCustomersFromApi();
+            LoadFundingSourceBillingItemAsync();
+        }
 
         private void SaveCustomer()
         {
-            /*if (SelectedCustomer == null)
-            {
-                var newCustomer = new Customer();
-                Customers.Add(newCustomer);
-                SelectedCustomer = newCustomer;
-            }
-
-            SelectedCustomer.FullName = FullName;
-            SelectedCustomer.ClientCode = ClientCode;
-            SelectedCustomer.Address = Address;
-            SelectedCustomer.City = City;
-            SelectedCustomer.State = State;
-            SelectedCustomer.Zip = Zip;
-            SelectedCustomer.Phone = Phone;
-            SelectedCustomer.MobilePhone = MobilePhone;
-            SelectedCustomer.DOB = DOB;
-            SelectedCustomer.Gender = Gender;
-            //SelectedCustomer.SpaceType = SelectedSpaceType;
-            //SelectedCustomer.FundingSource = SelectedFundingSource;
-
-            UpdateFilteredCustomers();*/
+            
         }
 
         private void NewCustomer()
         {
-            /*SelectedCustomer = null;
-            FullName = "";
-            ClientCode = "";
-            Address = "";
-            City = "";
-            State = "";
-            Zip = "";
-            Phone = "";
-            MobilePhone = "";
-            DOB = DateTime.Today;
-            Gender = "Male";
-            SelectedSpaceType = null;
-            SelectedFundingSource = null;
-
-            OnPropertyChanged(nameof(FullName));
-            OnPropertyChanged(nameof(ClientCode));
-            OnPropertyChanged(nameof(Address));
-            OnPropertyChanged(nameof(City));
-            OnPropertyChanged(nameof(State));
-            OnPropertyChanged(nameof(Zip));
-            OnPropertyChanged(nameof(Phone));
-            OnPropertyChanged(nameof(MobilePhone));
-            OnPropertyChanged(nameof(DOB));
-            OnPropertyChanged(nameof(Gender));
-            OnPropertyChanged(nameof(SelectedSpaceType));
-            OnPropertyChanged(nameof(SelectedFundingSource));*/
+            
         }
 
         private void ImportTrips()
@@ -755,35 +592,7 @@ namespace Meditrans.Client.ViewModels
             // Por implementar
         }
 
-
-        public async void GetTrips()
-        {
-            var tripService = new TripService();
-            Trips = await tripService.GetTripsAsync(); 
-            SelectedTrip = Trips[0];
-        }
-
-        public async void LoadTripsFromApi()
-        {
-            var tripList = new List<Trip>();
-            var tripService = new TripService();
-            tripList = await tripService.GetTripList();
-            if (tripList != null && tripList.Any())
-            {
-                Trips = new ObservableCollection<Trip>(tripList);
-                SelectedTrip = Trips.First(); // 
-            }
-            else
-            {
-                // Show message or log: no data arrived
-            }  
-        }
-
-        
-        /*protected void OnPropertyChanged([CallerMemberName] string name = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        }*/
+        #endregion
 
     }
 }

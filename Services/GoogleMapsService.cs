@@ -9,12 +9,12 @@ using Newtonsoft.Json.Linq;
 
 namespace Meditrans.Client.Services
 {
-    internal class GoogleMapsService
+    public class GoogleMapsService
     {
         private static readonly string apiKey = App.Configuration["GoogleMaps:ApiKey"];
         private static readonly HttpClient client = new HttpClient();
 
-        // traffic_model: Se puede establecer en best_guess (la mejor estimación), pessimistic (el peor escenario), o optimistic (el mejor escenario).
+        // traffic_model: Can be set to best_guess (best guess), pessimistic (worst case scenario), or optimistic (best case scenario).
         public async Task<RouteDetail> GetRouteDetails(double originLat, double originLng, double destLat, double destLng)
         {
             RouteDetail? routeDetail = null;
@@ -100,6 +100,32 @@ namespace Meditrans.Client.Services
             }
         }
 
+        public async Task<Coordinates?> GetCoordinatesFromAddress(string address)
+        {
+
+            string apiKey = App.Configuration["GoogleMaps:ApiKey"];
+            var url = $"https://maps.googleapis.com/maps/api/geocode/json?address={Uri.EscapeDataString(address)}&key={apiKey}";
+
+            using var httpClient = new HttpClient();
+            var response = await httpClient.GetStringAsync(url);
+            var json = JObject.Parse(response);
+
+            if (json["status"]?.ToString() == "OK")
+            {
+                var location = json["results"]?[0]?["geometry"]?["location"];
+                if (location != null)
+                {
+                    return new Coordinates
+                    {
+                        Latitude = (double)location["lat"],
+                        Longitude = (double)location["lng"]
+                    };
+                }
+            }
+
+            return null;
+        }
+
     }
     public class RouteDetail
     {
@@ -107,5 +133,9 @@ namespace Meditrans.Client.Services
         public string Duration { get; set; } = "";
         public string DurationInTraffic { get; set; } = "";
     }
-
+    public class Coordinates
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+    }
 }

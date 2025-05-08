@@ -35,14 +35,14 @@
                 <!-- Top row: Client, Billing, Splitter, Map -->
                 <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition x:Name="CustomerColumn" Width="1*" />  <!-- Customer (Trip data area) -->
+                        <ColumnDefinition x:Name="CustomerColumn" Width="1*" />  <!-- Customer and Trip data area (initially hidden) -->
                         <ColumnDefinition Width="6" />     <!-- Vertical GridSplitter -->
                         <ColumnDefinition x:Name="BillingColumn" Width="0" />  <!-- Billing (initially hidden) -->
                         <ColumnDefinition Width="6" />     <!-- Vertical GridSplitter -->
                         <ColumnDefinition x:Name="MapColumn" Width="2*" />    <!-- Map -->
                     </Grid.ColumnDefinitions>
 
-                    <!-- Trip data area -->
+                    <!-- Customer data area -->
                     <Grid Grid.Column="0"  Background="Transparent">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -174,9 +174,8 @@
 
                             </StackPanel>
 
-                        <!-- 🧾 Customer Info Section -->
-                        <!-- <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Margin="0">-->
-                        
+                            <!-- 🧾 Customer Info Section -->
+                            <!-- <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Margin="0">-->                        
                         
                             <StackPanel Margin="2"
                                     Orientation="Vertical" 
@@ -203,13 +202,14 @@
                                                              materialDesign:TextFieldAssist.LeadingIcon="TextUser"
                                                              Style="{StaticResource MaterialDesignFilledTextBox}" Margin="0,0,0,2">
 
-                                                <!--<TextBox.Text>
-                                                                <Binding Path="SelectedCustomer.FullName" UpdateSourceTrigger="PropertyChanged">
-                                                                    <Binding.ValidationRules>
-                                                                        <domain:NotEmptyValidationRule ValidatesOnTargetUpdated="True"/>      
-                                                                    </Binding.ValidationRules>
-                                                                </Binding>
-                                                            </TextBox.Text>-->
+                                                    <!--<TextBox.Text>
+                                                        <Binding Path="SelectedCustomer.FullName" UpdateSourceTrigger="PropertyChanged">
+                                                            <Binding.ValidationRules>
+                                                                <domain:NotEmptyValidationRule ValidatesOnTargetUpdated="True"/>      
+                                                            </Binding.ValidationRules>
+                                                        </Binding>
+                                                    </TextBox.Text>-->
+                                                        
                                                     </TextBox>
                                                     <TextBox x:Name="ClientCodeTextBox"
                                                              Text="{Binding SelectedCustomer.ClientCode}" 
@@ -260,7 +260,7 @@
                                                 </StackPanel>
 
                                                 <!-- Right Column -->
-                                        <StackPanel Grid.Column="1">
+                                                <StackPanel Grid.Column="1">
 
                                                     <Grid>
                                                         
@@ -331,17 +331,12 @@
 
                                             </Grid>
 
-
-
-
-
-
                                         </StackPanel>
                                     </materialDesign:Card>
                         
                             </StackPanel>
                         
-                        <!-- </ScrollViewer> -->
+                            <!-- </ScrollViewer> -->
 
                         </StackPanel>
                         
@@ -363,22 +358,22 @@
                                         
                                 </Grid.ColumnDefinitions>
 
-                                    <!-- Fecha -->
-                                    <DatePicker 
-                                        x:Name="ForDatePicker"
-                                        Grid.Column="0"
+                                <!-- Fecha -->
+                                <DatePicker 
+                                    x:Name="ForDatePicker"
+                                    Grid.Column="0"
                                         
-                                        SelectedDate="{Binding FilterDate, Mode=TwoWay}" 
-                                        materialDesign:HintAssist.Hint="Filter by Date"
-                                        Style="{StaticResource MaterialDesignFilledDatePicker}" Margin="0,0,8,0"/>
+                                    SelectedDate="{Binding FilterDate, Mode=TwoWay}" 
+                                    materialDesign:HintAssist.Hint="Filter by Date"
+                                    Style="{StaticResource MaterialDesignFilledDatePicker}" Margin="0,0,8,0"/>
 
-                                    <!-- Checkbox -->
-                                    <CheckBox Grid.Column="1"
-                                          Content="Show Canceled"
-                                          IsChecked="{Binding ShowCanceled}" 
-                                          Style="{StaticResource MaterialDesignCheckBox}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <!-- Checkbox -->
+                                <CheckBox Grid.Column="1"
+                                        Content="Show Canceled"
+                                        IsChecked="{Binding ShowCanceled}" 
+                                        Style="{StaticResource MaterialDesignCheckBox}" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
-                                    <!-- Botones -->
+                                <!-- Botones -->
                                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                                     <Button 
                                                 ToolTip="Import Trips"
@@ -409,21 +404,21 @@
 
                             <!-- ForDateCalendar -->
 
-                        <!-- Calendar ajustado -->
-                        <Calendar x:Name="ForDateCalendar" Visibility="Collapsed"
-                              Grid.Column="0"
-                              SelectedDate="{Binding FilterDate, Mode=TwoWay}"
-                              VerticalAlignment="Center"
-                              HorizontalAlignment="Center"
-                              Margin="0"
-                              materialDesign:ElevationAssist.Elevation="Dp2"
-                              >     
-                            <Calendar.LayoutTransform>
-                                <ScaleTransform ScaleX="0.75" ScaleY="0.685"/>
-                            </Calendar.LayoutTransform>
-                        </Calendar>
+                            <!-- Calendar ajustado -->
+                            <Calendar x:Name="ForDateCalendar" Visibility="Collapsed"
+                                  Grid.Column="0"
+                                  SelectedDate="{Binding FilterDate, Mode=TwoWay}"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Center"
+                                  Margin="0"
+                                  materialDesign:ElevationAssist.Elevation="Dp2"
+                                  >     
+                                <Calendar.LayoutTransform>
+                                    <ScaleTransform ScaleX="0.75" ScaleY="0.685"/>
+                                </Calendar.LayoutTransform>
+                            </Calendar>
 
-                        <!-- Trips TabControl -->
+                            <!-- Trips TabControl -->
                         
                             <TabControl x:Name="TripTabs" Grid.Column="1" Visibility="Collapsed"
                                     MinHeight="240"

@@ -78,7 +78,7 @@ namespace Meditrans.Client.Views
                 await MapaWebView.EnsureCoreWebView2Async();
                 LoadMap();
                 // MapaWebView.WebMessageReceived += MapaWebView_WebMessageReceived;
-                // Suscribirse al mensaje desde JavaScript
+                // Subscribe to message from JavaScript
                 MapaWebView.CoreWebView2.WebMessageReceived += (s, args) =>
                 {
                     try
@@ -199,80 +199,25 @@ namespace Meditrans.Client.Views
 
         }
 
-        private async void GeoLocateButton_Click(object sender, RoutedEventArgs e)
+        public void LoadMapExcample()
         {
-            /*var street = StreetTextBox.Text;
-            var city = CityTextBox.Text;
-            var state = StateTextBox.Text;
-            var zip = ZipTextBox.Text;
-
-            var fullAddress = $"{street}, {city}, {state}, {zip}";
-
-            var coordinates = await GetCoordinatesFromAddress(fullAddress);
-
-            if (coordinates != null)
-            {
-                // Llama una función JS en el WebView para ubicar en el mapa
-                string script = $"setMarkerAt({coordinates.Latitude}, {coordinates.Longitude});";
-                await MapaWebView.CoreWebView2.ExecuteScriptAsync(script);
-            }
-            else
-            {
-                MessageBox.Show("No se pudo obtener la ubicación", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }*/
-        }
-
-        public class Coordinates
-        {
-            public double Latitude { get; set; }
-            public double Longitude { get; set; }
-        }
-
-        private async Task<Coordinates?> GetCoordinatesFromAddress(string address)
-        {
-
-            string apiKey = App.Configuration["GoogleMaps:ApiKey"];
-            var url = $"https://maps.googleapis.com/maps/api/geocode/json?address={Uri.EscapeDataString(address)}&key={apiKey}";
-
-            using var httpClient = new HttpClient();
-            var response = await httpClient.GetStringAsync(url);
-            var json = JObject.Parse(response);
-
-            if (json["status"]?.ToString() == "OK")
-            {
-                var location = json["results"]?[0]?["geometry"]?["location"];
-                if (location != null)
-                {
-                    return new Coordinates
-                    {
-                        Latitude = (double)location["lat"],
-                        Longitude = (double)location["lng"]
-                    };
-                }
-            }
-
-            return null;
-        }
-
-        public void aa()
-        {
-            // Ruta del archivo HTML de plantilla
+            // Template HTML file path
             string templatePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "googlemap.html");
 
-            // Leer HTML original
+            // Read original HTML
             string htmlContent = File.ReadAllText(templatePath);
 
-            // Leer la clave desde App.config
+            // Read key from App.config
             string apiKey = ConfigurationManager.AppSettings["GoogleMapsApiKey"];
 
-            // Reemplazar {{API_KEY}} por la real
+            // Replace {{API_KEY}} with the real one
             htmlContent = htmlContent.Replace("{{API_KEY}}", apiKey);
 
             // Crear archivo temporal con el HTML ya modificado
             string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "googlemap2.html");
             File.WriteAllText(tempPath, htmlContent);
 
-            // Cargar en el WebView2
+            // Load into WebView2
 
             MapaWebView.CoreWebView2.Navigate(tempPath);
         }
@@ -320,8 +265,6 @@ namespace Meditrans.Client.Views
             public string Distance { get; set; } = "";
         }
 
-
-
         // Probando
         private async void SetupAutocompleteOverlay()
         {
@@ -359,7 +302,6 @@ namespace Meditrans.Client.Views
 
             ShowLocationOnMap(result.lat, result.lng);
         }
-
 
         private async void ShowLocationOnMap(double lat, double lng)
         {
@@ -487,7 +429,8 @@ namespace Meditrans.Client.Views
         }
 
         private void CustomersAutoSuggestBox_SuggestionChosen(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {           
+        {
+            // Patch to autocomplete bug.
             if (DataContext is HomeViewModel vm)
             {              
                 Customer customer = vm.Customers.FirstOrDefault(c => c.Id == int.Parse(e.NewValue.ToString()));
@@ -498,7 +441,6 @@ namespace Meditrans.Client.Views
 
                 ShowPickupInMap();
             }
-
         }
 
         private void CustomersAutoSuggestBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -603,7 +545,9 @@ namespace Meditrans.Client.Views
             
             var fullAddress = $"{street}, {city}, {state}, {zip}";
 
-            var coordinates = await GetCoordinatesFromAddress(fullAddress);
+            GoogleMapsService googleMapsService = new GoogleMapsService();
+            var coordinates = await googleMapsService.GetCoordinatesFromAddress(fullAddress);           
+            //var coordinates = await GetCoordinatesFromAddress(fullAddress);
 
             if (coordinates != null)
             {
