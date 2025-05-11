@@ -141,7 +141,8 @@ namespace Meditrans.Client.ViewModels
         private async Task LoadAllCustomers()
         {
             CustomerService _customerService = new CustomerService();
-            var list = await _customerService.LoadAllCustomersAsync();
+            var list = await _customerService.GetAllCustomersAsync();
+            //var list = await _customerService.LoadAllCustomersAsync();
             _customers = new ObservableCollection<Customer>(list);
             Customers = new ObservableCollection<Customer>(_customers);
             OnPropertyChanged(nameof(Customers));

@@ -27,6 +27,7 @@ using Meditrans.Client.Helpers;
 using System.Windows.Media.Animation;
 using MaterialDesignColors;
 using System.Windows.Media.Media3D;
+using Meditrans.Client.Exceptions;
 
 namespace Meditrans.Client.Views
 {
@@ -338,10 +339,10 @@ namespace Meditrans.Client.Views
         private async void OnSaveCustomerClick(object sender, RoutedEventArgs e)
         {
             // Customer save           
-            /*var culture = System.Globalization.CultureInfo.CurrentCulture;
+            var culture = System.Globalization.CultureInfo.CurrentCulture;
             //culture = CultureInfo.InvariantCulture;
 
-            var customer = new Customer
+            var customer = new CustomerCreateDto
             {
                 FullName = FullNameTextBox.Text,
                 ClientCode = ClientCodeTextBox.Text,
@@ -381,12 +382,74 @@ namespace Meditrans.Client.Views
                 return;
             }
 
-            
+            /*bool customerExists = false;
+            var (updateSuccess, updateMessage) = (false,"");
+            var (success, message, response) = (false, "", new object());*/
+
+            bool success = false;
 
             CustomerService _customerService = new CustomerService();
-            var (success, message) = await _customerService.CreateCustomerAsync(customer);*/
+            if (DataContext is HomeViewModel vm)
+            {
+                Customer selectedCustomer = vm.SelectedCustomer;
+                if (selectedCustomer?.Id == null)
+                {
+                    try
+                    {
+                        var createdCustomer = await _customerService.CreateCustomerAsync(customer);
+                        success = true;
+                        vm.IdCustomer = createdCustomer.Id;
+                    }
+                    catch (ApiException ex)
+                    {
+                        MessageBox.Show(
+                            $"Error {ex.StatusCode}:\n{ex.ErrorDetails}",
+                            "Error del servidor",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(
+                            $"Error inesperado: {ex.Message}",
+                            "Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                    }
+                 
+                }
+                else
+                {
+                    try
+                    {
+                        //customer.Id = selectedCustomer.Id; MessageBox.Show(customer.ToString());
+                        var updatedCustomer = await _customerService.UpdateCustomerAsync(selectedCustomer.Id, customer);
+                        success = true;
+                        vm.IdCustomer = selectedCustomer.Id;
+                    }
+                    catch (ApiException ex)
+                    {
+                        MessageBox.Show(
+                            $"Error {ex.StatusCode}:\n{ex.ErrorDetails}",
+                            "Error del servidor",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(
+                            $"Error inesperado: {ex.Message}",
+                            "Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                    }
+                  
+                }                   
+            }
 
-            if (true/*success*/)
+                       
+
+            if (success)
             {
                 //MessageBox.Show(message); // luego crear servicios de mensajes, avisos y alertas
 
@@ -533,7 +596,7 @@ namespace Meditrans.Client.Views
 
         private void GeolocateFloatingButton_Click(object sender, RoutedEventArgs e)
         {
-            ShowPickupInMap();
+            ShowPickupInMap();           
         }
 
         private async void ShowPickupInMap()
@@ -569,7 +632,7 @@ namespace Meditrans.Client.Views
             }
             else
             {
-                MessageBox.Show("No se pudo obtener la ubicación", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Could not get location", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -614,6 +677,11 @@ namespace Meditrans.Client.Views
                 MaterialDesignThemes.Wpf.PackIconKind.AutorenewOff;
 
             //invertir los valores y luego llamar a ShowPickupInMap() y ShowDropoffInMap()
+        }
+
+        private void SaveTab1FloatingButton_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

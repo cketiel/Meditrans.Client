@@ -11,9 +11,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Xml.Linq;
+using Meditrans.Client.Exceptions;
 using Meditrans.Client.Helpers;
 using Meditrans.Client.Models;
 using Meditrans.Client.Services;
+using Newtonsoft.Json.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Meditrans.Client.ViewModels
 {
@@ -205,6 +208,8 @@ namespace Meditrans.Client.ViewModels
         #endregion
 
         #region Trip
+
+        public TimeSpan FromTime { get; set; }
 
         private ObservableCollection<Trip> _trips;
         public ObservableCollection<Trip> Trips
@@ -440,6 +445,17 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
+        private int _idCustomer;
+        public int IdCustomer
+        {
+            get => _idCustomer;
+            set
+            {
+                _idCustomer = value;
+                OnPropertyChanged();
+            }
+        }
+
         #endregion
 
         // === Commands ===
@@ -448,14 +464,17 @@ namespace Meditrans.Client.ViewModels
         public ICommand ImportCommand { get; }
         public ICommand ExportCommand { get; }
 
+        public ICommand SaveTripCommand { get; }
+
         public HomeViewModel() {
 
             FilterDate = DateTime.Today; // DateTime.Now
-
+            
             //SaveCustomerCommand = new RelayCommand(SaveCustomer);
             NewCustomerCommand = new RelayCommand(NewCustomer);
             ImportCommand = new RelayCommand(ImportTrips);
             ExportCommand = new RelayCommand(ExportTrips);
+            SaveTripCommand = new RelayCommand(SaveTrip);
 
             LoadData();
             InitializeData();
@@ -500,22 +519,35 @@ namespace Meditrans.Client.ViewModels
         }
         public async Task LoadCustomersFromApi()
         {
-            _customers = new ObservableCollection<Customer>();
+            _customers = new ObservableCollection<Customer>();           
+            var customerService = new CustomerService();           
+            try
+            {
+                var sources = await customerService.GetAllCustomersAsync();
+                //var sources = await customerService.GetAllAsync();
+                foreach (var source in sources)
+                    _customers.Add(source);
 
-            var customerService = new CustomerService();
-            var sources = await customerService.GetAllAsync();
-            foreach (var source in sources)
-                _customers.Add(source);
-
-            Customers = new ObservableCollection<Customer>(_customers);
-            FilteredCustomers = new ObservableCollection<Customer>(_customers);
-            
-            /*Customers.Clear();
-            foreach (var source in sources)
-                Customers.Add(source);
-
-            SelectedCustomer = Customers.First();*/
-
+                Customers = new ObservableCollection<Customer>(_customers);
+                FilteredCustomers = new ObservableCollection<Customer>(_customers);
+                
+            }
+            catch (ApiException ex)
+            {
+                MessageBox.Show(
+                    $"Error {ex.StatusCode}:\n{ex.ErrorDetails}",
+                    "Error del servidor",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error inesperado: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
 
         }
         public async void LoadTripsFromApi()
@@ -590,6 +622,71 @@ namespace Meditrans.Client.ViewModels
         private void ExportTrips()
         {
             // Por implementar
+        }
+
+        private async void SaveTrip()
+        {
+            MessageBox.Show("save trip");
+            Trip trip = new Trip();
+            trip.Date = FilterDate;
+            trip.Day = FilterDate.Date.DayOfWeek.ToString();
+            trip.FromTime = PickupTimePicker;
+            trip.ToTime = ApptTimePicker;
+            trip.CustomerId = IdCustomer;
+
+            //trip.PickupAddress = pickupAd           
+            /*trip.PickupLatitude
+            trip.PickupLongitude
+            trip.Pickup
+            trip.PickupPhone
+            trip.PickupComment
+                
+            trip.DropoffAddress = DrogoffAddress;
+            trip.DropoffLatitude
+            trip.DropoffLongitude
+            trip.Dropoof
+            trip.DropoofPhone
+            trip.DropoofComment
+
+            trip.SpaceTypeId = SelectedSpaceType.Id;
+
+            trip.Charge
+            trip.Paid
+            trip.Type
+            trip.TripId
+            trip.Authorization
+            trip.Distance
+            trip.ETA
+            trip.WillCall
+            trip.Status
+            trip.Created
+            trip.FundingSourceId*/
+
+
+            TripService _tripService = new TripService();
+
+            try
+            {
+                var createdCustomer = await _tripService.CreateTripAsync(trip);
+                //success = true;
+                //vm.IdCustomer = createdCustomer.Id;
+            }
+            catch (ApiException ex)
+            {
+                MessageBox.Show(
+                    $"Error {ex.StatusCode}:\n{ex.ErrorDetails}",
+                    "Error del servidor",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    $"Error inesperado: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
         }
 
         #endregion

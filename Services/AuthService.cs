@@ -9,8 +9,8 @@ namespace Meditrans.Client.Services
     public class AuthService
     {
         private readonly HttpClient _httpClient;
-        //private string URI = App.Configuration["ApiAddress:ApiTest"];
-        private string URI = App.Configuration["ApiAddress:ApiService"];
+        private string URI = App.Configuration["ApiAddress:ApiTest"];
+        //private string URI = App.Configuration["ApiAddress:ApiService"];
         //private string URI = App.Configuration["ApiAddress:UsersService"];
         public AuthService()
         {

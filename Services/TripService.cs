@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
+using Meditrans.Client.Exceptions;
 using Meditrans.Client.Models;
 
 namespace Meditrans.Client.Services
@@ -13,11 +14,12 @@ namespace Meditrans.Client.Services
     public class TripService
     {
         private readonly HttpClient _httpClient;
-
+        private readonly string EndPoint = "trips";
         public TripService()
         {
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = new Uri("https://localhost:7095/");
+            _httpClient = ApiClientFactory.Create();
+            //_httpClient = new HttpClient();
+            //_httpClient.BaseAddress = new Uri("https://localhost:7095/");
         }
 
         public async Task<ObservableCollection<Trip>> GetTripsAsync()
@@ -65,6 +67,47 @@ namespace Meditrans.Client.Services
             }
 
             return tripList;
+        }
+
+        public async Task<Trip> CreateTripAsync(Trip trip)
+        {          
+            try
+            {
+
+                var response = await _httpClient.PostAsJsonAsync(EndPoint, trip);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw await CreateApiException(response, "Error al crear trip");
+                }
+
+                return await response.Content.ReadFromJsonAsync<Trip>();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException("Error de conexión con el servidor", ex);
+            }
+            
+        }
+
+        private async Task<ApiException> CreateApiException(HttpResponseMessage response, string context)
+        {
+            try
+            {
+                var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+                return new ApiException(
+                    message: $"{context}: {problemDetails?.Title}",
+                    statusCode: response.StatusCode,
+                    details: problemDetails?.Detail);
+            }
+            catch
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                return new ApiException(
+                    message: $"{context}: Error no especificado",
+                    statusCode: response.StatusCode,
+                    details: content);
+            }
         }
     }
 }

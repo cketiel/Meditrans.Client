@@ -6,6 +6,9 @@ using System.Net.Http.Json;
 using System.Threading.Tasks;
 using System;
 using System.Windows;
+using System.Windows.Xps;
+using Meditrans.Client.Exceptions;
+using Newtonsoft.Json.Linq;
 
 namespace Meditrans.Client.Services
 {
@@ -17,95 +20,187 @@ namespace Meditrans.Client.Services
 
         public CustomerService()
         {
-            _httpClient = ApiClientFactory.Create();
+            _httpClient = ApiClientFactory.Create(); 
             //_httpClient = new HttpClient();
             //_httpClient.BaseAddress = new Uri(URI);
         }
 
-        public async Task<List<Customer>> LoadAllCustomersAsync() {
-
-            await Task.Delay(500); // Simula latencia
-            var customerList = new List<Customer>();
+        public async Task<List<Customer>> GetAllCustomersAsync()
+        {
+            await Task.Delay(500); // Simulates latency
             try
             {
+
                 var response = await _httpClient.GetAsync(EndPoint);
-                if (response.IsSuccessStatusCode)
+
+                if (!response.IsSuccessStatusCode)
                 {
-                    customerList = await response.Content.ReadFromJsonAsync<List<Customer>>();
-
-                }
-            }
-            catch (Exception ex)
-            {
-                // throw exception 
-            }
-
-            return customerList;
-        }
-
-
-
-
-        public async Task<List<Customer>> GetAllAsync()
-        {
-            var customerList = new List<Customer>();
-            try
-            {
-                var response = await _httpClient.GetAsync(EndPoint);
-                if (response.IsSuccessStatusCode)
-                {
-                    customerList = await response.Content.ReadFromJsonAsync<List<Customer>>();
-
-                }
-            }
-            catch (Exception ex)
-            {
-                // throw exception 
-            }
-
-            return customerList;
-        }
-
-        public async Task<Customer> GetCustomerByIdAsync(int id)
-        {
-            return await _httpClient.GetFromJsonAsync<Customer>($"{EndPoint}/{id}");
-        }
-
-        public async Task<(bool Success, string Message)> CreateCustomerAsync(Customer customer)
-        {
-            try
-            {
-                var response = await _httpClient.PostAsJsonAsync(EndPoint, customer);
-                //MessageBox.Show(response.ToString());
-                if (response.IsSuccessStatusCode)
-                {
-                    return (true, "Cliente creado correctamente.");
+                    throw await CreateApiException(response, "Error al obtener clientes");
                 }
 
-                // Si el servidor responde con error, intenta extraer mensaje
-                string errorMessage = await response.Content.ReadAsStringAsync();
-                return (false, $"Error del servidor: {errorMessage}");
+                return await response.Content.ReadFromJsonAsync<List<Customer>>();
             }
             catch (HttpRequestException ex)
             {
-                return (false, $"Error de conexión: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                return (false, $"Error inesperado: {ex.Message}");
+                throw new ApiException("Error de conexión con el servidor", ex);
             }
         }
 
-        public async Task<bool> UpdateCustomerAsync(Customer customer)
+        /*public async Task<List<Customer>> LoadAllCustomersAsync() {
+
+            await Task.Delay(500); // Simulates latency
+            var customerList = new List<Customer>();
+            try
+            {
+                var response = await _httpClient.GetAsync(EndPoint);
+                if (response.IsSuccessStatusCode)
+                {
+                    customerList = await response.Content.ReadFromJsonAsync<List<Customer>>();
+
+                }
+            }
+            catch (Exception ex)
+            {
+                // throw exception 
+            }
+
+            return customerList;
+        }*/
+
+        /*public async Task<List<Customer>> GetAllAsync()
         {
-            var response = await _httpClient.PutAsJsonAsync($"{EndPoint}/{customer.Id}", customer);
-            return response.IsSuccessStatusCode;
+            var customerList = new List<Customer>();
+            try
+            {
+                var response = await _httpClient.GetAsync(EndPoint);
+                if (response.IsSuccessStatusCode)
+                {
+                    customerList = await response.Content.ReadFromJsonAsync<List<Customer>>();
+
+                }
+            }
+            catch (Exception ex)
+            {
+                // throw exception 
+            }
+
+            return customerList;
+        }*/
+
+        public async Task<Customer> GetCustomerByIdAsync(int id)
+        {
+            try
+            {               
+                var response = await _httpClient.GetAsync($"{EndPoint}/{id}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw await CreateApiException(response, $"Error al obtener cliente {id}");
+                }
+
+                return await response.Content.ReadFromJsonAsync<Customer>();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException("Error de conexión con el servidor", ex);
+            }
+            //return await _httpClient.GetFromJsonAsync<Customer>($"{EndPoint}/{id}");
+        }
+
+        public async Task<Customer> CreateCustomerAsync(CustomerCreateDto customer)
+        {
+            //Customer result = new Customer();
+            try
+            {
+
+                var response = await _httpClient.PostAsJsonAsync(EndPoint, customer);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw await CreateApiException(response, "Error al crear cliente");
+                }
+
+                return await response.Content.ReadFromJsonAsync<Customer>();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException("Error de conexión con el servidor", ex);
+            }            
+            /*catch (Exception ex)
+            {
+                // lanzar exception general;
+            }*/
+            //return result;
+        }
+
+        public async Task<bool> UpdateCustomerAsync(int id, CustomerCreateDto customer)
+        {                      
+            try
+            {                                
+                var response = await _httpClient.PutAsJsonAsync($"{EndPoint}/{id}", customer);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw await CreateApiException(response, $"Error al actualizar cliente {id}");
+                }
+
+                return true;
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException("Error de conexión con el servidor", ex);
+            }
+            
+            /*catch (Exception ex)
+            {
+                // Error general
+            }*/
+
+            //var response = await _httpClient.PutAsJsonAsync($"{EndPoint}/{customer.Id}", customer);
+            //return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> DeleteCustomerAsync(int id)
         {
-            var response = await _httpClient.DeleteAsync($"{EndPoint}/{id}");
-            return response.IsSuccessStatusCode;
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"{EndPoint}/{id}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw await CreateApiException(response, $"Error al eliminar cliente {id}");
+                }
+
+                return true;
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException("Error de conexión con el servidor", ex);
+            }
+            /*var response = await _httpClient.DeleteAsync($"{EndPoint}/{id}");
+            return response.IsSuccessStatusCode;*/
         }
+
+        private async Task<ApiException> CreateApiException(HttpResponseMessage response, string context)
+        {
+            try
+            {
+                var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+                return new ApiException(
+                    message: $"{context}: {problemDetails?.Title}",
+                    statusCode: response.StatusCode,
+                    details: problemDetails?.Detail);
+            }
+            catch
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                return new ApiException(
+                    message: $"{context}: Error no especificado",
+                    statusCode: response.StatusCode,
+                    details: content);
+            }
+        }
+
+       
     }
 }

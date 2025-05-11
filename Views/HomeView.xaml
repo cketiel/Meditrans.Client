@@ -493,9 +493,21 @@
                                             Style="{StaticResource MaterialDesignFilledTextBox}" 
                                             TextChanged="DropoffAddressTextBox_TextChanged"/>
 
+                                    <Button x:Name="SaveTab1FloatingButton" Width="30" Height="30" Grid.Row="2" Grid.Column="0"
+                                        Panel.ZIndex="100"
+                                        Margin="12,19,16,-17"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Bottom"
+                                        ToolTip="Save trip information"
+                                        Command="{Binding SaveTripCommand}"
+                                        Style="{StaticResource MaterialDesignFloatingActionMiniButton}" Click="SaveTab1FloatingButton_Click">
+                                        <materialDesign:PackIcon  Kind="ContentSave" />
 
 
-                                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Margin="0,10,10,5">
+                                    </Button>
+
+
+                                    <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Margin="0,10,10,5">
                                             <RadioButton x:Name="RoundTripRadioButton" Content="Round Trip" GroupName="TripType" Margin="0,0,10,0" Checked="RoundTripRadioButton_Checked"/>
                                             <RadioButton x:Name="OneWayRadioButton" Content="One Way" GroupName="TripType" Checked="OneWayRadioButton_Checked"/>
                                         </StackPanel>
