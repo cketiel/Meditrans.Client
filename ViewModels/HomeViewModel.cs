@@ -234,6 +234,17 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
+        private ObservableCollection<TripReadDto> _tripsByDate;
+        public ObservableCollection<TripReadDto> TripsByDate
+        {
+            get => _tripsByDate;
+            set
+            {
+                _tripsByDate = value;
+                OnPropertyChanged();
+            }
+        }
+
         private DateTime _filterDate;
         public DateTime FilterDate
         {
@@ -242,6 +253,17 @@ namespace Meditrans.Client.ViewModels
             {
                 _filterDate = value;
                 OnPropertyChanged();
+
+                if (_filterDate != null)
+                {                   
+                    LoadTripsByDateAsync(_filterDate);
+                    //TripsByDate = Trips.FirstOrDefault(t => t.Date.Date == _filterDate.Date);                    
+                }
+                else
+                {
+                    SelectedSpaceType = null;
+                    SelectedFundingSource = null;
+                }
             }
         }
 
@@ -481,6 +503,8 @@ namespace Meditrans.Client.ViewModels
             SaveTripCommand = new RelayCommand(SaveTrip);
 
             Trips = new ObservableCollection<TripReadDto>();
+            TripsByDate = new ObservableCollection<TripReadDto>();
+
             LoadData();
             InitializeData();
             
@@ -559,28 +583,10 @@ namespace Meditrans.Client.ViewModels
         {
             TripService _tripService = new TripService();
             var sources = await _tripService.GetAllTripsAsync();
-            //Trips.Clear();
+            Trips.Clear();
             foreach (var source in sources)
                 Trips.Add(source);
-            /*MessageBox.Show("entro en loadTrips");
-            //var tripList = new List<TripReadDto>();
-            MessageBox.Show("antes de new TripService");
-            TripService tripService = new TripService(); MessageBox.Show("antes del await");
-            tripList = await tripService.GetAllTripsAsync();
-            MessageBox.Show("antes del clear");
-            Trips.Clear();
-            foreach (var trip in tripList)
-                Trips.Add(trip);
-            MessageBox.Show(Trips.Count.ToString());*/
-            /*if (tripList != null && tripList.Any())
-            {
-                Trips = new ObservableCollection<TripReadDto>(tripList);
-                SelectedTrip = Trips.First(); // 
-            }
-            else
-            {
-                // Show message or log: no data arrived
-            }*/
+           
         }
 
         public async Task LoadCapacityTypesAsync()
@@ -590,6 +596,16 @@ namespace Meditrans.Client.ViewModels
             CapacityTypes.Clear();
             foreach (var capacity in listCapacityTypes)
                 CapacityTypes.Add(capacity);
+        }
+
+        public async Task LoadTripsByDateAsync(DateTime date)
+        {
+            TripService _tripService = new TripService();
+            var sources = await _tripService.GetTripsByDateAsync(date);
+            TripsByDate.Clear();
+            foreach (var source in sources)
+                TripsByDate.Add(source);
+
         }
 
         #endregion

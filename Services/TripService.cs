@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Configuration;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using MaterialDesignColors;
 using Meditrans.Client.DTOs;
 using Meditrans.Client.Exceptions;
 using Meditrans.Client.Models;
@@ -109,6 +114,32 @@ namespace Meditrans.Client.Services
                 throw new ApiException("Server connection error", ex);
             }
             
+        }
+
+        public async Task<List<TripReadDto>> GetTripsByDateAsync(DateTime date)
+        {
+            try
+            {
+                // You must ensure that the format is consistent regardless of the system locale.
+                // Format date in ISO 8601 format (yyyy-MM-dd) using culture invariant
+                string isoDate = date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+                var response = await _httpClient.GetAsync($"{EndPoint}/date/{isoDate}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw await CreateApiException(response, "Error getting trips");
+                }
+
+                return await response.Content.ReadFromJsonAsync<List<TripReadDto>>();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException("Server connection error", ex);
+            }
+
+            /*var result = await _httpClient.GetFromJsonAsync<List<TripReadDto>>($"{EndPoint}/date/{date}");
+            return result ?? new List<TripReadDto>();*/
         }
 
         private async Task<ApiException> CreateApiException(HttpResponseMessage response, string context)

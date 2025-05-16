@@ -989,22 +989,22 @@
 
                 <!-- DataGrid inferior -->
                 <DataGrid Grid.Row="2" x:Name="GridRow2"
-                          ItemsSource="{Binding Trips}" 
+                          ItemsSource="{Binding TripsByDate}" 
                           SelectedItem="{Binding SelectedTrip, Mode=TwoWay}"
-                          AutoGenerateColumns="true" SelectionMode="Single">
-                    <!--<DataGrid.Columns>
+                          AutoGenerateColumns="false" SelectionMode="Single">
+                    <DataGrid.Columns>
                         <DataGridTextColumn Header="Day" Binding="{Binding Day}"/>
                         <DataGridTextColumn Header="Date" Binding="{Binding Date}"/>
                         <DataGridTextColumn Header="From Time" Binding="{Binding FromTime}"/>
                         <DataGridTextColumn Header="To Time" Binding="{Binding ToTime}"/>
-                        <DataGridTextColumn Header="Patient" Binding="{Binding PatientName}"/>
+                        <DataGridTextColumn Header="Patient" Binding="{Binding CustomerName}"/>
                         <DataGridTextColumn Header="Pickup Address" Binding="{Binding PickupAddress}"/>
                         <DataGridTextColumn Header="Dropoff Address" Binding="{Binding DropoffAddress}"/>
-                        <DataGridTextColumn Header="Space" Binding="{Binding SpaceType}"/>
+                        <DataGridTextColumn Header="Space" Binding="{Binding SpaceTypeName}"/>
                         <DataGridTextColumn Header="Charge" Binding="{Binding Charge}"/>
                         <DataGridTextColumn Header="Paid" Binding="{Binding Paid}"/>
                     <DataGridTextColumn Header="Pickup Comment" Binding="{Binding PickupComment}"/>
-                </DataGrid.Columns>-->
+                </DataGrid.Columns>
                 </DataGrid>
 
 
