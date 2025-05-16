@@ -13,7 +13,7 @@ namespace Meditrans.Client.Services
 {
     public static class ApiClientFactory
     {
-        private static readonly string _baseUrl = App.Configuration["ApiAddress:ApiTest"];  // App.Configuration["ApiAddress:ApiTest"]; // App.Configuration["ApiAddress:ApiService"];// App.Configuration["ApiAddress:GatewayService"];
+        private static readonly string _baseUrl = App.Configuration["ApiAddress:ApiService"];  // App.Configuration["ApiAddress:ApiTest"]; // App.Configuration["ApiAddress:ApiService"];// App.Configuration["ApiAddress:GatewayService"];
         private static readonly string _prefix = "api/";
         private static readonly string URI = _baseUrl + _prefix;
         public static HttpClient Create()

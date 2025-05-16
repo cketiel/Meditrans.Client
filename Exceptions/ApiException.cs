@@ -26,7 +26,7 @@ namespace Meditrans.Client.Exceptions
         }
 
         public override string ToString() =>
-            $"[{(int)StatusCode} {StatusCode}] {Message}\nDetalles: {ErrorDetails}";
+            $"[{(int)StatusCode} {StatusCode}] {Message}\nDetails: {ErrorDetails}";
     }
 
     public class ProblemDetails {

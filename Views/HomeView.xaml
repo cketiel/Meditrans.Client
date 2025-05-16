@@ -13,9 +13,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
-    <UserControl.DataContext>
-        <vm:HomeViewModel />
-    </UserControl.DataContext>
+    
     
     <UserControl.Resources>
         <!-- vmProxy “captures” the current DataContext (HomeViewModel) -->
@@ -33,7 +31,7 @@
                 </Grid.RowDefinitions>
 
                 <!-- Top row: Client, Billing, Splitter, Map -->
-                <Grid Grid.Row="0">
+                <Grid Grid.Row="0" x:Name="GridRow0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition x:Name="CustomerColumn" Width="1*" />  <!-- Customer and Trip data area (initially hidden) -->
                         <ColumnDefinition Width="6" />     <!-- Vertical GridSplitter -->
@@ -43,7 +41,7 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Customer data area -->
-                    <Grid Grid.Column="0"  Background="Transparent">
+                <Grid Grid.Column="0"  Background="Transparent">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto"/>
@@ -376,15 +374,16 @@
                                 <!-- Botones -->
                                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                                     <Button 
-                                                ToolTip="Import Trips"
-                                                Command="{Binding ImportCommand}"
-                                                Style="{StaticResource MaterialDesignToolForegroundButton}" Margin="0,0,10,0">
+                                        ToolTip="Import Trips"
+                                        Command="{Binding ImportCommand}"
+                                        Style="{StaticResource MaterialDesignToolForegroundButton}" Margin="0,0,10,0" Click="Button_Click">
                                         <materialDesign:PackIcon Kind="DatabaseImport" Width="25" Height="25" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
                                     </Button>
 
-                                    <Button  ToolTip="Export Trip"
-                                                    Command="{Binding ExportCommand}"
-                                                    Style="{StaticResource MaterialDesignToolForegroundButton}">
+                                    <Button  
+                                        ToolTip="Export Trip"
+                                        Command="{Binding ExportCommand}"
+                                        Style="{StaticResource MaterialDesignToolForegroundButton}">
                                         <materialDesign:PackIcon Kind="MicrosoftExcel" Width="25" Height="25" Foreground="Green"/>
                                     </Button>
                                 </StackPanel>
@@ -972,7 +971,7 @@
                 </Grid>
 
                 <!-- Horizontal GridSplitter -->
-                <GridSplitter Grid.Row="1"
+                <GridSplitter Grid.Row="1" x:Name="GridRow1"
                       Height="6"
                       HorizontalAlignment="Stretch"
                       VerticalAlignment="Stretch"
@@ -989,10 +988,11 @@
                 </GridSplitter>
 
                 <!-- DataGrid inferior -->
-                <DataGrid Grid.Row="2" ItemsSource="{Binding Trips}" 
+                <DataGrid Grid.Row="2" x:Name="GridRow2"
+                          ItemsSource="{Binding Trips}" 
                           SelectedItem="{Binding SelectedTrip, Mode=TwoWay}"
-                          AutoGenerateColumns="False" SelectionMode="Single">
-                    <DataGrid.Columns>
+                          AutoGenerateColumns="true" SelectionMode="Single">
+                    <!--<DataGrid.Columns>
                         <DataGridTextColumn Header="Day" Binding="{Binding Day}"/>
                         <DataGridTextColumn Header="Date" Binding="{Binding Date}"/>
                         <DataGridTextColumn Header="From Time" Binding="{Binding FromTime}"/>
@@ -1004,10 +1004,33 @@
                         <DataGridTextColumn Header="Charge" Binding="{Binding Charge}"/>
                         <DataGridTextColumn Header="Paid" Binding="{Binding Paid}"/>
                     <DataGridTextColumn Header="Pickup Comment" Binding="{Binding PickupComment}"/>
-                </DataGrid.Columns>
+                </DataGrid.Columns>-->
                 </DataGrid>
 
-            </Grid>
+
+                <!-- Import Trips-->
+                <Grid Grid.Row="0" x:Name="ImportTripsGridRow" Visibility="Collapsed" Margin="10">
+                    <StackPanel>
+                        <Button Content="Seleccionar archivo CSV" Click="SelectCsv_Click" Margin="0 0 0 10" x:Name="SelectCsvButton"/>
+
+                        <!-- Contenedor para la barra de progreso y el texto -->
+                        <StackPanel Margin="0,5,0,10" x:Name="ProgressPanel" Visibility="Collapsed">
+                            <TextBlock x:Name="ProgressText" Text="Procesando 0 de N viajes..." HorizontalAlignment="Center"/>
+                            <ProgressBar x:Name="ImportProgressBar" Height="20" Margin="0,5,0,0" IsIndeterminate="False"/>
+                        </StackPanel>
+
+                        <DataGrid x:Name="PreviewGrid" AutoGenerateColumns="True" Height="350" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Grid>
+                
+            <!-- Import Trips-->
+                <!--<Grid Grid.Row="0" x:Name="ImportTripsGridRow" Visibility="Collapsed" Margin="10">
+                    <StackPanel>
+                        <Button Content="Seleccionar archivo CSV" Click="SelectCsv_Click" Margin="0 0 0 10"/>
+                        <DataGrid x:Name="PreviewGrid" AutoGenerateColumns="True" Height="350"/>
+                    </StackPanel>
+                </Grid>-->
+        </Grid>
 
         </Border>
 

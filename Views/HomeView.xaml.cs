@@ -28,6 +28,19 @@ using System.Windows.Media.Animation;
 using MaterialDesignColors;
 using System.Windows.Media.Media3D;
 using Meditrans.Client.Exceptions;
+using CsvHelper.Configuration;
+using CsvHelper;
+using Meditrans.Client.Models.Csv;
+using Microsoft.Win32;
+using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
+
+
+using System.Collections.Generic;
+
+using System.Linq;
+using System.Diagnostics;
+using Meditrans.Client.DTOs;
 
 namespace Meditrans.Client.Views
 {
@@ -55,7 +68,7 @@ namespace Meditrans.Client.Views
         }
         private async void InitializeData()
         {
-            ViewModel.LoadTripsFromApi();
+            //ViewModel.LoadTripsFromApi();
             //InitializeWebView();
 
         }
@@ -222,7 +235,7 @@ namespace Meditrans.Client.Views
 
             MapaWebView.CoreWebView2.Navigate(tempPath);
         }
-        public async void ShowETAInfo(Trip SelectedTrip) {
+        public async void ShowETAInfo(TripReadDto SelectedTrip) {
 
             GoogleMapsService googleMapsService = new GoogleMapsService();
             var routeInfo = await googleMapsService.GetRouteDurationsAndDistance(SelectedTrip.PickupLatitude, SelectedTrip.PickupLongitude, SelectedTrip.DropoffLatitude, SelectedTrip.DropoffLongitude);
@@ -266,7 +279,7 @@ namespace Meditrans.Client.Views
             public string Distance { get; set; } = "";
         }
 
-        // Probando
+        // testing
         private async void SetupAutocompleteOverlay()
         {
 
@@ -330,7 +343,7 @@ namespace Meditrans.Client.Views
             //AutocompleteOverlay.ExecuteScriptAsync(js);
         }
 
-        // Escapar texto para uso seguro en JavaScript
+        // Escape text for safe use in JavaScript
         private string EscapeJs(string input)
         {
             return input.Replace("\\", "\\\\").Replace("`", "\\`").Replace("\n", "").Replace("\r", "");
@@ -366,7 +379,7 @@ namespace Meditrans.Client.Views
 
             if (DOBDatePicker.SelectedDate == null)
             {
-                MessageBox.Show("Por favor selecciona una fecha de nacimiento válida.");
+                MessageBox.Show("Please select a valid date of birth.");
                 return;
             }
             customer.DOB = DOBDatePicker.SelectedDate.Value;
@@ -378,7 +391,7 @@ namespace Meditrans.Client.Views
             }
             else
             {
-                MessageBox.Show("Fecha de nacimiento inválida. Usa un formato válido.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Invalid date of birth. Use a valid format.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -404,14 +417,14 @@ namespace Meditrans.Client.Views
                     {
                         MessageBox.Show(
                             $"Error {ex.StatusCode}:\n{ex.ErrorDetails}",
-                            "Error del servidor",
+                            "Server error",
                             MessageBoxButton.OK,
                             MessageBoxImage.Error);
                     }
                     catch (Exception ex)
                     {
                         MessageBox.Show(
-                            $"Error inesperado: {ex.Message}",
+                            $"Unexpected error: {ex.Message}",
                             "Error",
                             MessageBoxButton.OK,
                             MessageBoxImage.Error);
@@ -431,14 +444,14 @@ namespace Meditrans.Client.Views
                     {
                         MessageBox.Show(
                             $"Error {ex.StatusCode}:\n{ex.ErrorDetails}",
-                            "Error del servidor",
+                            "Server error",
                             MessageBoxButton.OK,
                             MessageBoxImage.Error);
                     }
                     catch (Exception ex)
                     {
                         MessageBox.Show(
-                            $"Error inesperado: {ex.Message}",
+                            $"Unexpected error: {ex.Message}",
                             "Error",
                             MessageBoxButton.OK,
                             MessageBoxImage.Error);
@@ -456,7 +469,7 @@ namespace Meditrans.Client.Views
                 CustomerColumn.Width = new GridLength(3.2, GridUnitType.Star);
                 BillingColumn.Width = new GridLength(2.4, GridUnitType.Star); // 20%
                 MapColumn.Width = new GridLength(4.4, GridUnitType.Star);
-                MapaWebView.SetValue(Grid.ColumnProperty, 4); // El mapa se mueve a la columna 5 (índice 4)
+                MapaWebView.SetValue(Grid.ColumnProperty, 4); // Map moves to column 5 (index 4)
                 BillingPanel.Visibility = Visibility.Visible;
                 ForDateCalendar.Visibility = Visibility.Visible;
 
@@ -480,9 +493,6 @@ namespace Meditrans.Client.Views
             {
                 // MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-
-
 
         }
 
@@ -577,20 +587,20 @@ namespace Meditrans.Client.Views
             {
                 backgroundBrush = new SolidColorBrush(brush.Color);
             }
-            // Animaciones inversas
+            // Reverse animations
             var widthAnimation = new DoubleAnimation(30, TimeSpan.FromSeconds(0.3));
             var heightAnimation = new DoubleAnimation(30, TimeSpan.FromSeconds(0.3));
             var colorAnimation = new ColorAnimation(Colors.Transparent, TimeSpan.FromSeconds(0.3));
 
-            // Configurar interpolación suave
+            // Set up soft interpolation
             widthAnimation.EasingFunction = new QuadraticEase();
             heightAnimation.EasingFunction = new QuadraticEase();
 
-            // Aplicar animaciones
+            // Apply animations
             GeolocateFloatingButton.BeginAnimation(WidthProperty, widthAnimation);
             GeolocateFloatingButton.BeginAnimation(HeightProperty, heightAnimation);
 
-            // Animación del color de fondo
+            // Background color animation
             backgroundBrush.BeginAnimation(SolidColorBrush.ColorProperty, colorAnimation);
         }
 
@@ -683,5 +693,273 @@ namespace Meditrans.Client.Views
         {
 
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            GridRow0.Visibility = Visibility.Collapsed;
+            GridRow1.Visibility = Visibility.Collapsed;
+            GridRow2.Visibility = Visibility.Collapsed;
+            ImportTripsGridRow.Visibility = Visibility.Visible;
+        }
+
+        private async void SelectCsv_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new OpenFileDialog
+            {
+                Filter = "CSV files (*.csv)|*.csv",
+                Title = "Seleccionar archivo CSV"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                // Disable button and show progress
+                SelectCsvButton.IsEnabled = false;
+                ProgressPanel.Visibility = Visibility.Visible;
+                ImportProgressBar.Value = 0;
+                ImportProgressBar.Maximum = 1; // Will update after reading the records
+                ProgressText.Text = "Reading CSV file...";
+                PreviewGrid.ItemsSource = null; // Clear previous preview
+
+                try
+                {
+                    // Read the CSV (this is still sequential and may take time)
+                    // Consider making ReadCsv also asynchronous and report its progress if it is very large.
+                    List<CsvTripRawModel> records;
+                    try
+                    {
+                        CsvReaderService csvReaderService = new CsvReaderService(dialog.FileName, "SAFERIDE.json");
+                        // If ReadCsv may take a long time, consider async Task<List<CsvTripRawModel>>
+                        // and run it with Task.Run().
+                        //records = await Task.Run(() => ReadCsv(dialog.FileName)); // Run in a background thread to not block UI.
+                        records = await Task.Run(() => csvReaderService.ReadCsvWithoutDuplicateColumns()); // Run in a background thread to not block UI.
+                    }
+                    catch (Exception readEx)
+                    {
+                        MessageBox.Show($"Error reading CSV file: {readEx.Message}", "Read Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return; // Exit if reading fails
+                    }
+                    finally
+                    {
+                        // Always reactivate the button and hide progress if something fails in reading or at the end
+                        SelectCsvButton.IsEnabled = true;
+                        // Don't hide ProgressPanel yet, we will do it after mapping
+                    }
+
+
+                    if (records == null || !records.Any())
+                    {
+                        MessageBox.Show("The CSV file is empty or no records could be read.", "Empty File", MessageBoxButton.OK, MessageBoxImage.Information);
+                        ProgressPanel.Visibility = Visibility.Collapsed;
+                        return;
+                    }
+
+                    ImportProgressBar.Maximum = records.Count; // Update the maximum value of the progress bar.
+                    ProgressText.Text = $"Processing 0 of {records.Count} trips...";
+
+                    // Map logs in parallel with SemaphoreSlim and progress 
+                    if (DataContext is HomeViewModel vm)
+                    {
+                        GoogleMapsService googleMapsService = new GoogleMapsService();
+                        ISpaceTypeService spaceTypeService = new SpaceTypeService();
+                        ICapacityTypeService capacityTypeService = new CapacityTypeService();
+                        ICustomerService customerService = new CustomerService();
+                        IFundingSourceService fundingSourceService = new FundingSourceService();
+                        TripService tripService = new TripService();
+                       
+                        var mapper = new CsvTripMapper(
+                            vm.Trips, vm.SpaceTypes, vm.CapacityTypes, vm.Customers, vm.FundingSources,
+                            googleMapsService, spaceTypeService, capacityTypeService,
+                            customerService, fundingSourceService, tripService
+                        );
+                        var fundingSourceName = "SAFERIDE"; 
+
+                        int maxConcurrentTasks = 5; // Here configure the maximum number of simultaneous processes. Keep in mind that The free Google Maps Api option only allows (50 requests per second, 3000 per minute) and each trip makes 2 calls: pickupAddress and dropoffAddress.
+                        using var semaphore = new SemaphoreSlim(maxConcurrentTasks, maxConcurrentTasks);
+
+                        var mappedTrips = new List<TripReadDto>(records.Count);
+                        var mappingTasks = new List<Task>();
+                        int processedCount = 0;
+
+                        // Set up the progress reporter
+                        var progressReporter = new Progress<int>(processed =>
+                        {
+                            ImportProgressBar.Value = processed;
+                            ProgressText.Text = $"Processing {processed} of {records.Count} trips...";
+                        });
+
+                        foreach (var record in records)
+                        {
+                            await semaphore.WaitAsync(); // Wait for a slot
+
+                            var task = Task.Run(async () => // Use Task.Run to not block the SelectCsv_Click loop
+                            {
+                                try
+                                {                                   
+                                    var trip = await mapper.MapToTripAsync(record, fundingSourceName);
+                                    lock (mappedTrips) // Synchronize access to the shared list
+                                    {
+                                        mappedTrips.Add(trip);
+                                    }
+                                    Interlocked.Increment(ref processedCount); // Atomic increase
+                                    ((IProgress<int>)progressReporter).Report(processedCount);
+                                }
+                                catch (Exception taskEx)
+                                {
+                                    // Handle errors per task individually if necessary
+                                    // For example, log the error and continue
+                                    Debug.WriteLine($"Error mapping record: {taskEx.Message}");
+                                    // Optionally, you can add this error to a list of errors to display at the end
+                                }
+                                finally
+                                {
+                                    semaphore.Release(); // Release the slot
+                                }
+                            });
+                            mappingTasks.Add(task);
+                        }
+
+                        // Wait for all mapping tasks to complete
+                        await Task.WhenAll(mappingTasks);
+
+                        //PreviewGrid.ItemsSource = new ObservableCollection<Trip>(mappedTrips); // Use ObservableCollection if the UI needs to be updated dynamically
+                        PreviewGrid.ItemsSource = mappedTrips;
+
+                        // Variant of saving all trips in a single request to the API
+                        //await tripService.CreateTripsAsync(mappedTrips); 
+                        MessageBox.Show($"{mappedTrips.Count} Trips processed and ready to preview.", "Process Completed", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("ViewModel not found. Can't continue.", "Context Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                catch (Exception ex) // General catch for unexpected errors
+                {
+                    MessageBox.Show($"General error during import:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                finally
+                {
+                    // Ensure the UI is restored
+                    SelectCsvButton.IsEnabled = true;
+                    ProgressPanel.Visibility = Visibility.Collapsed; // Hide progress panel
+                    ImportProgressBar.Value = 0; // Reset bar
+                }
+            }
+        }
+
+        // If ReadCsv may take a long time, consider async Task<List<CsvTripRawModel>>
+        // and run it with Task.Run().
+        private List<CsvTripRawModel> ReadCsv(string filePath)
+        {
+
+            // Define CsvHelper settings
+            var config = new CsvHelper.Configuration.CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = true,
+                HeaderValidated = null,
+                MissingFieldFound = (args) =>
+                {
+                    Console.WriteLine($"Missing field found. Headers: '{string.Join(", ", args.HeaderNames ?? new string[0])}', Index: {args.Index}, Row: {args.Context.Parser.Row}");
+                },
+            };
+
+            using var reader = new StreamReader(filePath);
+            using var csv = new CsvHelper.CsvReader(reader, config);
+
+            csv.Read();
+            csv.ReadHeader();
+            var actualCsvHeaders = csv.Context.Reader.HeaderRecord;
+            if (actualCsvHeaders == null)
+            {
+                throw new InvalidOperationException("The CSV file contains no headers or is empty.");
+            }
+
+            // Remove duplicate columns
+            var uniqueHeaderNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var headerOriginalIndices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            for (int i = 0; i < actualCsvHeaders.Length; i++)
+            {
+                var header = actualCsvHeaders[i];
+                if (!uniqueHeaderNames.Contains(header))  
+                {
+                    uniqueHeaderNames.Add(header);
+                    headerOriginalIndices[header] = i;
+                }
+            }
+
+            string mappingFileName = "SAFERIDE.json"; 
+            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string mappingPath = System.IO.Path.Combine(baseDirectory, "Assets", "Mappings", mappingFileName);
+
+            if (!File.Exists(mappingPath))
+            {
+                throw new FileNotFoundException($"The mapping file was not found: {mappingPath}");
+            }
+
+            var mappingJson = File.ReadAllText(mappingPath); 
+            var tempMapping = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, string>>(mappingJson);
+
+            if (tempMapping == null)
+            {
+                throw new Exception($"Error deserializing JSON mapping file: {mappingFileName}.");
+            }
+            var csvToPropertyMappings = new Dictionary<string, string>(tempMapping, StringComparer.OrdinalIgnoreCase);
+
+            var map = new CsvTripRawModelMap(headerOriginalIndices, csvToPropertyMappings); 
+            csv.Context.RegisterClassMap(map);
+
+            return csv.GetRecords<CsvTripRawModel>().ToList();
+        }
+                    
+
+        /*private CsvTripRawModel MapModel(dynamic record, Dictionary<string, string> mapping)
+        {
+            CsvTripRawModel raw = new CsvTripRawModel();
+            
+            raw.RideId = GetValue(record, mapping, "RideId");
+            raw.Type = GetValue(record, mapping, "Type");
+            raw.Status = GetValue(record, mapping, "Status");
+
+            raw.FromSt = GetValue(record, mapping, "FromSt");
+            raw.FromCity = GetValue(record, mapping, "FromCity");
+            raw.FromState = GetValue(record, mapping, "FromState");
+            raw.FromZIP = GetValue(record, mapping, "Type");
+
+            raw.ToST = GetValue(record, mapping, "ToSt");
+            raw.ToCity = GetValue(record, mapping, "ToCity");
+            raw.ToState = GetValue(record, mapping, "ToState");
+            raw.ToZip = GetValue(record, mapping, "ToZip");
+
+            raw.Date = GetValue(record, mapping, "Date");
+            raw.PickupTime = GetValue(record, mapping, "PickupTime");
+            raw.Appointment = GetValue(record, mapping, "Appointment");
+            raw.CancelledDate = GetValue(record, mapping, "CancelledDate");
+
+            raw.PatientFirstName = GetValue(record, mapping, "PatientFirstName");
+            raw.PatientLastName = GetValue(record, mapping, "PatientLastName");
+            raw.PatientPhoneNumber = GetValue(record, mapping, "PatientPhoneNumber");
+            raw.AlternativePhoneNumber = GetValue(record, mapping, "AlternativePhoneNumber");
+            raw.Gender = GetValue(record, mapping, "Gender");
+
+            raw.Treatment = GetValue(record, mapping, "Treatment");
+            raw.Distance = GetValue(record, mapping, "Distance");
+            raw.AdditionalNotes = GetValue(record, mapping, "AdditionalNotes");
+            raw.OtherDetails = GetValue(record, mapping, "OtherDetails");
+
+            raw.CancelledBy = GetValue(record, mapping, "CancelledBy");
+            raw.CancelledReasonType = GetValue(record, mapping, "CancelledReasonType");
+            raw.CancelledReasonMessage = GetValue(record, mapping, "CancelledReasonMessage");
+
+            return raw;
+        }
+        private string GetValue(dynamic record, Dictionary<string, string> mapping, string rawModelPropertyName)
+        {
+            if (mapping.TryGetValue(rawModelPropertyName, out var csvColumnName))
+            {
+                var dict = (IDictionary<string, object>)record;
+                return dict.ContainsKey(csvColumnName) ? dict[csvColumnName]?.ToString() : null;
+            }
+            return null;
+        }*/
     }
 }

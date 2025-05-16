@@ -35,14 +35,14 @@ namespace Meditrans.Client.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw await CreateApiException(response, "Error al obtener clientes");
+                    throw await CreateApiException(response, "Error getting clients");
                 }
 
                 return await response.Content.ReadFromJsonAsync<List<Customer>>();
             }
             catch (HttpRequestException ex)
             {
-                throw new ApiException("Error de conexión con el servidor", ex);
+                throw new ApiException("Server connection error", ex);
             }
         }
 
@@ -95,14 +95,14 @@ namespace Meditrans.Client.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw await CreateApiException(response, $"Error al obtener cliente {id}");
+                    throw await CreateApiException(response, $"Error getting client {id}");
                 }
 
                 return await response.Content.ReadFromJsonAsync<Customer>();
             }
             catch (HttpRequestException ex)
             {
-                throw new ApiException("Error de conexión con el servidor", ex);
+                throw new ApiException("Server connection error", ex);
             }
             //return await _httpClient.GetFromJsonAsync<Customer>($"{EndPoint}/{id}");
         }
@@ -117,14 +117,14 @@ namespace Meditrans.Client.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw await CreateApiException(response, "Error al crear cliente");
+                    throw await CreateApiException(response, "Error creating client");
                 }
 
                 return await response.Content.ReadFromJsonAsync<Customer>();
             }
             catch (HttpRequestException ex)
             {
-                throw new ApiException("Error de conexión con el servidor", ex);
+                throw new ApiException("Server connection error", ex);
             }            
             /*catch (Exception ex)
             {
@@ -141,14 +141,14 @@ namespace Meditrans.Client.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw await CreateApiException(response, $"Error al actualizar cliente {id}");
+                    throw await CreateApiException(response, $"Error updating client {id}");
                 }
 
                 return true;
             }
             catch (HttpRequestException ex)
             {
-                throw new ApiException("Error de conexión con el servidor", ex);
+                throw new ApiException("Server connection error", ex);
             }
             
             /*catch (Exception ex)
@@ -195,7 +195,7 @@ namespace Meditrans.Client.Services
             {
                 var content = await response.Content.ReadAsStringAsync();
                 return new ApiException(
-                    message: $"{context}: Error no especificado",
+                    message: $"{context}: Unspecified error",
                     statusCode: response.StatusCode,
                     details: content);
             }

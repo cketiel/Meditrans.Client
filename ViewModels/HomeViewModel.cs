@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Xml.Linq;
+using Meditrans.Client.DTOs;
 using Meditrans.Client.Exceptions;
 using Meditrans.Client.Helpers;
 using Meditrans.Client.Models;
@@ -211,19 +212,19 @@ namespace Meditrans.Client.ViewModels
 
         public TimeSpan FromTime { get; set; }
 
-        private ObservableCollection<Trip> _trips;
-        public ObservableCollection<Trip> Trips
+        private ObservableCollection<TripReadDto> _trips;
+        public ObservableCollection<TripReadDto> Trips
         {
             get => _trips;
             set
             {
                 _trips = value;
-                OnPropertyChanged(nameof(Trips)); // Notifica al DataGrid que la lista ha cambiado
+                OnPropertyChanged();
             }
-        }
+        } 
 
-        private Trip _selectedTrip;
-        public Trip SelectedTrip
+        private TripReadDto _selectedTrip;
+        public TripReadDto SelectedTrip
         {
             get => _selectedTrip;
             set
@@ -456,6 +457,9 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
+        // Capacity Types
+        public ObservableCollection<CapacityType> CapacityTypes { get; set; } = new();
+
         #endregion
 
         // === Commands ===
@@ -476,9 +480,10 @@ namespace Meditrans.Client.ViewModels
             ExportCommand = new RelayCommand(ExportTrips);
             SaveTripCommand = new RelayCommand(SaveTrip);
 
+            Trips = new ObservableCollection<TripReadDto>();
             LoadData();
             InitializeData();
-
+            
             // Manual subscription for debug
             /*this.PropertyChanged += (s, e) => {
                 if (e.PropertyName == nameof(SelectedCustomer))
@@ -550,20 +555,41 @@ namespace Meditrans.Client.ViewModels
             }
 
         }
-        public async void LoadTripsFromApi()
+        public async Task LoadTripsFromApi()
         {
-            var tripList = new List<Trip>();
-            var tripService = new TripService();
-            tripList = await tripService.GetTripList();
-            if (tripList != null && tripList.Any())
+            TripService _tripService = new TripService();
+            var sources = await _tripService.GetAllTripsAsync();
+            //Trips.Clear();
+            foreach (var source in sources)
+                Trips.Add(source);
+            /*MessageBox.Show("entro en loadTrips");
+            //var tripList = new List<TripReadDto>();
+            MessageBox.Show("antes de new TripService");
+            TripService tripService = new TripService(); MessageBox.Show("antes del await");
+            tripList = await tripService.GetAllTripsAsync();
+            MessageBox.Show("antes del clear");
+            Trips.Clear();
+            foreach (var trip in tripList)
+                Trips.Add(trip);
+            MessageBox.Show(Trips.Count.ToString());*/
+            /*if (tripList != null && tripList.Any())
             {
-                Trips = new ObservableCollection<Trip>(tripList);
+                Trips = new ObservableCollection<TripReadDto>(tripList);
                 SelectedTrip = Trips.First(); // 
             }
             else
             {
                 // Show message or log: no data arrived
-            }
+            }*/
+        }
+
+        public async Task LoadCapacityTypesAsync()
+        {
+            CapacityTypeService _capacityTypeService = new CapacityTypeService();
+            var listCapacityTypes = await _capacityTypeService.GetCapacityTypesAsync();
+            CapacityTypes.Clear();
+            foreach (var capacity in listCapacityTypes)
+                CapacityTypes.Add(capacity);
         }
 
         #endregion
@@ -602,6 +628,8 @@ namespace Meditrans.Client.ViewModels
             LoadSpaceTypesAsync();
             LoadCustomersFromApi();
             LoadFundingSourceBillingItemAsync();
+            LoadCapacityTypesAsync();
+            LoadTripsFromApi();
         }
 
         private void SaveCustomer()

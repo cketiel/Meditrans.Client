@@ -21,6 +21,7 @@
     <None Remove="Assets\Languages\es.json" />
     <None Remove="Assets\logo.png" />
     <None Remove="Assets\map.html" />
+    <None Remove="Assets\Mappings\SAFERIDE.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -57,9 +58,13 @@
     <Content Include="Assets\map.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Assets\Mappings\SAFERIDE.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="33.0.1" />
     <PackageReference Include="MaterialDesignColors" Version="5.2.1" />
     <PackageReference Include="MaterialDesignThemes" Version="5.2.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.4" />

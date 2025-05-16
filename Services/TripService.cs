@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
+using Meditrans.Client.DTOs;
 using Meditrans.Client.Exceptions;
 using Meditrans.Client.Models;
 
@@ -17,16 +19,35 @@ namespace Meditrans.Client.Services
         private readonly string EndPoint = "trips";
         public TripService()
         {
-            _httpClient = ApiClientFactory.Create();
-            //_httpClient = new HttpClient();
-            //_httpClient.BaseAddress = new Uri("https://localhost:7095/");
+            _httpClient = ApiClientFactory.Create();          
         }
 
+        public async Task<List<TripReadDto>> GetAllTripsAsync()
+        {
+            var result = await _httpClient.GetFromJsonAsync<List<TripReadDto>>(EndPoint);
+            return result ?? new List<TripReadDto>();
+        }
+        /*public async Task<List<TripReadDto>> GetAllTripsAsync2()
+        {  
+            try
+            {
+                var response = await _httpClient.GetAsync(EndPoint);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw await CreateApiException(response, "Error getting trips");
+                }
+
+                return await response.Content.ReadFromJsonAsync<List<TripReadDto>>();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException("Server connection error", ex);
+            }
+        }
         public async Task<ObservableCollection<Trip>> GetTripsAsync()
         {
-            var trips = await _httpClient.GetFromJsonAsync<ObservableCollection<Trip>>("api/trips");
-            //var trips = await _httpClient.GetFromJsonAsync<List<Trip>>("api/trips");
-            //return trips ?? new List<Trip>();
+            var trips = await _httpClient.GetFromJsonAsync<ObservableCollection<Trip>>("api/trips");          
             return trips ?? new ObservableCollection<Trip>();
         }
 
@@ -67,9 +88,9 @@ namespace Meditrans.Client.Services
             }
 
             return tripList;
-        }
+        }*/
 
-        public async Task<Trip> CreateTripAsync(Trip trip)
+        public async Task<TripReadDto> CreateTripAsync(Trip trip)
         {          
             try
             {
@@ -77,15 +98,15 @@ namespace Meditrans.Client.Services
                 var response = await _httpClient.PostAsJsonAsync(EndPoint, trip);
 
                 if (!response.IsSuccessStatusCode)
-                {
-                    throw await CreateApiException(response, "Error al crear trip");
+                {                  
+                    throw await CreateApiException(response, "Error creating trip");
                 }
 
-                return await response.Content.ReadFromJsonAsync<Trip>();
+                return await response.Content.ReadFromJsonAsync<TripReadDto>();
             }
             catch (HttpRequestException ex)
             {
-                throw new ApiException("Error de conexión con el servidor", ex);
+                throw new ApiException("Server connection error", ex);
             }
             
         }
@@ -104,7 +125,7 @@ namespace Meditrans.Client.Services
             {
                 var content = await response.Content.ReadAsStringAsync();
                 return new ApiException(
-                    message: $"{context}: Error no especificado",
+                    message: $"{context}: Unspecified error",
                     statusCode: response.StatusCode,
                     details: content);
             }
