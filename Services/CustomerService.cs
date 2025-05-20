@@ -45,48 +45,7 @@ namespace Meditrans.Client.Services
                 throw new ApiException("Server connection error", ex);
             }
         }
-
-        /*public async Task<List<Customer>> LoadAllCustomersAsync() {
-
-            await Task.Delay(500); // Simulates latency
-            var customerList = new List<Customer>();
-            try
-            {
-                var response = await _httpClient.GetAsync(EndPoint);
-                if (response.IsSuccessStatusCode)
-                {
-                    customerList = await response.Content.ReadFromJsonAsync<List<Customer>>();
-
-                }
-            }
-            catch (Exception ex)
-            {
-                // throw exception 
-            }
-
-            return customerList;
-        }*/
-
-        /*public async Task<List<Customer>> GetAllAsync()
-        {
-            var customerList = new List<Customer>();
-            try
-            {
-                var response = await _httpClient.GetAsync(EndPoint);
-                if (response.IsSuccessStatusCode)
-                {
-                    customerList = await response.Content.ReadFromJsonAsync<List<Customer>>();
-
-                }
-            }
-            catch (Exception ex)
-            {
-                // throw exception 
-            }
-
-            return customerList;
-        }*/
-
+     
         public async Task<Customer> GetCustomerByIdAsync(int id)
         {
             try
