@@ -8,10 +8,10 @@ using MaterialDesignColors;
 
 namespace Meditrans.Client.Models.Csv
 {
-    // Asegúrate de que esta clase coincida con tus necesidades
     public class CsvTripRawModel
     {
         public string? RideId { get; set; }
+        public string? RiderId { get; set; }
         public string? Type { get; set; }
         public string? Status { get; set; }
         public string? FromSt { get; set; }

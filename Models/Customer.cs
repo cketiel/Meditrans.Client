@@ -44,6 +44,7 @@ namespace Meditrans.Client.Models
         public DateTime Created { get; set; }
         [Required]
         public string CreatedBy { get; set; }
+        public string? RiderId { get; set; }
         public ICollection<Trip> Trips { get; set; }
 
         /*public override string ToString()

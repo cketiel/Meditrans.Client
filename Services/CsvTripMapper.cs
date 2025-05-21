@@ -60,7 +60,7 @@ namespace Meditrans.Client.Services
         }
 
         
-        public async Task<TripReadDto> MapToTripAsync(CsvTripRawModel raw, string fundingSourceName)
+        public async Task<TripReadDto> MapToTripAsync(CsvTripRawModel raw, FundingSource fundingSource/*string fundingSourceName*/)
         {
             
             TripReadDto matchingTrip = _trips?
@@ -158,22 +158,33 @@ namespace Meditrans.Client.Services
 
                 // 6. Customer
                 var fullName = $"{raw.PatientFirstName} {raw.PatientLastName}".Trim();
+                var RiderIdBuilt = $"{fullName} {raw.PatientPhoneNumber}".Trim();
                 var customer = _customers
                     .Where(c => c != null)
                     .FirstOrDefault(c =>
                         string.Equals(c.FullName, fullName, StringComparison.OrdinalIgnoreCase) &&
                         string.Equals(c.Phone, raw.PatientPhoneNumber, StringComparison.OrdinalIgnoreCase)
-                    );
-                /*var customer = _customers.FirstOrDefault(c =>
-                c.FullName.Equals(fullName, StringComparison.OrdinalIgnoreCase) &&
-                c.Phone.Equals(raw.PatientPhoneNumber, StringComparison.OrdinalIgnoreCase));*/
+                    );               
 
-                var fundingSourceId = _fundingSources.FirstOrDefault(f => f.Name == fundingSourceName)?.Id ?? 0;
+                //var fundingSourceId = _fundingSources.FirstOrDefault(f => f.Name == fundingSourceName)?.Id ?? 0;
+                var fundingSourceId = fundingSource.Id;
                 int customerId = 0;
                 if (customer == null)
                 {
+                    var RiderIdNewData = RiderIdBuilt;
+                    if (string.IsNullOrEmpty(raw.RiderId))
+                    {
+                        RiderIdNewData = RiderIdBuilt;
+                    }
+                    else 
+                    {
+                        RiderIdNewData = raw.RiderId;
+                    }
+
                     var newCustomerData = new Customer
                     {
+                        //RiderId = raw.RiderId==null ? raw.RiderId : RiderIdBuilt,
+                        RiderId = RiderIdNewData,
                         FullName = fullName,
                         Phone = raw.PatientPhoneNumber,
                         MobilePhone = raw.AlternativePhoneNumber,
@@ -194,11 +205,25 @@ namespace Meditrans.Client.Services
                         Customer customerCreated = await _customerService.CreateCustomerAsync(MapToCustomerCreateDto(newCustomerData));
                         customerId = customerCreated.Id;
                     }
+                    catch (ApiException apiEx) when (apiEx.StatusCode == System.Net.HttpStatusCode.Conflict ||
+                                     (apiEx.StatusCode == System.Net.HttpStatusCode.BadRequest && apiEx.ErrorDetails != null && apiEx.ErrorDetails.Contains("already exists")))
+                    {
+                        // The Customer probably already exists (created by another concurrent task). Try to get it.
+                        Debug.WriteLine($"Customer '{raw?.RiderId}' there already existed or there was a conflict. Trying to get it back. Status: {apiEx.StatusCode}, Detail: {apiEx.ErrorDetails}");
+                        Customer existingCustomer = await _customerService.GetCustomerByRiderIdAsync(newCustomerData.RiderId);
+                        if (existingCustomer == null)
+                        {
+                            // This is unexpected if the creation failed due to duplicate reasons. 
+                            Debug.WriteLine($"CRITICAL: Customer creation failed '{newCustomerData.RiderId}' due to conflict/duplicate, but could not be recovered.");
+                            throw new InvalidOperationException($"Could not create or retrieve Customer: {newCustomerData.RiderId}", apiEx);
+                        }
+                        customerId = existingCustomer.Id;
+                    }
                     //Falta
                     //Evitar duplicado de Customers, primero tengo que establecer CustomerId unico en BD de la api para capturar el error.
                     //catch (ApiException apiEx) when (apiEx.StatusCode == System.Net.HttpStatusCode.Conflict ||
-                                     //(apiEx.StatusCode == System.Net.HttpStatusCode.BadRequest && apiEx.ErrorDetails != null && apiEx.ErrorDetails.Contains("already exists")))
-                    catch (ApiException ex)
+                    //(apiEx.StatusCode == System.Net.HttpStatusCode.BadRequest && apiEx.ErrorDetails != null && apiEx.ErrorDetails.Contains("already exists")))
+                    /*catch (ApiException ex)
                     {
                         MessageBox.Show(
                             $"Error {ex.StatusCode}:\n{ex.ErrorDetails}",
@@ -215,7 +240,7 @@ namespace Meditrans.Client.Services
                             MessageBoxButton.OK,
                             MessageBoxImage.Error);
                         
-                    }
+                    }*/
 
                 }
                 else
@@ -303,7 +328,8 @@ namespace Meditrans.Client.Services
         private static CustomerCreateDto MapToCustomerCreateDto(Customer customer)
         {
             return new CustomerCreateDto
-            {               
+            {  
+                RiderId = customer.RiderId,
                 FullName = customer.FullName,
                 Address = customer.Address,
                 City = customer.City,

@@ -1013,14 +1013,14 @@
                     <StackPanel>
                     <ComboBox x:Name="FundingSourceImportComboBox"
                         ItemsSource="{Binding FundingSources}" 
-                        SelectedItem="{Binding SelectedFundingSource, Mode=TwoWay}" 
+                        SelectedItem="{Binding SelectedFundingSourceImport, Mode=TwoWay}" 
                         DisplayMemberPath="Name" 
                         SelectedValuePath="Id"
                         Style="{StaticResource MaterialDesignFilledComboBox}"
                         materialDesign:TextFieldAssist.HasClearButton="True"
                         materialDesign:TextFieldAssist.HasLeadingIcon="True"
                         materialDesign:TextFieldAssist.LeadingIcon="Finance"
-                        Margin="0,0,0,2"
+                        Margin="0,0,0,10"
                         materialDesign:HintAssist.Hint="Select Funding Source" />
                         
                     <Button Content="Seleccionar archivo CSV" Click="SelectCsv_Click" Margin="0 0 0 10" x:Name="SelectCsvButton"/>

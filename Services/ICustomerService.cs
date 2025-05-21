@@ -14,5 +14,6 @@ namespace Meditrans.Client.Services
         Task<Customer> CreateCustomerAsync(CustomerCreateDto customer);
         Task<bool> UpdateCustomerAsync(int id, CustomerCreateDto customer);
         Task<bool> DeleteCustomerAsync(int id);
+        Task<Customer> GetCustomerByRiderIdAsync(string riderId);
     }
 }

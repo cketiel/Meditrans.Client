@@ -707,7 +707,7 @@ namespace Meditrans.Client.Views
             var dialog = new OpenFileDialog
             {
                 Filter = "CSV files (*.csv)|*.csv",
-                Title = "Seleccionar archivo CSV"
+                Title = "Select CSV file"
             };
 
             if (dialog.ShowDialog() == true)
@@ -771,7 +771,9 @@ namespace Meditrans.Client.Views
                             googleMapsService, spaceTypeService, capacityTypeService,
                             customerService, fundingSourceService, tripService
                         );
-                        var fundingSourceName = "SAFERIDE"; 
+
+                        FundingSource importSelectedFundingSource = vm.SelectedFundingSourceImport;
+                        // fundingSourceName = "SAFERIDE"; 
 
                         int maxConcurrentTasks = 5; // Here configure the maximum number of simultaneous processes. Keep in mind that The free Google Maps Api option only allows (50 requests per second, 3000 per minute) and each trip makes 2 calls: pickupAddress and dropoffAddress.
                         using var semaphore = new SemaphoreSlim(maxConcurrentTasks, maxConcurrentTasks);
@@ -795,7 +797,7 @@ namespace Meditrans.Client.Views
                             {
                                 try
                                 {                                   
-                                    var trip = await mapper.MapToTripAsync(record, fundingSourceName);
+                                    var trip = await mapper.MapToTripAsync(record, importSelectedFundingSource/*fundingSourceName*/);
                                     lock (mappedTrips) // Synchronize access to the shared list
                                     {
                                         mappedTrips.Add(trip);

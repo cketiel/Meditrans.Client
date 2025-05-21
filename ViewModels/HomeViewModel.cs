@@ -447,6 +447,16 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
+        public FundingSource SelectedFundingSourceImport
+        {
+            get => _selectedFundingSource;
+            set
+            {
+                _selectedFundingSource = value;
+                OnPropertyChanged();             
+            }
+        }
+
         private bool _genderMale;
         public bool GenderMale
         {

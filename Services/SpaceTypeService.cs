@@ -54,14 +54,14 @@ namespace Meditrans.Client.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw await CreateApiException(response, $"Error al obtener Space Type {name}");
+                    throw await CreateApiException(response, $"Error getting Space Type {name}");
                 }
 
                 return await response.Content.ReadFromJsonAsync<SpaceType>();
             }
             catch (HttpRequestException ex)
             {
-                throw new ApiException("Error de conexión con el servidor", ex);
+                throw new ApiException("Server connection error", ex);
             }
             //return await _httpClient.GetFromJsonAsync<Customer>($"{EndPoint}/{id}");
         }
@@ -80,7 +80,7 @@ namespace Meditrans.Client.Services
             {
                 var content = await response.Content.ReadAsStringAsync();
                 return new ApiException(
-                    message: $"{context}: Error no especificado",
+                    message: $"{context}: Unspecified error",
                     statusCode: response.StatusCode,
                     details: content);
             }

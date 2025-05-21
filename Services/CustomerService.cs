@@ -140,6 +140,25 @@ namespace Meditrans.Client.Services
             return response.IsSuccessStatusCode;*/
         }
 
+        public async Task<Customer> GetCustomerByRiderIdAsync(string riderId)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync($"{EndPoint}/rider/{riderId}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw await CreateApiException(response, $"Error getting Customer {riderId}");
+                }
+
+                return await response.Content.ReadFromJsonAsync<Customer>();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException("Server connection error", ex);
+            }           
+        }
+
         private async Task<ApiException> CreateApiException(HttpResponseMessage response, string context)
         {
             try

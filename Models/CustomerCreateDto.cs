@@ -48,5 +48,7 @@ namespace Meditrans.Client.Models
 
         [Required]
         public string CreatedBy { get; set; }
+
+        public string? RiderId { get; set; }
     }
 }
