@@ -1011,7 +1011,19 @@
                 <!-- Import Trips-->
                 <Grid Grid.Row="0" x:Name="ImportTripsGridRow" Visibility="Collapsed" Margin="10">
                     <StackPanel>
-                        <Button Content="Seleccionar archivo CSV" Click="SelectCsv_Click" Margin="0 0 0 10" x:Name="SelectCsvButton"/>
+                    <ComboBox x:Name="FundingSourceImportComboBox"
+                        ItemsSource="{Binding FundingSources}" 
+                        SelectedItem="{Binding SelectedFundingSource, Mode=TwoWay}" 
+                        DisplayMemberPath="Name" 
+                        SelectedValuePath="Id"
+                        Style="{StaticResource MaterialDesignFilledComboBox}"
+                        materialDesign:TextFieldAssist.HasClearButton="True"
+                        materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                        materialDesign:TextFieldAssist.LeadingIcon="Finance"
+                        Margin="0,0,0,2"
+                        materialDesign:HintAssist.Hint="Select Funding Source" />
+                        
+                    <Button Content="Seleccionar archivo CSV" Click="SelectCsv_Click" Margin="0 0 0 10" x:Name="SelectCsvButton"/>
 
                         <!-- Contenedor para la barra de progreso y el texto -->
                         <StackPanel Margin="0,5,0,10" x:Name="ProgressPanel" Visibility="Collapsed">
