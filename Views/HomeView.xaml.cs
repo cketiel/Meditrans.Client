@@ -41,6 +41,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
 using Meditrans.Client.DTOs;
+using static MaterialDesignThemes.Wpf.Theme;
 
 namespace Meditrans.Client.Views
 {
@@ -722,16 +723,20 @@ namespace Meditrans.Client.Views
 
                 try
                 {
+                    bool isSaferide = true;
                     // Read the CSV (this is still sequential and may take time)
                     // Consider making ReadCsv also asynchronous and report its progress if it is very large.
                     List<CsvTripRawModel> records;
                     try
                     {
-                        CsvReaderService csvReaderService = new CsvReaderService(dialog.FileName, "SAFERIDE.json");
+                        CsvReaderService csvReaderService = new CsvReaderService(dialog.FileName);
+                        isSaferide = csvReaderService.IsSaferide();
+                        var jsonFileName = isSaferide ? "SAFERIDE.json" : "Ride2md.json"; 
                         // If ReadCsv may take a long time, consider async Task<List<CsvTripRawModel>>
                         // and run it with Task.Run().
                         //records = await Task.Run(() => ReadCsv(dialog.FileName)); // Run in a background thread to not block UI.
-                        records = await Task.Run(() => csvReaderService.ReadCsvWithoutDuplicateColumns()); // Run in a background thread to not block UI.
+                        records = await Task.Run(() => csvReaderService.ReadCsvWithoutDuplicateColumns(jsonFileName)); // Run in a background thread to not block UI.
+                        //PreviewGrid.ItemsSource = records;
                     }
                     catch (Exception readEx)
                     {
@@ -774,61 +779,75 @@ namespace Meditrans.Client.Views
 
                         FundingSource importSelectedFundingSource = vm.SelectedFundingSourceImport;
                         // fundingSourceName = "SAFERIDE"; 
-
-                        int maxConcurrentTasks = 5; // Here configure the maximum number of simultaneous processes. Keep in mind that The free Google Maps Api option only allows (50 requests per second, 3000 per minute) and each trip makes 2 calls: pickupAddress and dropoffAddress.
-                        using var semaphore = new SemaphoreSlim(maxConcurrentTasks, maxConcurrentTasks);
-
-                        var mappedTrips = new List<TripReadDto>(records.Count);
-                        var mappingTasks = new List<Task>();
-                        int processedCount = 0;
-
-                        // Set up the progress reporter
-                        var progressReporter = new Progress<int>(processed =>
+                        bool selectedFileIsSaferide = isSaferide;
+                        bool selectedFundingSourceIsSaferide = string.Equals(importSelectedFundingSource.Name, "SAFERIDE", StringComparison.OrdinalIgnoreCase);
+                        // If the uploaded file does not correspond to the selected FundingSource, display a message and do not allow the file to be imported
+                        if ((selectedFileIsSaferide && !selectedFundingSourceIsSaferide) || (!selectedFileIsSaferide && selectedFundingSourceIsSaferide))
                         {
-                            ImportProgressBar.Value = processed;
-                            ProgressText.Text = $"Processing {processed} of {records.Count} trips...";
-                        });
-
-                        foreach (var record in records)
+                            ShowInconsistencyMessage();
+                        }
+                        else 
                         {
-                            await semaphore.WaitAsync(); // Wait for a slot
+                            // If the FundingSource is SAFERIDE, the number of concurrent threads must be limited because it does not have the Coordinates and many requests cannot be made to the Google Maps API
+                            // SAFERIDE = 5
+                            // Ride2md = 10
+                            int maxConcurrentTasks = selectedFileIsSaferide ? 5 : 10; // Here configure the maximum number of simultaneous processes. Keep in mind that The free Google Maps Api option only allows (50 requests per second, 3000 per minute) and each trip makes 2 calls: pickupAddress and dropoffAddress.
+                            using var semaphore = new SemaphoreSlim(maxConcurrentTasks, maxConcurrentTasks);
 
-                            var task = Task.Run(async () => // Use Task.Run to not block the SelectCsv_Click loop
+                            var mappedTrips = new List<TripReadDto>(records.Count);
+                            var mappingTasks = new List<Task>();
+                            int processedCount = 0;
+
+                            // Set up the progress reporter
+                            var progressReporter = new Progress<int>(processed =>
                             {
-                                try
-                                {                                   
-                                    var trip = await mapper.MapToTripAsync(record, importSelectedFundingSource/*fundingSourceName*/);
-                                    lock (mappedTrips) // Synchronize access to the shared list
-                                    {
-                                        mappedTrips.Add(trip);
-                                    }
-                                    Interlocked.Increment(ref processedCount); // Atomic increase
-                                    ((IProgress<int>)progressReporter).Report(processedCount);
-                                }
-                                catch (Exception taskEx)
-                                {
-                                    // Handle errors per task individually if necessary
-                                    // For example, log the error and continue
-                                    Debug.WriteLine($"Error mapping record: {taskEx.Message}");
-                                    // Optionally, you can add this error to a list of errors to display at the end
-                                }
-                                finally
-                                {
-                                    semaphore.Release(); // Release the slot
-                                }
+                                ImportProgressBar.Value = processed;
+                                ProgressText.Text = $"Processing {processed} of {records.Count} trips...";
                             });
-                            mappingTasks.Add(task);
+
+                            foreach (var record in records)
+                            {
+                                await semaphore.WaitAsync(); // Wait for a slot
+
+                                var task = Task.Run(async () => // Use Task.Run to not block the SelectCsv_Click loop
+                                {
+                                    try
+                                    {
+                                        var trip = await mapper.MapToTripAsync(record, importSelectedFundingSource/*, selectedFileIsSaferide*/);
+                                        lock (mappedTrips) // Synchronize access to the shared list
+                                        {
+                                            mappedTrips.Add(trip);
+                                        }
+                                        Interlocked.Increment(ref processedCount); // Atomic increase
+                                        ((IProgress<int>)progressReporter).Report(processedCount);
+                                    }
+                                    catch (Exception taskEx)
+                                    {
+                                        // Handle errors per task individually if necessary
+                                        // For example, log the error and continue
+                                        Debug.WriteLine($"Error mapping record: {taskEx.Message}");
+                                        // Optionally, you can add this error to a list of errors to display at the end
+                                    }
+                                    finally
+                                    {
+                                        semaphore.Release(); // Release the slot
+                                    }
+                                });
+                                mappingTasks.Add(task);
+                            }
+
+                            // Wait for all mapping tasks to complete
+                            await Task.WhenAll(mappingTasks);
+
+                            //PreviewGrid.ItemsSource = new ObservableCollection<Trip>(mappedTrips); // Use ObservableCollection if the UI needs to be updated dynamically
+                            PreviewGrid.ItemsSource = mappedTrips;
+
+                            // Variant of saving all trips in a single request to the API
+                            //await tripService.CreateTripsAsync(mappedTrips); 
+                            MessageBox.Show($"{mappedTrips.Count} Trips processed and ready to preview.", "Process Completed", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
 
-                        // Wait for all mapping tasks to complete
-                        await Task.WhenAll(mappingTasks);
-
-                        //PreviewGrid.ItemsSource = new ObservableCollection<Trip>(mappedTrips); // Use ObservableCollection if the UI needs to be updated dynamically
-                        PreviewGrid.ItemsSource = mappedTrips;
-
-                        // Variant of saving all trips in a single request to the API
-                        //await tripService.CreateTripsAsync(mappedTrips); 
-                        MessageBox.Show($"{mappedTrips.Count} Trips processed and ready to preview.", "Process Completed", MessageBoxButton.OK, MessageBoxImage.Information);
+                        
                     }
                     else
                     {
@@ -847,6 +866,11 @@ namespace Meditrans.Client.Views
                     ImportProgressBar.Value = 0; // Reset bar
                 }
             }
+        }
+
+        private void ShowInconsistencyMessage() 
+        {
+            MessageBox.Show("The data loaded in the file does not correspond to the selected Funding Source");
         }
 
         // If ReadCsv may take a long time, consider async Task<List<CsvTripRawModel>>

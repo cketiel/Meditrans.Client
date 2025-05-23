@@ -38,6 +38,16 @@ namespace Meditrans.Client.Models.Csv
         public string? CancelledBy { get; set; }
         public string? CancelledReasonType { get; set; }
         public string? CancelledReasonMessage { get; set; }
+
+        // Ride2md
+        public string? PatientFullName { get; set; }
+        public string? PatientDOB { get; set; }
+        public string? PickupLatitude { get; set; }
+        public string? PickupLongitude { get; set; }
+        public string? DropoffLatitude { get; set; }
+        public string? DropoffLongitude { get; set; }
+        public string? DropoffPhone { get; set; }
+        public string? Authorization { get; set; }             
         
     }
 

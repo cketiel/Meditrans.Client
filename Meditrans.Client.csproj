@@ -21,6 +21,7 @@
     <None Remove="Assets\Languages\es.json" />
     <None Remove="Assets\logo.png" />
     <None Remove="Assets\map.html" />
+    <None Remove="Assets\Mappings\Ride2md.json" />
     <None Remove="Assets\Mappings\SAFERIDE.json" />
   </ItemGroup>
 
@@ -56,6 +57,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\map.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Mappings\Ride2md.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\Mappings\SAFERIDE.json">
