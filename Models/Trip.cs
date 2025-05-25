@@ -33,8 +33,7 @@ namespace Meditrans.Client.Models
         public string Day { get; set; } = string.Empty;
         [Required]
         public DateTime Date { get; set; }
-        [Required]
-        public TimeSpan FromTime { get; set; }
+        public TimeSpan? FromTime { get; set; }
         public TimeSpan? ToTime { get; set; }
         [Required]
         public int CustomerId { get; set; }

@@ -59,7 +59,7 @@ namespace Meditrans.Client.Services
             _tripService = tripService; 
         }
 
-        public async Task<TripReadDto> MapToTripAsync(CsvTripRawModel raw, FundingSource fundingSource/*string fundingSourceName*/)
+        public async Task<TripReadDto> MapToTripAsyncOld(CsvTripRawModel raw, FundingSource fundingSource/*string fundingSourceName*/)
         {
 
             TripReadDto matchingTrip = _trips?
@@ -301,7 +301,7 @@ namespace Meditrans.Client.Services
 
 
         }
-        public async Task<TripReadDto> MapToTripAsync2(CsvTripRawModel raw, FundingSource fundingSource, bool isSaferide)
+        public async Task<TripReadDto> MapToTripAsync(CsvTripRawModel raw, FundingSource fundingSource, bool isSaferide)
         {
             string fullName = string.Empty;
             string RiderIdBuilt = string.Empty;
@@ -363,6 +363,15 @@ namespace Meditrans.Client.Services
 
 
                 // 3. SpaceType
+                if (raw.Type.Equals("WheelChair", StringComparison.OrdinalIgnoreCase))
+                {
+                    raw.Type = "WCH";
+                }
+                else if (raw.Type.Equals("WBARIATRIC", StringComparison.OrdinalIgnoreCase))
+                {
+                    raw.Type = "BWCH";
+                }
+
                 var spaceType = _spaceTypes.FirstOrDefault(st => st.Name.Equals(raw.Type, StringComparison.OrdinalIgnoreCase));
                 int spaceTypeId = 0;
                 if (spaceType == null)
@@ -412,7 +421,7 @@ namespace Meditrans.Client.Services
                 // 5. Dates and Times
                 trip.Date = ParseDate(raw.Date);
                 trip.Day = trip.Date.DayOfWeek.ToString();
-                trip.FromTime = ParseTime(raw.PickupTime);
+                trip.FromTime = string.IsNullOrWhiteSpace(raw.PickupTime) ? null : ParseTime(raw.PickupTime); 
                 trip.ToTime = string.IsNullOrWhiteSpace(raw.Appointment) ? null : ParseTime(raw.Appointment);
 
                 /*trip.Date = DateTime.ParseExact(raw.Date, "M/d/yyyy", CultureInfo.InvariantCulture);
@@ -583,9 +592,9 @@ namespace Meditrans.Client.Services
 
         private DateTime ParseDate(string value)
         {           
-            return DateTime.TryParseExact(value, "M/d/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
-                ? date
-                : throw new FormatException($"Invalid date: {value}");
+            return DateTime.TryParseExact(value, new[] { "yyyy-MM-dd", "M/d/yyyy", "MM/dd/yyyy", "M-d-yyyy", "MM-dd-yyyy", "yyyy/MM/dd" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
+            ? date
+            : throw new FormatException($"Invalid date: {value}");
         }
 
         private TimeSpan ParseTime(string value)

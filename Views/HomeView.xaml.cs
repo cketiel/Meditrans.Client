@@ -735,7 +735,7 @@ namespace Meditrans.Client.Views
                         // If ReadCsv may take a long time, consider async Task<List<CsvTripRawModel>>
                         // and run it with Task.Run().
                         //records = await Task.Run(() => ReadCsv(dialog.FileName)); // Run in a background thread to not block UI.
-                        records = await Task.Run(() => csvReaderService.ReadCsvWithoutDuplicateColumns(jsonFileName)); // Run in a background thread to not block UI.
+                        records = await Task.Run(() => csvReaderService.ReadCsvWithDuplicateColumns(jsonFileName)); // Run in a background thread to not block UI.
                         //PreviewGrid.ItemsSource = records;
                     }
                     catch (Exception readEx)
@@ -813,7 +813,7 @@ namespace Meditrans.Client.Views
                                 {
                                     try
                                     {
-                                        var trip = await mapper.MapToTripAsync(record, importSelectedFundingSource/*, selectedFileIsSaferide*/);
+                                        var trip = await mapper.MapToTripAsync(record, importSelectedFundingSource, selectedFileIsSaferide);
                                         lock (mappedTrips) // Synchronize access to the shared list
                                         {
                                             mappedTrips.Add(trip);

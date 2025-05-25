@@ -16,28 +16,30 @@ namespace Meditrans.Client.Models.Csv
     {
         public CsvTripRawModelMap(
             Dictionary<string, int> headerIndices,
-            Dictionary<string, string> csvToPropertyMappings) // Este ya debería ser case-insensitive
+            Dictionary<string, string> csvToPropertyMappings) 
         {
             foreach (var mappingEntry in csvToPropertyMappings)
             {
                 string csvHeaderName = mappingEntry.Key;
                 string propertyName = mappingEntry.Value;
 
-                if (headerIndices.TryGetValue(csvHeaderName, out int actualColumnIndex)) // headerIndices ya es case-insensitive
+                if (headerIndices.TryGetValue(csvHeaderName, out int actualColumnIndex)) 
                 {
+                    //PropertyInfo? propertyInfo = typeof(CsvTripRawModel).GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
                     var propertyInfo = typeof(CsvTripRawModel).GetProperty(propertyName);
                     if (propertyInfo != null)
                     {
-                        Map(typeof(CsvTripRawModel), propertyInfo).Index(actualColumnIndex).Name(csvHeaderName); // Añadir .Name() puede ayudar a CsvHelper
+                        //Map(typeof(CsvTripRawModel), propertyInfo).Index(actualColumnIndex).Name(csvHeaderName);
+                        Map(typeof(CsvTripRawModel), propertyInfo).Index(actualColumnIndex);
                     }
                     else
                     {
-                        Console.WriteLine($"Advertencia: La propiedad '{propertyName}' no fue encontrada en CsvTripRawModel para el encabezado CSV '{csvHeaderName}'.");
+                        Console.WriteLine($"Warning: The property '{propertyName}' was not found in CsvTripRawModel for CSV header '{csvHeaderName}'.");
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"Advertencia: El encabezado CSV '{csvHeaderName}' (definido en el mapeo JSON) no fue encontrado en el archivo CSV leído.");
+                    Console.WriteLine($"Warning: The CSV header '{csvHeaderName}' (defined in JSON mapping) was not found in the read CSV file.");
                 }
             }
         }

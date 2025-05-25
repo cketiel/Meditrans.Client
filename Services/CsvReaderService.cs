@@ -65,9 +65,9 @@ namespace Meditrans.Client.Services
             return csv.GetRecords<CsvTripRawModel>().ToList();
         }
 
-        public List<CsvTripRawModel> ReadCsvWithoutDuplicateColumns3(string jsonFileName)
+        public List<CsvTripRawModel> ReadCsvWithDuplicateColumns(string jsonFileName)
         {
-            // Leer y procesar los encabezados
+            // Read and process headers
             string[] originalHeaders;
             Dictionary<string, int> headerIndices = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             Dictionary<string, string> headerMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -79,7 +79,7 @@ namespace Meditrans.Client.Services
                 csv.ReadHeader();
                 originalHeaders = csv.Context.Reader.HeaderRecord ?? throw new InvalidOperationException("The CSV file contains no headers or is empty.");
 
-                // Procesar encabezados duplicados
+                // Process duplicate headers
                 var headerCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
                 for (int i = 0; i < originalHeaders.Length; i++)
@@ -97,12 +97,12 @@ namespace Meditrans.Client.Services
                         headerCounts[originalHeader] = 1;
                     }
 
-                    headerIndices[mappedHeader] = i;
-                    headerMappings[originalHeader] = mappedHeader;
+                    headerIndices[mappedHeader] = i;                   
+                    headerMappings[mappedHeader] = mappedHeader;
                 }
             }
 
-            // Cargar el mapeo JSON
+            // Load JSON mapping
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             string mappingPath = Path.Combine(baseDirectory, "Assets", "Mappings", jsonFileName);
 
@@ -115,7 +115,7 @@ namespace Meditrans.Client.Services
             var tempMapping = JsonConvert.DeserializeObject<Dictionary<string, string>>(mappingJson)
                 ?? throw new Exception($"Error deserializing JSON mapping file: {jsonFileName}.");
 
-            // Combinar los mapeos
+            // Combine the mappings
             var csvToPropertyMappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var mapping in tempMapping)
             {
@@ -125,15 +125,15 @@ namespace Meditrans.Client.Services
                 }
             }
 
-            // Configuración de CsvHelper
+            // CsvHelper Configuration
             var config = new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = true,
                 HeaderValidated = null,
-                MissingFieldFound = null // Manejaremos los campos faltantes manualmente
+                MissingFieldFound = null 
             };
 
-            // Leer los datos
+            // Read the data
             using (var reader = new StreamReader(_csvFilePath))
             using (var csv = new CsvHelper.CsvReader(reader, config))
             {
@@ -181,13 +181,7 @@ namespace Meditrans.Client.Services
                 {
                     uniqueHeaderNames.Add(header);
                     headerOriginalIndices[header] = i;
-                }
-                /*else 
-                {
-                    var headerDO = header + "DO";
-                    uniqueHeaderNames.Add(headerDO);
-                    headerOriginalIndices[headerDO] = i;
-                */
+                }               
             }
 
             //string mappingFileName = "SAFERIDE.json";
