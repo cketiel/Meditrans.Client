@@ -25,6 +25,63 @@ namespace Meditrans.Client.ViewModels
     {
         #region Translation
 
+        // Client AutoSuggestBox
+        public string AutoSuggestBoxHint => LocalizationService.Instance["AutoSuggestBoxHint"];// "Name, Client Code, or Phone Number"
+        public string SaveCustomerToolTip => LocalizationService.Instance["SaveCustomerToolTip"]; // "Save customer information"
+        public string NewCustomerToolTip => LocalizationService.Instance["NewCustomerToolTip"]; // "New customer"
+
+        public string FullNameTextBoxHint => LocalizationService.Instance["FullNameTextBoxHint"];// "Full Name"
+        public string ClientCodeTextBoxHint => LocalizationService.Instance["ClientCodeTextBoxHint"]; // "Client Code"
+        public string PhoneTextBoxHint => LocalizationService.Instance["PhoneTextBoxHint"]; // "Phone"
+        public string MobilePhoneTextBoxHint => LocalizationService.Instance["MobilePhoneTextBoxHint"]; // "Mobile Phone"
+        public string SpaceTypeComboBoxHint => LocalizationService.Instance["SpaceTypeComboBoxHint"]; // "Select Space Type"
+        public string FundingSourceComboBoxHint => LocalizationService.Instance["FundingSourceComboBoxHint"]; // "Select Funding Source"
+        public string GeolocateFloatingButtonToolTip => LocalizationService.Instance["GeolocateFloatingButtonToolTip"]; // "Find Address"
+        public string GooglePlacesInputHint => LocalizationService.Instance["GooglePlacesInputHint"]; // "Address"
+        public string CityHint => LocalizationService.Instance["CityHint"]; // "City"
+        public string StateHint => LocalizationService.Instance["StateHint"]; // "State"
+        public string ZipHint => LocalizationService.Instance["ZipHint"]; // "ZIP"
+        public string DOBDatePickerHint => LocalizationService.Instance["DOBDatePickerHint"]; // "Date of Birth"
+        public string MaleRadioButtonContent => LocalizationService.Instance["MaleRadioButtonContent"]; // "Male"
+        public string FemaleRadioButtonContent => LocalizationService.Instance["FemaleRadioButtonContent"]; // "Female"
+
+        // Filter bar
+        public string ForDatePickerHint => LocalizationService.Instance["ForDatePickerHint"]; // "Filter by Date"
+        public string ShowCanceledCheckBoxContent => LocalizationService.Instance["ShowCanceledCheckBoxContent"]; // "Show Canceled"
+        public string ImportButtonToolTip => LocalizationService.Instance["ImportButtonToolTip"]; // "Import Trips"
+        public string ExportButtonToolTip => LocalizationService.Instance["ExportButtonToolTip"]; // "Export Trips"
+
+        #region TripTabs
+        public string TripTabsTabItem1Header => LocalizationService.Instance["TripTabsTabItem1Header"]; // "Location and Time"
+        public string InverterFloatingButtonToolTip => LocalizationService.Instance["InverterFloatingButtonToolTip"]; // "Reverse Location"
+        public string PickupAddressTextBoxHint => LocalizationService.Instance["PickupAddressTextBoxHint"]; // "Pickup Address"
+        public string DropoffAddressTextBoxHint => LocalizationService.Instance["DropoffAddressTextBoxHint"]; // "Dropoff Address"
+        public string SaveTab1FloatingButtonToolTip => LocalizationService.Instance["SaveTab1FloatingButtonToolTip"]; // "Save trip information"
+        public string RoundTripRadioButtonContent => LocalizationService.Instance["RoundTripRadioButtonContent"]; // "Round Trip"
+        public string OneWayRadioButtonContent => LocalizationService.Instance["OneWayRadioButtonContent"]; // "One Way"
+        public string AppointmentRadioButtonContent => LocalizationService.Instance["AppointmentRadioButtonContent"]; // "Appt"
+        public string ReturnRadioButtonContent => LocalizationService.Instance["ReturnRadioButtonContent"]; // "Return"
+        public string PickupTimePickerHint => LocalizationService.Instance["PickupTimePickerHint"]; // "Pickup"
+        public string ApptTimePickerHint => LocalizationService.Instance["ApptTimePickerHint"]; // "Appt"
+        public string ReturnTimePickerHint => LocalizationService.Instance["ReturnTimePickerHint"]; // "Return"
+
+        public string TripTabsTabItem2Header => LocalizationService.Instance["TripTabsTabItem2Header"]; // "Space Type"
+        public string TripSpaceTypeComboBoxHint => LocalizationService.Instance["TripSpaceTypeComboBoxHint"]; // "Select Space Type"
+        // AdditionalPassengersDataGrid
+
+        public string TripTabsTabItem3Header => LocalizationService.Instance["TripTabsTabItem3Header"]; // "Pickup"
+        public string PickupNameTextBoxHint => LocalizationService.Instance["PickupNameTextBoxHint"]; // "Name"
+        public string PickupPhoneTextBoxHint => LocalizationService.Instance["PickupPhoneTextBoxHint"]; // "Phone"
+        public string PickupCommentTextBoxHint => LocalizationService.Instance["PickupCommentTextBoxHint"]; // "Comment"
+
+
+        public string TripTabsTabItem4Header => LocalizationService.Instance["TripTabsTabItem4Header"]; // "Dropoff"
+        public string DropoffNameTextBoxHint => LocalizationService.Instance["DropoffNameTextBoxHint"]; // "Name"
+        public string DropoffPhoneTextBoxHint => LocalizationService.Instance["DropoffPhoneTextBoxHint"]; // "Phone"
+        public string DropoffCommentTextBoxHint => LocalizationService.Instance["DropoffCommentTextBoxHint"]; // "Comment"
+
+        #endregion
+
         // Billing section
         public string Charges => LocalizationService.Instance["Charges"];
         public string History => LocalizationService.Instance["History"];
@@ -46,6 +103,27 @@ namespace Meditrans.Client.ViewModels
         public string IsDefaultText => LocalizationService.Instance["IsDefaultText"]; // Is Default
         public string FundingSourceText => LocalizationService.Instance["FundingSource"];
         public string AuthorizationText => LocalizationService.Instance["Authorization"];
+
+        #region DataGrid
+        public string DayText => LocalizationService.Instance["DayText"]; // Day
+        public string DateText => LocalizationService.Instance["DateText"]; // Date
+        public string FromTimeText => LocalizationService.Instance["FromTimeText"]; // From Time
+        public string ToTimeText => LocalizationService.Instance["ToTimeText"]; // To Time
+        public string CustomerNameText => LocalizationService.Instance["CustomerNameText"]; // Patient
+        public string PickupAddressText => LocalizationService.Instance["PickupAddressText"]; // Pickup Address
+        public string DropoffAddressText => LocalizationService.Instance["DropoffAddressText"]; // Dropoff Address
+        public string SpaceTypeNameText => LocalizationService.Instance["SpaceTypeNameText"]; // Space
+        public string ChargeText => LocalizationService.Instance["ChargeText"]; // Charge
+        public string PaidText => LocalizationService.Instance["PaidText"]; // Paid
+        public string PickupCommentText => LocalizationService.Instance["PickupCommentText"]; // Pickup Comment
+
+        #endregion
+
+        #region Import Trips
+        public string SelectCsvButtonContent => LocalizationService.Instance["SelectCsvButtonContent"]; // "Select CSV file"
+        public string ProgressPanelText => LocalizationService.Instance["ProgressPanelText"]; // "Processing 0 of N trips..."
+
+        #endregion
 
         #endregion
 

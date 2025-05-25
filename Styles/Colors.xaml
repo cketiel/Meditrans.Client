@@ -5,9 +5,9 @@
     <Color x:Key="MainBorderColor">#3D3D3D</Color>
     <Color x:Key="BorderColor">#bbdefb</Color>
     <Color x:Key="HoverBorderColor">#bbdefb</Color>
-
+  
     <Color x:Key="HeaderBackgroundColor">#E2E5E8</Color>
-    <Color x:Key="SelectedBackgroundColor">#D5E9F1</Color>
+    <Color x:Key="SelectedBackgroundColor">#D5E9F1</Color> 
     <Color x:Key="EvenRowBackgroundColor">#F1F4F8</Color>
     <Color x:Key="OddRowBackgroundColor">#FFFFFF</Color>
     
