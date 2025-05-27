@@ -465,7 +465,22 @@ namespace Meditrans.Client.Services
                     .FirstOrDefault(c =>
                         string.Equals(c.FullName, fullName, StringComparison.OrdinalIgnoreCase) &&
                         string.Equals(c.Phone, raw.PatientPhoneNumber, StringComparison.OrdinalIgnoreCase)
-                    );               
+                    );
+
+                // For the concurrency error
+                if (customer == null)
+                {
+                    try
+                    {
+                        customer = await _customerService.GetCustomerByRiderIdAsync(RiderIdBuilt);
+                    }
+                    catch (Exception)
+                    {
+
+                        customer = null;
+                    }
+                   
+                }               
 
                 //var fundingSourceId = _fundingSources.FirstOrDefault(f => f.Name == fundingSourceName)?.Id ?? 0;
                 var fundingSourceId = fundingSource.Id;
@@ -522,14 +537,10 @@ namespace Meditrans.Client.Services
                         customerId = existingCustomer.Id;
                     }
 
-                    // Error de concurrencia (DbUpdateConcurrencyException)
+                    // Concurrency error (DbUpdateConcurrencyException)
                     /*catch (Exception ex)
                     {
-                        MessageBox.Show(
-                            $"Error inesperado: {ex.Message}",
-                            "Error",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Error);
+                        
 
                     }*/
 

@@ -788,6 +788,7 @@ namespace Meditrans.Client.Views
                         }
                         else 
                         {
+                            List<CsvTripRawModel> errorTrips = new List<CsvTripRawModel>();
                             // If the FundingSource is SAFERIDE, the number of concurrent threads must be limited because it does not have the Coordinates and many requests cannot be made to the Google Maps API
                             // SAFERIDE = 5
                             // Ride2md = 10
@@ -805,6 +806,7 @@ namespace Meditrans.Client.Views
                                 ProgressText.Text = $"Processing {processed} of {records.Count} trips...";
                             });
 
+                            int count = 0;
                             foreach (var record in records)
                             {
                                 await semaphore.WaitAsync(); // Wait for a slot
@@ -820,6 +822,7 @@ namespace Meditrans.Client.Views
                                         }
                                         Interlocked.Increment(ref processedCount); // Atomic increase
                                         ((IProgress<int>)progressReporter).Report(processedCount);
+                                        count = processedCount;
                                     }
                                     catch (Exception taskEx)
                                     {
@@ -827,6 +830,7 @@ namespace Meditrans.Client.Views
                                         // For example, log the error and continue
                                         Debug.WriteLine($"Error mapping record: {taskEx.Message}");
                                         // Optionally, you can add this error to a list of errors to display at the end
+                                        errorTrips.Add(record);
                                     }
                                     finally
                                     {
@@ -839,6 +843,25 @@ namespace Meditrans.Client.Views
                             // Wait for all mapping tasks to complete
                             await Task.WhenAll(mappingTasks);
 
+                            // Resolving the concurrency error
+                            // Try to insert the trips that gave a concurrency error when inserting the customer.
+                            foreach (var et in errorTrips) 
+                            {
+                                try
+                                {
+                                    var trip = await mapper.MapToTripAsync(et, importSelectedFundingSource, selectedFileIsSaferide);
+                                    mappedTrips.Add(trip);
+                                    count++;
+                                    ((IProgress<int>)progressReporter).Report(count);
+                                }
+                                catch (Exception ex)
+                                {
+
+                                    Debug.WriteLine($"Error mapping record: {ex.Message}");
+                                }
+                                
+                            }
+                            
                             //PreviewGrid.ItemsSource = new ObservableCollection<Trip>(mappedTrips); // Use ObservableCollection if the UI needs to be updated dynamically
                             PreviewGrid.ItemsSource = mappedTrips;
 
