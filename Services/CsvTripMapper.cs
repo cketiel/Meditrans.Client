@@ -19,6 +19,12 @@ using Meditrans.Client.DTOs;
 
 namespace Meditrans.Client.Services
 {
+    /*public static class MobilityType
+    {
+        public static string Ambulatory = "Appointment";
+        public static string Return = "Return";
+    }*/
+    
     public class CsvTripMapper
     {
         private readonly ObservableCollection<TripReadDto> _trips;
@@ -303,6 +309,9 @@ namespace Meditrans.Client.Services
         }
         public async Task<TripReadDto> MapToTripAsync(CsvTripRawModel raw, FundingSource fundingSource, bool isSaferide)
         {
+            var allMobilityTypes = MobilityType.AllMobilityTypes();
+            MobilityType mobilityType = new MobilityType();
+
             string fullName = string.Empty;
             string RiderIdBuilt = string.Empty;
             string tripType = string.Empty;
@@ -344,7 +353,9 @@ namespace Meditrans.Client.Services
                     RiderIdBuilt = $"{fullName} {raw.PatientPhoneNumber}".Trim();
 
                     isWillCall = string.Equals(raw.Status, "WillCall", StringComparison.OrdinalIgnoreCase);
-                    
+
+                    mobilityType = allMobilityTypes.FirstOrDefault(mt => mt.SpaceType.Equals(raw.Type, StringComparison.OrdinalIgnoreCase));
+
                 }
                 else 
                 {
@@ -354,33 +365,45 @@ namespace Meditrans.Client.Services
                     trip.DropoffLongitude = double.TryParse(raw.DropoffLongitude, out var dlg) ? dlg : 0;
 
                     fullName = raw.PatientFullName;
-                    RiderIdBuilt = raw.RideId;
+                    RiderIdBuilt = raw.RiderId;
 
                     //string.IsNullOrEmpty
                     isWillCall = string.IsNullOrWhiteSpace(raw.Appointment) && string.IsNullOrWhiteSpace(raw.PickupTime);
-                        
+
+                    mobilityType = allMobilityTypes.FirstOrDefault(mt => mt.Description.Equals(raw.Type, StringComparison.OrdinalIgnoreCase));
+
                 }
 
 
                 // 3. SpaceType
-                if (raw.Type.Equals("WheelChair", StringComparison.OrdinalIgnoreCase))
+                /*if (raw.Type.Equals("WheelChair", StringComparison.OrdinalIgnoreCase))
                 {
                     raw.Type = "WCH";
                 }
                 else if (raw.Type.Equals("WBARIATRIC", StringComparison.OrdinalIgnoreCase))
                 {
                     raw.Type = "BWCH";
-                }
+                }*/
 
-                var spaceType = _spaceTypes.FirstOrDefault(st => st.Name.Equals(raw.Type, StringComparison.OrdinalIgnoreCase));
+                var mobilityTypeName = mobilityType.SpaceType;
+
+                //var spaceType = _spaceTypes.FirstOrDefault(st => st.Name.Equals(raw.Type, StringComparison.OrdinalIgnoreCase));
+                var spaceType = _spaceTypes.FirstOrDefault(st => st.Name.Equals(mobilityTypeName, StringComparison.OrdinalIgnoreCase));
+
                 int spaceTypeId = 0;
                 if (spaceType == null)
                 {
-                    var capacityType = _capacityTypes.FirstOrDefault(ct => ct.Name.Equals(raw.Type, StringComparison.OrdinalIgnoreCase));
+                    var capacityName = mobilityTypeName;
+                    if (mobilityTypeName.Equals("C2C", StringComparison.OrdinalIgnoreCase) || mobilityTypeName.Equals("D2D", StringComparison.OrdinalIgnoreCase)) 
+                    {
+                        capacityName = "AMB";
+                    }
+                    //var capacityType = _capacityTypes.FirstOrDefault(ct => ct.Name.Equals(raw.Type, StringComparison.OrdinalIgnoreCase));
+                    var capacityType = _capacityTypes.FirstOrDefault(ct => ct.Name.Equals(capacityName, StringComparison.OrdinalIgnoreCase));
                     var newSpaceTypeData = new SpaceType
                     {
-                        Name = raw.Type,
-                        Description = raw.Type,
+                        Name = mobilityType.SpaceType, // raw.Type,
+                        Description = mobilityType.Description, // raw.Type,
                         CapacityTypeId = capacityType?.Id ?? 0,
                         LoadTime = 0,
                         UnloadTime = 0,
@@ -450,14 +473,14 @@ namespace Meditrans.Client.Services
                 if (customer == null)
                 {
                     var RiderIdNewData = RiderIdBuilt;
-                    if (string.IsNullOrEmpty(raw.RiderId))
+                    /*if (string.IsNullOrEmpty(raw.RiderId))
                     {
                         RiderIdNewData = RiderIdBuilt;
                     }
                     else 
                     {
                         RiderIdNewData = raw.RiderId;
-                    }
+                    }*/
 
                     var newCustomerData = new Customer
                     {
@@ -498,27 +521,16 @@ namespace Meditrans.Client.Services
                         }
                         customerId = existingCustomer.Id;
                     }
-                    //Falta
-                    //Evitar duplicado de Customers, primero tengo que establecer CustomerId unico en BD de la api para capturar el error.
-                    //catch (ApiException apiEx) when (apiEx.StatusCode == System.Net.HttpStatusCode.Conflict ||
-                    //(apiEx.StatusCode == System.Net.HttpStatusCode.BadRequest && apiEx.ErrorDetails != null && apiEx.ErrorDetails.Contains("already exists")))
-                    /*catch (ApiException ex)
-                    {
-                        MessageBox.Show(
-                            $"Error {ex.StatusCode}:\n{ex.ErrorDetails}",
-                            "Error del servidor",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Error);
-                        
-                    }
-                    catch (Exception ex)
+
+                    // Error de concurrencia (DbUpdateConcurrencyException)
+                    /*catch (Exception ex)
                     {
                         MessageBox.Show(
                             $"Error inesperado: {ex.Message}",
                             "Error",
                             MessageBoxButton.OK,
                             MessageBoxImage.Error);
-                        
+
                     }*/
 
                 }

@@ -288,6 +288,16 @@ namespace Meditrans.Client.ViewModels
 
         #region Trip
 
+        private string _gridSummary;
+        public string GridSummary 
+        {
+            get => _gridSummary;
+            set
+            {
+                _gridSummary = value;
+                OnPropertyChanged();
+            }
+        }
         public TimeSpan FromTime { get; set; }
 
         private ObservableCollection<TripReadDto> _trips;
@@ -318,8 +328,8 @@ namespace Meditrans.Client.ViewModels
             get => _tripsByDate;
             set
             {
-                _tripsByDate = value;
-                OnPropertyChanged();
+                _tripsByDate = value;              
+                OnPropertyChanged();               
             }
         }
 
@@ -690,6 +700,7 @@ namespace Meditrans.Client.ViewModels
         {
             TripService _tripService = new TripService();
             var sources = await _tripService.GetTripsByDateAsync(date);
+            GridSummary = sources.Count().ToString();
             TripsByDate.Clear();
             foreach (var source in sources)
                 TripsByDate.Add(source);

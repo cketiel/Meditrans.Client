@@ -26,9 +26,9 @@
 
             <Grid Margin="5" Background="Transparent">
                 <Grid.RowDefinitions>
-                    <RowDefinition x:Name="TopRow" Height="4.5*" /> <!-- 40% Upper area -->
+                    <RowDefinition x:Name="TopRow" Height="4.5*" /> <!-- 45% Upper area -->
                     <RowDefinition Height="6" />  <!-- Horizontal GridSplitter -->
-                    <RowDefinition x:Name="BottomRow" Height="5.5*" /> <!-- 60% Lower area (DataGrid) -->
+                    <RowDefinition x:Name="BottomRow" Height="5.5*" /> <!-- 55% Lower area (DataGrid) -->
                 </Grid.RowDefinitions>
 
                 <!-- Top row: Client, Billing, Splitter, Map -->
@@ -348,48 +348,61 @@
                             Background="{DynamicResource MaterialDesignCardBackground}">
                             
                             <StackPanel x:Name="TripFilterPanel">
+
                                 
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto"/>
+                                <Grid Margin="5" Background="Transparent">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="*" />                                       
+                                        <RowDefinition Height="*" />                                      
+                                    </Grid.RowDefinitions>
+
+                                    <Grid Grid.Row="0">
+
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Date -->
+                                        <DatePicker 
+                                            x:Name="ForDatePicker"
+                                            Grid.Column="0"
                                         
-                                </Grid.ColumnDefinitions>
+                                            SelectedDate="{Binding FilterDate, Mode=TwoWay}" 
+                                            materialDesign:HintAssist.Hint="{Binding ForDatePickerHint}"
+                                            Style="{StaticResource MaterialDesignFilledDatePicker}" Margin="0,0,8,0"/>
 
-                                <!-- Date -->
-                                <DatePicker 
-                                    x:Name="ForDatePicker"
-                                    Grid.Column="0"
-                                        
-                                    SelectedDate="{Binding FilterDate, Mode=TwoWay}" 
-                                    materialDesign:HintAssist.Hint="{Binding ForDatePickerHint}"
-                                    Style="{StaticResource MaterialDesignFilledDatePicker}" Margin="0,0,8,0"/>
+                                        <!-- Checkbox -->
+                                        <CheckBox Grid.Column="1"
+                                            Content="{Binding ShowCanceledCheckBoxContent}"
+                                            IsChecked="{Binding ShowCanceled}" 
+                                            Style="{StaticResource MaterialDesignCheckBox}" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
-                                <!-- Checkbox -->
-                                <CheckBox Grid.Column="1"
-                                        Content="{Binding ShowCanceledCheckBoxContent}"
-                                        IsChecked="{Binding ShowCanceled}" 
-                                        Style="{StaticResource MaterialDesignCheckBox}" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                        <!-- Buttons -->
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                            <Button 
+                                                    ToolTip="{Binding ImportButtonToolTip}"
+                                                    Command="{Binding ImportCommand}"
+                                                    Style="{StaticResource MaterialDesignToolForegroundButton}" Margin="0,0,10,0" Click="Button_Click">
+                                                <materialDesign:PackIcon Kind="DatabaseImport" Width="25" Height="25" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                            </Button>
 
-                                <!-- Buttons -->
-                                <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                    <Button 
-                                        ToolTip="{Binding ImportButtonToolTip}"
-                                        Command="{Binding ImportCommand}"
-                                        Style="{StaticResource MaterialDesignToolForegroundButton}" Margin="0,0,10,0" Click="Button_Click">
-                                        <materialDesign:PackIcon Kind="DatabaseImport" Width="25" Height="25" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                                    </Button>
+                                            <Button  
+                                                ToolTip="{Binding ExportButtonToolTip}"
+                                                Command="{Binding ExportCommand}"
+                                                Style="{StaticResource MaterialDesignToolForegroundButton}">
+                                                <materialDesign:PackIcon Kind="MicrosoftExcel" Width="25" Height="25" Foreground="Green"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
 
-                                    <Button  
-                                        ToolTip="{Binding ExportButtonToolTip}"
-                                        Command="{Binding ExportCommand}"
-                                        Style="{StaticResource MaterialDesignToolForegroundButton}">
-                                        <materialDesign:PackIcon Kind="MicrosoftExcel" Width="25" Height="25" Foreground="Green"/>
-                                    </Button>
-                                </StackPanel>
+                                    <Grid Grid.Row="1" Margin="0 5 0 0">
+                                        <TextBlock Text="{Binding GridSummary}" FontWeight="Bold"/>
 
-                            </Grid>
+                                    </Grid>
+                                    
+                                </Grid>
                             </StackPanel>
                         </materialDesign:Card>
 
