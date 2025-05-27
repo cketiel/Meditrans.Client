@@ -16,6 +16,7 @@ using System.Windows;
 using Meditrans.Client.Exceptions;
 using System.Diagnostics;
 using Meditrans.Client.DTOs;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Meditrans.Client.Services
 {
@@ -307,7 +308,7 @@ namespace Meditrans.Client.Services
 
 
         }
-        public async Task<TripReadDto> MapToTripAsync(CsvTripRawModel raw, FundingSource fundingSource, bool isSaferide)
+        public async Task<TripReadDto> MapToTripAsync(CsvTripRawModel raw, FundingSource fundingSource, bool isSaferide, CsvType csvType)
         {
             var allMobilityTypes = MobilityType.AllMobilityTypes();
             MobilityType mobilityType = new MobilityType();
@@ -316,6 +317,10 @@ namespace Meditrans.Client.Services
             string RiderIdBuilt = string.Empty;
             string tripType = string.Empty;
             bool isWillCall = false;
+
+            DateTime date = DateTime.Now;
+            TimeSpan? fromTime = TimeSpan.Zero;
+            TimeSpan? toTime = TimeSpan.Zero;
 
             TripReadDto matchingTrip = _trips?
                 .Where(t => t != null)
@@ -337,7 +342,44 @@ namespace Meditrans.Client.Services
                 trip.PickupAddress = raw.FromSt;
                 trip.DropoffAddress = raw.ToST;
 
-                if (isSaferide)
+                switch (csvType)
+                {
+                    case CsvType.Saferide:
+                        fullName = $"{raw.PatientFirstName} {raw.PatientLastName}".Trim();
+                        RiderIdBuilt = $"{fullName} {raw.PatientPhoneNumber}".Trim();
+                        date = ParseDate(raw.Date);
+                        fromTime = string.IsNullOrWhiteSpace(raw.PickupTime) ? null : ParseTime(raw.PickupTime);
+                        toTime = string.IsNullOrWhiteSpace(raw.Appointment) ? null : ParseTime(raw.Appointment);
+                        break;
+                    case CsvType.Saferide2:
+                        fullName = raw.PatientFullName;
+                        RiderIdBuilt = raw.RiderId;
+                        var dateWithTime = ParseDateWithTime(raw.PickupTime);
+                        date = dateWithTime.Date;
+                        fromTime = dateWithTime.TimeOfDay;
+                        if (string.IsNullOrWhiteSpace(raw.Appointment))
+                        {
+                            toTime = null;
+                        }
+                        else 
+                        {
+                            var dateApptWithTime = ParseDateWithTime(raw.Appointment);
+                            toTime = dateApptWithTime.TimeOfDay;         
+                        }
+                        break;
+                    case CsvType.Ride2md:
+                        fullName = raw.PatientFullName;
+                        RiderIdBuilt = raw.RiderId;
+                        date = ParseDate(raw.Date);
+                        fromTime = string.IsNullOrWhiteSpace(raw.PickupTime) ? null : ParseTime(raw.PickupTime);
+                        toTime = string.IsNullOrWhiteSpace(raw.Appointment) ? null : ParseTime(raw.Appointment);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(csvType), csvType, "CSV type not supported");
+
+                }
+
+                if (isSaferide) // CsvType.Saferide and CsvType.Saferide2
                 {
                     // They can only be made (50 calls per second, 3000 per minute) to the Google Maps API using a free api key.
                     Coordinates pickupCoords = await GetCoordinates(raw.FromSt, raw.FromCity, raw.FromState, raw.FromZIP);
@@ -349,12 +391,14 @@ namespace Meditrans.Client.Services
                     trip.DropoffLatitude = dropoffCoords.Latitude;
                     trip.DropoffLongitude = dropoffCoords.Longitude;
 
-                    fullName = $"{raw.PatientFirstName} {raw.PatientLastName}".Trim();
-                    RiderIdBuilt = $"{fullName} {raw.PatientPhoneNumber}".Trim();
+                    //fullName = $"{raw.PatientFirstName} {raw.PatientLastName}".Trim();
+                    //RiderIdBuilt = $"{fullName} {raw.PatientPhoneNumber}".Trim();
 
                     isWillCall = string.Equals(raw.Status, "WillCall", StringComparison.OrdinalIgnoreCase);
 
                     mobilityType = allMobilityTypes.FirstOrDefault(mt => mt.SpaceType.Equals(raw.Type, StringComparison.OrdinalIgnoreCase));
+
+                   
 
                 }
                 else 
@@ -364,8 +408,8 @@ namespace Meditrans.Client.Services
                     trip.DropoffLatitude = double.TryParse(raw.DropoffLatitude, out var dlt) ? dlt : 0;
                     trip.DropoffLongitude = double.TryParse(raw.DropoffLongitude, out var dlg) ? dlg : 0;
 
-                    fullName = raw.PatientFullName;
-                    RiderIdBuilt = raw.RiderId;
+                    //fullName = raw.PatientFullName;
+                    //RiderIdBuilt = raw.RiderId;
 
                     //string.IsNullOrEmpty
                     isWillCall = string.IsNullOrWhiteSpace(raw.Appointment) && string.IsNullOrWhiteSpace(raw.PickupTime);
@@ -442,10 +486,15 @@ namespace Meditrans.Client.Services
                 trip.Distance = double.TryParse(raw.Distance, out var dist) ? dist : 0;
 
                 // 5. Dates and Times
-                trip.Date = ParseDate(raw.Date);
+                trip.Date = date;
+                trip.Day = trip.Date.DayOfWeek.ToString();
+                trip.FromTime = fromTime;
+                trip.ToTime = toTime;
+
+                /*trip.Date = ParseDate(raw.Date);
                 trip.Day = trip.Date.DayOfWeek.ToString();
                 trip.FromTime = string.IsNullOrWhiteSpace(raw.PickupTime) ? null : ParseTime(raw.PickupTime); 
-                trip.ToTime = string.IsNullOrWhiteSpace(raw.Appointment) ? null : ParseTime(raw.Appointment);
+                trip.ToTime = string.IsNullOrWhiteSpace(raw.Appointment) ? null : ParseTime(raw.Appointment);*/
 
                 /*trip.Date = DateTime.ParseExact(raw.Date, "M/d/yyyy", CultureInfo.InvariantCulture);
 
@@ -511,7 +560,7 @@ namespace Meditrans.Client.Services
                         FundingSourceId = fundingSourceId,
                         SpaceTypeId = spaceTypeId,
                         Gender = raw.Gender ?? "Male",
-                        DOB = ParseDate(raw.PatientDOB),
+                        DOB = string.IsNullOrWhiteSpace(raw.PatientDOB) ? null : ParseDate(raw.PatientDOB),
                         Created = DateTime.Now,
                         CreatedBy = SessionManager.Username
                     };
@@ -627,6 +676,16 @@ namespace Meditrans.Client.Services
                 : TimeSpan.TryParse(value, out time)
                     ? time
                     : throw new FormatException($"Invalid time: {value}");
+        }
+
+        private DateTime ParseDateWithTime(string value) // MM-dd-yyyy HH:mm
+        {
+            string[] format12h =  { "yyyy-MM-dd h:mm:ss tt", "M/d/yyyy h:mm:ss tt", "MM/dd/yyyy h:mm:ss tt", "M-d-yyyy h:mm:ss tt", "MM-dd-yyyy h:mm:ss tt", "yyyy/MM/dd h:mm:ss tt" };
+            string[] format24h = { "yyyy-MM-dd HH:mm", "M/d/yyyy HH:mm", "MM/dd/yyyy HH:mm", "M-d-yyyy HH:mm", "MM-dd-yyyy HH:mm", "yyyy/MM/dd HH:mm" };
+            //return DateTime.TryParseExact(value, new[] { "yyyy-MM-dd h:mm:ss tt", "M/d/yyyy h:mm:ss tt", "MM/dd/yyyy h:mm:ss tt", "M-d-yyyy h:mm:ss tt", "MM-dd-yyyy h:mm:ss tt", "yyyy/MM/dd h:mm:ss tt" }, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
+            return DateTime.TryParseExact(value, format24h, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)    
+            ? date
+            : throw new FormatException($"Invalid date and time: {value}");
         }
 
         private static CustomerCreateDto MapToCustomerCreateDto(Customer customer)

@@ -727,11 +727,38 @@ namespace Meditrans.Client.Views
                     // Read the CSV (this is still sequential and may take time)
                     // Consider making ReadCsv also asynchronous and report its progress if it is very large.
                     List<CsvTripRawModel> records;
+                    CsvReaderService csvReaderService = new CsvReaderService(dialog.FileName);
+                    isSaferide = csvReaderService.IsSaferide();
+                    CsvType csvType = csvReaderService.GetCsvType();
                     try
                     {
-                        CsvReaderService csvReaderService = new CsvReaderService(dialog.FileName);
-                        isSaferide = csvReaderService.IsSaferide();
-                        var jsonFileName = isSaferide ? "SAFERIDE.json" : "Ride2md.json"; 
+                        
+                        string jsonFileName = string.Empty;
+                        /*jsonFileName = GetJsonFileName(csvType);
+                        string GetJsonFileName(CsvType csvType) => csvType switch
+                        {
+                            CsvType.Saferide => "SAFERIDE.json",
+                            CsvType.Saferide2 => "SAFERIDE2.json",
+                            CsvType.Ride2md => "Ride2md.json",
+                            _ => throw new ArgumentOutOfRangeException(nameof(csvType), csvType, null)
+                        };*/
+                        switch (csvType)
+                        {
+                            case CsvType.Saferide:
+                                jsonFileName = "SAFERIDE.json";
+                                break;
+                            case CsvType.Saferide2:
+                                jsonFileName = "SAFERIDE2.json";
+                                break;
+                            case CsvType.Ride2md:
+                                jsonFileName = "Ride2md.json";
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException(nameof(csvType), csvType, "CSV type not supported");
+                                
+                        }
+                        //var jsonFileName = isSaferide ? "SAFERIDE.json" : "Ride2md.json"; 
+
                         // If ReadCsv may take a long time, consider async Task<List<CsvTripRawModel>>
                         // and run it with Task.Run().
                         //records = await Task.Run(() => ReadCsv(dialog.FileName)); // Run in a background thread to not block UI.
@@ -813,9 +840,10 @@ namespace Meditrans.Client.Views
 
                                 var task = Task.Run(async () => // Use Task.Run to not block the SelectCsv_Click loop
                                 {
-                                    try
+                                    try 
                                     {
-                                        var trip = await mapper.MapToTripAsync(record, importSelectedFundingSource, selectedFileIsSaferide);
+                                        
+                                        var trip = await mapper.MapToTripAsync(record, importSelectedFundingSource, selectedFileIsSaferide, csvType);
                                         lock (mappedTrips) // Synchronize access to the shared list
                                         {
                                             mappedTrips.Add(trip);
@@ -849,7 +877,7 @@ namespace Meditrans.Client.Views
                             {
                                 try
                                 {
-                                    var trip = await mapper.MapToTripAsync(et, importSelectedFundingSource, selectedFileIsSaferide);
+                                    var trip = await mapper.MapToTripAsync(et, importSelectedFundingSource, selectedFileIsSaferide, csvType);
                                     mappedTrips.Add(trip);
                                     count++;
                                     ((IProgress<int>)progressReporter).Report(count);

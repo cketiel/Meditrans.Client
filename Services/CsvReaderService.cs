@@ -9,6 +9,12 @@ using Newtonsoft.Json;
 
 namespace Meditrans.Client.Services
 {
+    public enum CsvType
+    {
+        Saferide,
+        Saferide2,
+        Ride2md
+    }
     public class CsvReaderService
     {
         private readonly string _csvFilePath;
@@ -19,6 +25,45 @@ namespace Meditrans.Client.Services
             //_jsonFileName = jsonFileName;
         }
 
+        public CsvType GetCsvType()
+        {
+            CsvType result = CsvType.Saferide;
+            // Define CsvHelper settings
+            var config = new CsvHelper.Configuration.CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = true,
+                HeaderValidated = null,
+                MissingFieldFound = (args) =>
+                {
+                    Console.WriteLine($"Missing field found. Headers: '{string.Join(", ", args.HeaderNames ?? new string[0])}', Index: {args.Index}, Row: {args.Context.Parser.Row}");
+                },
+            };
+
+            using var reader = new StreamReader(_csvFilePath);
+            using var csv = new CsvHelper.CsvReader(reader, config);
+
+            csv.Read();
+            csv.ReadHeader();
+            var actualCsvHeaders = csv.Context.Reader.HeaderRecord;
+            if (actualCsvHeaders == null)
+            {
+                throw new InvalidOperationException("The CSV file contains no headers or is empty.");
+            }
+            var header = actualCsvHeaders[0];
+            if (string.Equals(header, "rideId", StringComparison.OrdinalIgnoreCase))
+            {
+                result = CsvType.Saferide;
+            }
+            else if (string.Equals(header, "MediRoutesClient", StringComparison.OrdinalIgnoreCase))
+            {
+                result = CsvType.Saferide2;
+            }
+            else // "Check". if (string.Equals(header, "Check", StringComparison.OrdinalIgnoreCase))
+            {
+                return CsvType.Ride2md;
+            }
+            return result;
+        }
         public bool IsSaferide()
         {
             // Define CsvHelper settings
@@ -43,7 +88,7 @@ namespace Meditrans.Client.Services
                 throw new InvalidOperationException("The CSV file contains no headers or is empty.");
             }
             var header = actualCsvHeaders[0]; 
-            if(string.Equals(header, "rideId", StringComparison.OrdinalIgnoreCase)) 
+            if(string.Equals(header, "rideId", StringComparison.OrdinalIgnoreCase) || string.Equals(header, "MediRoutesClient", StringComparison.OrdinalIgnoreCase)) 
             { 
                 return true;
             }

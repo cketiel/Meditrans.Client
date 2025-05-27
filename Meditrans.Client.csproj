@@ -23,6 +23,7 @@
     <None Remove="Assets\map.html" />
     <None Remove="Assets\Mappings\Ride2md.json" />
     <None Remove="Assets\Mappings\SAFERIDE.json" />
+    <None Remove="Assets\Mappings\SAFERIDE2.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -63,6 +64,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\Mappings\SAFERIDE.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Mappings\SAFERIDE2.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
