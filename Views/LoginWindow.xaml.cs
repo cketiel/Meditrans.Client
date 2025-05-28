@@ -5,6 +5,7 @@ using Meditrans.Client.Helpers;
 using System.Windows.Media.Animation;
 using MaterialDesignThemes.Wpf;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 
 namespace Meditrans.Client.Views
 {
@@ -14,8 +15,11 @@ namespace Meditrans.Client.Views
         {
             InitializeComponent();
             UsernameTextBox.Text = StorageHelper.LoadUsername();
+            this.AllowsTransparency = true;
+            this.WindowStyle = WindowStyle.None;
+            //this.Background = Brushes.Transparent;
         }
-
+        
         private async void LoginButton_Click(object sender, RoutedEventArgs e)
         {
             var username = UsernameTextBox.Text;
@@ -105,26 +109,111 @@ namespace Meditrans.Client.Views
 
         private void StartFadeOutAnimation()
         {
+            var blurEffect = new BlurEffect
+            {
+                Radius = 0,
+                KernelType = KernelType.Gaussian,
+                RenderingBias = RenderingBias.Quality
+            };
+            this.Effect = blurEffect;
+
             // Crear la animación de desvanecimiento para la ventana de login
             var fadeOutAnimation = new DoubleAnimation
             {
                 From = 1, // Comienza totalmente visible
                 To = 0,   // Finaliza completamente invisible
-                Duration = TimeSpan.FromSeconds(1) // Duración de la animación
+                Duration = TimeSpan.FromSeconds(1), // Duración de la animación
+                FillBehavior = FillBehavior.Stop
             };
 
+            var blurAnimation = new DoubleAnimation
+            {
+                From = 0,
+                To = 10,  // Cantidad de blur máximo
+                Duration = TimeSpan.FromSeconds(0.3),
+                AutoReverse = true  // El blur vuelve a 0 al final
+            };
+
+            var storyboard = new Storyboard();
+            storyboard.Children.Add(fadeOutAnimation);
+            storyboard.Children.Add(blurAnimation);
+
+            Storyboard.SetTarget(fadeOutAnimation, this);
+            Storyboard.SetTargetProperty(fadeOutAnimation, new PropertyPath(Window.OpacityProperty));
+
+            Storyboard.SetTarget(blurAnimation, this);
+            Storyboard.SetTargetProperty(blurAnimation, new PropertyPath("Effect.Radius"));
+
+            // 4. Al completar, mostrar la nueva ventana con efecto similar
+            storyboard.Completed += (sender, e) =>
+            {
+                ShowMainWindowWithEffect();
+                this.Close();
+            };
+
+            storyboard.Begin();
+
             // Cuando la animación termine, ejecutar el método FadeOut_Completed
-            fadeOutAnimation.Completed += FadeOut_Completed;
+            /*fadeOutAnimation.Completed += FadeOut_Completed;
 
             // Iniciar la animación en la ventana de login
-            this.BeginAnimation(Window.OpacityProperty, fadeOutAnimation);
+            this.BeginAnimation(Window.OpacityProperty, fadeOutAnimation);*/
+        }
+
+        private void ShowMainWindowWithEffect()
+        {
+            var mainWindow = new MainWindow
+            {
+                Opacity = 0,
+                WindowState = WindowState.Maximized,
+                //AllowsTransparency = true,
+                //WindowStyle = WindowStyle.None,
+                //Background = Brushes.Transparent,
+                Effect = new BlurEffect { Radius = 10 }  // Comienza con blur
+            };
+
+            mainWindow.Show();
+
+            // Animación de entrada (fade in + blur out)
+            var fadeInAnimation = new DoubleAnimation
+            {
+                From = 0,
+                To = 1,
+                Duration = TimeSpan.FromSeconds(0.5)
+            };
+
+            var blurOutAnimation = new DoubleAnimation
+            {
+                From = 10,
+                To = 0,
+                Duration = TimeSpan.FromSeconds(0.4)
+            };
+
+            var enterStoryboard = new Storyboard();
+            enterStoryboard.Children.Add(fadeInAnimation);
+            enterStoryboard.Children.Add(blurOutAnimation);
+
+            Storyboard.SetTarget(fadeInAnimation, mainWindow);
+            Storyboard.SetTargetProperty(fadeInAnimation, new PropertyPath(Window.OpacityProperty));
+
+            Storyboard.SetTarget(blurOutAnimation, mainWindow);
+            Storyboard.SetTargetProperty(blurOutAnimation, new PropertyPath("Effect.Radius"));
+
+            enterStoryboard.Begin();
         }
 
         // Este evento se dispara cuando la animación de desvanecimiento termina
         private void FadeOut_Completed(object sender, EventArgs e)
         {
-
             // Create the MainWindow window
+            /*var mainWindow = new MainWindow
+            {
+                Opacity = 0,
+                WindowState = WindowState.Maximized,
+                //AllowsTransparency = true,
+                //WindowStyle = WindowStyle.None,
+                //Background = Brushes.Transparent
+            };*/
             var mainWindow = new MainWindow();
             mainWindow.Opacity = 0; // Initially invisible
             mainWindow.WindowState = WindowState.Maximized;
@@ -135,7 +224,8 @@ namespace Meditrans.Client.Views
             {
                 From = 0, // Starts invisible
                 To = 1,   // It becomes completely visible
-                Duration = TimeSpan.FromSeconds(1) // Animation duration
+                Duration = TimeSpan.FromSeconds(1)//, // Animation duration
+                //FillBehavior = FillBehavior.Stop
             };
 
             // Start fading animation on MainWindow window
