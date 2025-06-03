@@ -17,7 +17,7 @@ using Meditrans.Client.ViewModels;
 namespace Meditrans.Client.Views.Data.Scheduling.Vehicles
 {
     /// <summary>
-    /// Lógica de interacción para SpaceTypesView.xaml
+    /// Interaction logic for SpaceTypesView.xaml
     /// </summary>
     public partial class SpaceTypesView : UserControl
     {
