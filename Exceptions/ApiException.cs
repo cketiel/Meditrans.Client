@@ -25,6 +25,12 @@ namespace Meditrans.Client.Exceptions
             ErrorDetails = message;
         }
 
+        public ApiException(string message)
+            : base(message)
+        {
+            ErrorDetails = message;
+        }
+
         public override string ToString() =>
             $"[{(int)StatusCode} {StatusCode}] {Message}\nDetails: {ErrorDetails}";
     }
