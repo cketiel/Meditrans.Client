@@ -15,8 +15,8 @@ namespace Meditrans.Client.Views
         {
             InitializeComponent();
             UsernameTextBox.Text = StorageHelper.LoadUsername();
-            this.AllowsTransparency = true;
-            this.WindowStyle = WindowStyle.None;
+            //this.AllowsTransparency = true;
+            //this.WindowStyle = WindowStyle.None;
             //this.Background = Brushes.Transparent;
         }
         
@@ -55,12 +55,12 @@ namespace Meditrans.Client.Views
                 StorageHelper.SaveUsername(username);
 
                 // Run the fade out animation
-                StartFadeOutAnimation();
+                //StartFadeOutAnimation();
 
-                /*var mainWindow = new MainWindow();
+                var mainWindow = new MainWindow();
                 mainWindow.WindowState = WindowState.Maximized;
                 mainWindow.Show();
-                this.Close();*/
+                this.Close();
             }
             else
             {
