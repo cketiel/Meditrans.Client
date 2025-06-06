@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using Meditrans.Client.Services;
 using System.Threading.Tasks;
 using Meditrans.Client.Helpers;
@@ -11,6 +12,28 @@ namespace Meditrans.Client.Views
         public LoginWindow()
         {
             InitializeComponent();
+            UpdateLoginButtonState();
+        }
+
+        private void UpdateLoginButtonState()
+        {
+            var username = UsernameTextBox.Text.Trim();
+            var password = PasswordBox.Visibility == Visibility.Visible
+                          ? PasswordBox.Password
+                          : PasswordVisibleBox.Text;
+
+            LoginButton.IsEnabled = !string.IsNullOrEmpty(username) &&
+                                  !string.IsNullOrEmpty(password);
+        }
+
+        private void Credentials_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            UpdateLoginButtonState();
+        }
+
+        private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            UpdateLoginButtonState();
         }
 
         private void TogglePasswordVisibility_Checked(object sender, RoutedEventArgs e)
@@ -37,21 +60,8 @@ namespace Meditrans.Client.Views
 
             var username = UsernameTextBox.Text.Trim();
             var password = PasswordBox.Visibility == Visibility.Visible
-                ? PasswordBox.Password
-                : PasswordVisibleBox.Text;
-
-            // Input validation
-            if (string.IsNullOrEmpty(username))
-            {
-                ShowError("Please enter your username");
-                return;
-            }
-
-            if (string.IsNullOrEmpty(password))
-            {
-                ShowError("Please enter your password");
-                return;
-            }
+                         ? PasswordBox.Password
+                         : PasswordVisibleBox.Text;
 
             try
             {
@@ -61,7 +71,6 @@ namespace Meditrans.Client.Views
 
                     if (result != null && result.IsSuccess)
                     {
-                        // Successful login - proceed to main window
                         HandleSuccessfulLogin(username, result);
                     }
                     else
@@ -72,32 +81,26 @@ namespace Meditrans.Client.Views
             }
             catch (System.Exception ex)
             {
-                // Handle unexpected errors
                 ShowError("An error occurred during login. Please try again.");
                 System.Diagnostics.Debug.WriteLine($"Login error: {ex}");
             }
             finally
             {
-                // Restore UI state
                 LoginProgress.Visibility = Visibility.Collapsed;
-                LoginButton.IsEnabled = true;
+                UpdateLoginButtonState();
             }
         }
 
         private void HandleSuccessfulLogin(string username, LoginResponse result)
         {
-            // Save session data
             SessionManager.Token = result.Token;
             SessionManager.Username = username;
             SessionManager.UserId = result.UserId;
             StorageHelper.SaveUsername(username);
 
-            // Open main window
             var mainWindow = new MainWindow();
             mainWindow.WindowState = WindowState.Maximized;
             mainWindow.Show();
-
-            // Close login window
             this.Close();
         }
 
@@ -106,7 +109,6 @@ namespace Meditrans.Client.Views
             ErrorMessageText.Text = message;
             ErrorMessageText.Visibility = Visibility.Visible;
 
-            // Optional: Add visual feedback
             var animation = new System.Windows.Media.Animation.ThicknessAnimation(
                 new Thickness(-5, 0, 0, 0),
                 new Thickness(5, 0, 0, 0),
