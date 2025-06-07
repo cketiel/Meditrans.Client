@@ -11,6 +11,6 @@ namespace Meditrans.Client.Services
     {
         Task<List<VehicleGroup>> GetGroupsAsync();
         Task<VehicleGroup> CreateGroupAsync(VehicleGroup vehicleGroup);
-       
+        Task<bool> DeleteGroupAsync(int id);
     }
 }

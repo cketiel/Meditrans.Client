@@ -127,14 +127,14 @@ namespace Meditrans.Client.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw await CreateApiException(response, $"Error al eliminar cliente {id}");
+                    throw await CreateApiException(response, $"Error deleting client {id}");
                 }
 
                 return true;
             }
             catch (HttpRequestException ex)
             {
-                throw new ApiException("Error de conexión con el servidor", ex);
+                throw new ApiException("Server connection error", ex);
             }
             /*var response = await _httpClient.DeleteAsync($"{EndPoint}/{id}");
             return response.IsSuccessStatusCode;*/

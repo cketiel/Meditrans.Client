@@ -127,7 +127,7 @@ namespace Meditrans.Client.ViewModels
                 {
                     try
                     {                       
-                        //await _vehicleGroupService.DeleteGroupAsync(groupToDelete.Id);
+                        await _vehicleGroupService.DeleteGroupAsync(groupToDelete.Id);
                         Groups.Remove(groupToDelete);
                         MessageBox.Show(
                             LocalizationService.Instance["GroupDeletedSuccessfully"], // ej: "Grupo eliminado correctamente."

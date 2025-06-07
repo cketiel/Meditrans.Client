@@ -50,9 +50,9 @@
                             <DataTemplate>
                                 <Button Command="{Binding DataContext.AddGroupCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                     Style="{StaticResource MaterialDesignToolButton}"
-                                    ToolTip="{Binding DataContext.AddGroupToolTip, Source={StaticResource vmProxy}}">
-                                    
-                                    <materialDesign:PackIcon Kind="PlusCircle" Width="20" Height="20"/>
+                                    ToolTip="{Binding Data.AddGroupToolTip, Source={StaticResource vmProxy}}">
+
+                                    <materialDesign:PackIcon Kind="PlusCircle" Width="20" Height="20" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
                                 </Button>
                             </DataTemplate>
                         </DataGridTemplateColumn.HeaderTemplate>
@@ -62,9 +62,9 @@
                                     CommandParameter="{Binding}"
                                     Style="{StaticResource MaterialDesignToolButton}"
                                     VerticalAlignment="Center"
-                                    ToolTip="{Binding DataContext.DeleteGroupToolTip, Source={StaticResource vmProxy}}">
-                                   
-                                    <materialDesign:PackIcon Kind="DeleteForever" Width="20" Height="20" />
+                                    ToolTip="{Binding Data.DeleteGroupToolTip, Source={StaticResource vmProxy}}">
+
+                                    <materialDesign:PackIcon Kind="DeleteForever" Width="20" Height="20" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
                                 </Button>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>

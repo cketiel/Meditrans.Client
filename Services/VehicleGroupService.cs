@@ -45,7 +45,28 @@ namespace Meditrans.Client.Services
             }
 
         }
-       
+
+        public async Task<bool> DeleteGroupAsync(int id)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"{EndPoint}/{id}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw await CreateApiException(response, $"Error deleting group {id}");
+                }
+
+                return true;
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException("Server connection error", ex);
+            }
+            /*var response = await _httpClient.DeleteAsync($"{EndPoint}/{id}");
+            return response.IsSuccessStatusCode;*/
+        }
+
         private async Task<ApiException> CreateApiException(HttpResponseMessage response, string context)
         {
             try
