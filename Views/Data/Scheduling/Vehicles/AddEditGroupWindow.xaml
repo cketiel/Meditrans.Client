@@ -64,25 +64,16 @@
                               ShowRecentColors="True"
                               Margin="0,5,0,8"/>
         </StackPanel>
-
-        <!--<StackPanel Grid.Row="2">
-            <TextBlock Text="{Binding ColorLabel}"/>
-            
-            <materialDesign:ColorPicker Color="{Binding SelectedColor, UpdateSourceTrigger=PropertyChanged}" />
-        </StackPanel>-->
-
+       
         <!--<StackPanel Grid.Row="2">
             <TextBlock Text="{Binding ColorLabel}"/>
            
             <materialDesign:ColorPicker Color="{Binding SelectedMediaColor, UpdateSourceTrigger=PropertyChanged}" />
         </StackPanel> -->
 
-        <!-- TextBlock para depurar el valor string actual en CurrentGroup.Color -->
+        <!-- TextBlock to debug the current string value in CurrentGroup.Color -->
         <TextBlock Grid.Row="3" Text="{Binding CurrentGroupColorString, Mode=OneWay}" Margin="0,5" Foreground="Gray" FontStyle="Italic" HorizontalAlignment="Right"/>
-
-        <!--<TextBlock Grid.Row="3" Text="{Binding CurrentGroup.Color, Mode=OneWay}" Margin="0,5" Foreground="Gray" FontStyle="Italic" HorizontalAlignment="Right"/>-->
-
-
+     
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
             <Button Content="{Binding OkButtonText}" IsDefault="True" Click="OkButton_Click" Margin="0,0,8,0" Style="{StaticResource MaterialDesignRaisedButton}"/>
             <Button Content="{Binding CancelButtonText}" IsCancel="True" Click="CancelButton_Click" Style="{StaticResource MaterialDesignOutlinedButton}"/>

@@ -138,6 +138,26 @@
     "PaidText": "Pagado",
     "PickupCommentText": "Comentario de recogida",
     "SelectCsvButtonContent": "Seleccione el archivo CSV",
-    "ProgressPanelText": "Procesando 0 de N viajes..."
+    "ProgressPanelText": "Procesando 0 de N viajes...",
+
+    "GroupsView": "Esta es la forma de agrupar las traducciones correspondientes a GroupsView",
+    "GroupNameText": "Nombre",
+    "GroupColorText": "Color a mostrar",
+    "AddGroupToolTip": "Agregar nuevo grupo",
+    "DeleteGroupToolTip": "Eliminar grupo de vehículos",
+    "ErrorTitle": "Error",
+    "SuccessTitle": "Éxito",
+    "GroupAddedSuccessfully": "Grupo agregado exitosamente.",
+    "ErrorAddingGroup": "Se produjo un error al agregar el grupo: {0}",
+    "ErrorLoadingData": "Error al cargar datos: {0}",
+    "ConfirmDeleteGroupText": "¿Estás seguro de que quieres eliminar el grupo '{0}'?",
+    "ConfirmDeleteTitle": "Confirmar eliminación",
+    "GroupDeletedSuccessfully": "Grupo eliminado exitosamente.",
+    "ErrorDeletingGroup": "Error al eliminar grupo: {0}",
+    "AddGroupTitle": "Agregar grupo de vehículos",
+    "EditGroupTitle": "Editar grupo de vehículos",
+    "OK": "OK",
+    "Cancel": "Cancelar",
+    "NameIsRequiredError": "El nombre es requerido"
 
 }

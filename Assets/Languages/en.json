@@ -138,6 +138,26 @@
     "PaidText": "Paid",
     "PickupCommentText": "Pickup Comment",
     "SelectCsvButtonContent": "Select CSV file",
-    "ProgressPanelText": "Processing 0 of N trips..."
+    "ProgressPanelText": "Processing 0 of N trips...",
+
+    "GroupsView": "This is the way to group the translations corresponding to GroupsView",
+    "GroupNameText": "Name",
+    "GroupColorText": "Display Color",
+    "AddGroupToolTip": "Add new Group",
+    "DeleteGroupToolTip": "Delete Vehicle Group",
+    "ErrorTitle": "Error",
+    "SuccessTitle": "Success",
+    "GroupAddedSuccessfully": "Group added successfully.",
+    "ErrorAddingGroup": "An error occurred while adding the group: {0}",
+    "ErrorLoadingData": "Error loading data: {0}",
+    "ConfirmDeleteGroupText": "Are you sure you want to delete group '{0}'?",
+    "ConfirmDeleteTitle": "Confirm deletion",
+    "GroupDeletedSuccessfully": "Group deleted successfully.",
+    "ErrorDeletingGroup": "Error deleting group: {0}",
+    "AddGroupTitle": "Add Vehicle Group",
+    "EditGroupTitle": "Edit Vehicle Group",
+    "OK": "OK",
+    "Cancel": "Cancel",
+    "NameIsRequiredError": "The name is required"
 
 }

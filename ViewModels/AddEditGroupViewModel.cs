@@ -1,11 +1,10 @@
-﻿// Meditrans.Client/ViewModels/AddEditGroupViewModel.cs
-using Meditrans.Client.Models;
+﻿using Meditrans.Client.Models;
 using Meditrans.Client.Commands;
 using System.Windows.Input;
 using System.ComponentModel;
 using System;
 using System.Windows.Media;
-using System.Diagnostics; // Para Debug.WriteLine
+using System.Diagnostics; 
 
 namespace Meditrans.Client.ViewModels
 {
@@ -15,19 +14,17 @@ namespace Meditrans.Client.ViewModels
         public VehicleGroup CurrentGroup
         {
             get => _currentGroup;
-            private set // Es mejor que solo se establezca en el constructor
+            private set 
             {
-                _currentGroup = value;
-                // Notificar cambios en propiedades dependientes si es necesario,
-                // como Name, Description, y la representación string del color.
+                _currentGroup = value;                
                 OnPropertyChanged(nameof(Name));
                 OnPropertyChanged(nameof(Description));
-                OnPropertyChanged(nameof(CurrentGroupColorString)); // Para el TextBlock de depuración
+                OnPropertyChanged(nameof(CurrentGroupColorString)); 
             }
         }
 
         private Color _selectedMediaColor;
-        public Color SelectedMediaColor // Renombrado para claridad (es Media.Color)
+        public Color SelectedMediaColor 
         {
             get => _selectedMediaColor;
             set
@@ -35,20 +32,20 @@ namespace Meditrans.Client.ViewModels
                 if (_selectedMediaColor != value)
                 {
                     _selectedMediaColor = value;
-                    OnPropertyChanged(nameof(SelectedMediaColor)); // Notifica al ColorPicker
+                    OnPropertyChanged(nameof(SelectedMediaColor));
 
-                    // Actualizar la propiedad string en el modelo CurrentGroup
+                    // Update the string property in the CurrentGroup model
                     if (CurrentGroup != null)
                     {
                         string newColorString = _selectedMediaColor.ToString(); // e.g., #AARRGGBB
 
-                        // Solo actualiza CurrentGroup.Color si realmente ha cambiado
-                        // para evitar notificaciones innecesarias si el string ya era el mismo.
+                        // Only update CurrentGroup.Color if it has actually changed
+                        // to avoid unnecessary notifications if the string was already the same.
                         if (CurrentGroup.Color != newColorString)
                         {
                             CurrentGroup.Color = newColorString;
                             Debug.WriteLine($"ColorPicker changed. New MediaColor: {_selectedMediaColor}, Updated CurrentGroup.Color: {CurrentGroup.Color}");
-                            // Notificar que la propiedad string ha cambiado, para el TextBlock de depuración
+                            // Notify that the string property has changed, for the debug TextBlock
                             OnPropertyChanged(nameof(CurrentGroupColorString));
                         }
                     }
@@ -56,7 +53,7 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
-        // Propiedad para mostrar el string del color actual del CurrentGroup en el popup (para depuración)
+        // Property to show the string of the current color of the CurrentGroup in the popup (for debugging)
         public string CurrentGroupColorString => CurrentGroup?.Color;
 
 
@@ -70,11 +67,7 @@ namespace Meditrans.Client.ViewModels
 
         public AddEditGroupViewModel(VehicleGroup groupToEdit = null)
         {
-            CurrentGroup = groupToEdit ?? new VehicleGroup(); // Se establece CurrentGroup primero
-
-            // Ahora inicializa SelectedMediaColor BASADO en CurrentGroup.Color
-            // o establece un valor por defecto si CurrentGroup.Color es nulo/inválido
-            // Y ASEGÚRATE de que CurrentGroup.Color también refleje ese defecto.
+            CurrentGroup = groupToEdit ?? new VehicleGroup();          
             InitializeColorProperties();
         }
 
@@ -92,26 +85,23 @@ namespace Meditrans.Client.ViewModels
                 {
                     Debug.WriteLine($"Error converting initial CurrentGroup.Color '{CurrentGroup.Color}' to MediaColor: {ex.Message}. Defaulting to Gray.");
                     initialMediaColor = Colors.Gray;
-                    CurrentGroup.Color = initialMediaColor.ToString(); // Corregir CurrentGroup.Color si era inválido
+                    CurrentGroup.Color = initialMediaColor.ToString(); 
                 }
             }
-            else // Nuevo grupo o color no establecido
+            else 
             {
-                initialMediaColor = Colors.Gray; // Color inicial por defecto para un nuevo grupo
+                initialMediaColor = Colors.Gray; 
                 if (CurrentGroup != null)
                 {
-                    CurrentGroup.Color = initialMediaColor.ToString(); // Asegurar que el nuevo grupo tenga este color string
+                    CurrentGroup.Color = initialMediaColor.ToString(); 
                 }
                 Debug.WriteLine($"Initializing. CurrentGroup.Color was null/empty. Defaulted to MediaColor: {initialMediaColor}, CurrentGroup.Color set to: {CurrentGroup?.Color}");
             }
-
-            // Establece la variable de respaldo directamente para evitar que el setter se ejecute AHORA y
-            // potencialmente sobreescriba CurrentGroup.Color si la lógica del setter fuera diferente.
+            
             _selectedMediaColor = initialMediaColor;
-
-            // Notifica a la UI para que el ColorPicker muestre este color inicial.
+           
             OnPropertyChanged(nameof(SelectedMediaColor));
-            // Y también notifica al TextBlock de depuración.
+            
             OnPropertyChanged(nameof(CurrentGroupColorString));
         }
 
@@ -132,7 +122,7 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
-        // Propiedades Name y Description (se actualizan directamente en CurrentGroup)
+        // Name and Description properties (updated directly in CurrentGroup)
         public string Name
         {
             get => CurrentGroup?.Name;
@@ -141,7 +131,7 @@ namespace Meditrans.Client.ViewModels
                 if (CurrentGroup != null && CurrentGroup.Name != value)
                 {
                     CurrentGroup.Name = value;
-                    OnPropertyChanged(nameof(Name)); // Necesario para la validación y actualización de la UI
+                    OnPropertyChanged(nameof(Name)); // Required for UI validation and update
                 }
             }
         }
