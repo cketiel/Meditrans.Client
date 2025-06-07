@@ -8,6 +8,7 @@
         xmlns:vm="clr-namespace:Meditrans.Client.ViewModels"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:converters="clr-namespace:Meditrans.Client.Converters"
+        xmlns:xcad="http://schemas.xceed.com/wpf/xaml/toolkit" 
         mc:Ignorable="d"
         Title="{Binding WindowTitle}" Height="Auto" Width="400"
         SizeToContent="Height"
@@ -54,14 +55,32 @@
 
         <StackPanel Grid.Row="2">
             <TextBlock Text="{Binding ColorLabel}"/>
-            <!-- 
-                Binding SelectedColor del AddEditGroupViewModel (que es System.Windows.Media.Color) 
-                al ColorPicker.Color (que espera System.Windows.Media.Color)
-            -->
-            <materialDesign:ColorPicker Color="{Binding SelectedColor, UpdateSourceTrigger=PropertyChanged}" />
+            <!-- ColorPicker de Extended WPF Toolkit -->
+            <xcad:ColorPicker Name="MyColorPicker"
+                              SelectedColor="{Binding SelectedMediaColor, Mode=TwoWay}"
+                              DisplayColorAndName="True"
+                              ShowAvailableColors="True"
+                              ShowStandardColors="True"
+                              ShowRecentColors="True"
+                              Margin="0,5,0,8"/>
         </StackPanel>
 
-        <TextBlock Grid.Row="3" Text="{Binding CurrentGroup.Color, Mode=OneWay}" Margin="0,5" Foreground="Gray" FontStyle="Italic" HorizontalAlignment="Right"/>
+        <!--<StackPanel Grid.Row="2">
+            <TextBlock Text="{Binding ColorLabel}"/>
+            
+            <materialDesign:ColorPicker Color="{Binding SelectedColor, UpdateSourceTrigger=PropertyChanged}" />
+        </StackPanel>-->
+
+        <!--<StackPanel Grid.Row="2">
+            <TextBlock Text="{Binding ColorLabel}"/>
+           
+            <materialDesign:ColorPicker Color="{Binding SelectedMediaColor, UpdateSourceTrigger=PropertyChanged}" />
+        </StackPanel> -->
+
+        <!-- TextBlock para depurar el valor string actual en CurrentGroup.Color -->
+        <TextBlock Grid.Row="3" Text="{Binding CurrentGroupColorString, Mode=OneWay}" Margin="0,5" Foreground="Gray" FontStyle="Italic" HorizontalAlignment="Right"/>
+
+        <!--<TextBlock Grid.Row="3" Text="{Binding CurrentGroup.Color, Mode=OneWay}" Margin="0,5" Foreground="Gray" FontStyle="Italic" HorizontalAlignment="Right"/>-->
 
 
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">

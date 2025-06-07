@@ -17,9 +17,8 @@
     </UserControl.DataContext>
     <UserControl.Resources>
         <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
-        <!-- <helpers:MinutesToTimeStringConverter x:Key="MinutesConverter" /> ELIMINADO SI NO SE USA -->
+        <!-- <helpers:MinutesToTimeStringConverter x:Key="MinutesConverter" />  -->
         <converters:StringToMediaColorConverter x:Key="StringToMediaColorConverter"/>
-        <!-- AÑADIR ESTO -->
     </UserControl.Resources>
 
     <Border BorderThickness="1,1,1,1"
@@ -52,7 +51,7 @@
                                 <Button Command="{Binding DataContext.AddGroupCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                     Style="{StaticResource MaterialDesignToolButton}"
                                     ToolTip="{Binding DataContext.AddGroupToolTip, Source={StaticResource vmProxy}}">
-                                    <!-- Cambiado Source -->
+                                    
                                     <materialDesign:PackIcon Kind="PlusCircle" Width="20" Height="20"/>
                                 </Button>
                             </DataTemplate>
@@ -64,7 +63,7 @@
                                     Style="{StaticResource MaterialDesignToolButton}"
                                     VerticalAlignment="Center"
                                     ToolTip="{Binding DataContext.DeleteGroupToolTip, Source={StaticResource vmProxy}}">
-                                    <!-- Cambiado Source -->
+                                   
                                     <materialDesign:PackIcon Kind="DeleteForever" Width="20" Height="20" />
                                 </Button>
                             </DataTemplate>
@@ -73,29 +72,29 @@
 
                     <DataGridTextColumn 
                         Binding="{Binding Name}"
-                        Header="{Binding Data.GroupNameText, Source={StaticResource vmProxy}}"/>
+                        Header="{Binding Data.GroupNameText, Source={StaticResource vmProxy}}" />
 
                     <DataGridTextColumn 
                         Binding="{Binding Description}"
-                        Header="{Binding Data.DescriptionText, Source={StaticResource vmProxy}}"/>
+                        Header="{Binding Data.DescriptionText, Source={StaticResource vmProxy}}" />
 
-                    <!-- Columna de Color Modificada -->
-                    <DataGridTemplateColumn Header="{Binding Data.GroupColorText, Source={StaticResource vmProxy}}" Width="*">
+                    <!-- Color Column -->
+                    <DataGridTemplateColumn Header="{Binding Data.GroupColorText, Source={StaticResource vmProxy}}" Width="SizeToHeader">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
-                                    </Grid.ColumnDefinitions>
-                                    <Border Width="20" Height="20" Margin="4,0" VerticalAlignment="Center"
-                                            BorderBrush="Gray" BorderThickness="1">
+                                    <Border Width="100" Height="20" Margin="4" 
+                                            VerticalAlignment="Center" HorizontalAlignment="Center" 
+                                        BorderBrush="DarkGray" BorderThickness="1">
                                         <Border.Background>
                                             <SolidColorBrush Color="{Binding Color, Converter={StaticResource StringToMediaColorConverter}}"/>
                                         </Border.Background>
+                                        <Border.ToolTip>
+                                            <ToolTip Content="{Binding Color}"/>
+                                        </Border.ToolTip>
                                     </Border>
-                                    <TextBlock Grid.Column="1" Text="{Binding Color}" VerticalAlignment="Center"/>
                                 </Grid>
+                               
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
