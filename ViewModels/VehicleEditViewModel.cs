@@ -5,11 +5,16 @@ using Meditrans.Client.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Meditrans.Client.Commands;
+using Meditrans.Client.Services;
 
 namespace Meditrans.Client.ViewModels
 {
     public class VehicleEditViewModel : BaseViewModel
     {
+        #region Translation
+        public string AddNewVehicleTitle => LocalizationService.Instance["AddNewVehicle"]; // Add Vehicle
+        public string EditVehicleTitle => LocalizationService.Instance["EditVehicle"]; // Update Vehicle
+        #endregion
         private Vehicle _vehicle;
         public Vehicle Vehicle
         {
@@ -35,7 +40,7 @@ namespace Meditrans.Client.ViewModels
             AllCapacityTypes = capacityTypes;
             AllVehicleTypes = vehicleTypes;
 
-            Title = vehicle.Id == 0 ? "Add New Vehicle" : "Edit Vehicle";
+            Title = vehicle.Id == 0 ? AddNewVehicleTitle : EditVehicleTitle;
 
             SaveCommand = new RelayCommandObject(o => OnSave?.Invoke(), o => CanSave());
             CancelCommand = new RelayCommandObject(o => OnCancel?.Invoke());

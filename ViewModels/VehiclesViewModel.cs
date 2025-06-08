@@ -20,13 +20,34 @@ namespace Meditrans.Client.ViewModels
     {
         
         #region Translation
-        public string SelectVehicleGroup => LocalizationService.Instance["SelectVehicleGroup"];
+        public string SelectVehicleGroupHint => LocalizationService.Instance["SelectVehicleGroupHint"];
         public string AddVehicleToolTip => LocalizationService.Instance["AddVehicleToolTip"];
+        public string EditVehicleToolTip => LocalizationService.Instance["EditVehicleToolTip"];
         public string DeleteVehicleToolTip => LocalizationService.Instance["DeleteVehicleToolTip"];
         public string ExcelExportToolTip => LocalizationService.Instance["ExcelExportToolTip"];
+
         public string ColumnHeaderName => LocalizationService.Instance["Name"];
-        public string ColumnHeaderCapacity => LocalizationService.Instance["Capacity"];
+        public string ColumnHeaderCapacity => LocalizationService.Instance["CapacityType"]; // Capacity Type
+        public string ColumnHeaderVIN => LocalizationService.Instance["VIN"]; // VIN
+        public string ColumnHeaderPlate => LocalizationService.Instance["Plate"]; // License Plate
+        public string ColumnHeaderInactive => LocalizationService.Instance["Inactive"];
+        public string ColumnHeaderGroup => LocalizationService.Instance["Group"];
+        public string ColumnHeaderMake => LocalizationService.Instance["Make"];
+        public string ColumnHeaderModel => LocalizationService.Instance["Model"];
+        public string ColumnHeaderColor => LocalizationService.Instance["Color"];
+        public string ColumnHeaderYear => LocalizationService.Instance["Year"];
+
+        public string LoadingDataMessage => LocalizationService.Instance["LoadingData"]; // Loading data...
+        public string ExportingDataMessage => LocalizationService.Instance["ExportingData"]; // Exporting data...
+
+        public string ErrorTitle => LocalizationService.Instance["ErrorTitle"]; 
+        public string ErrorSavingVehicle => LocalizationService.Instance["ErrorSavingVehicle"]; // Error saving vehicle: {0}
+        public string InfoTitle => LocalizationService.Instance["InfoTitle"]; // Info
+
+        public string InfoNoVehicleToExport => LocalizationService.Instance["InfoNoVehicleToExport"]; // There is no vehicle data to export.
+        public string ExportCompleteTitle => LocalizationService.Instance["ExportCompleteTitle"]; // Export Complete
         
+
         #endregion
 
         #region Services
@@ -236,7 +257,12 @@ namespace Meditrans.Client.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error saving vehicle: {ex.Message}", "Error");
+                    MessageBox.Show(
+                        string.Format(ErrorSavingVehicle, ex.Message),
+                        ErrorTitle,
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                    //MessageBox.Show($"Error saving vehicle: {ex.Message}", "Error");
                 }
             }
         }
@@ -297,7 +323,10 @@ namespace Meditrans.Client.ViewModels
         {
             if (vehicleToDelete == null) return;
 
-            if (MessageBox.Show($"Are you sure you want to delete the vehicle '{vehicleToDelete.Name}'?", "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            var confirmationText = string.Format(LocalizationService.Instance["ConfirmDeleteVehicleText"], vehicleToDelete.Name); // ej: "Are you sure you want to delete the vehicle '{0}'?"
+            var confirmationTitle = LocalizationService.Instance["ConfirmDeleteTitle"]; // ej: "Confirm Delete"
+
+            if (MessageBox.Show(confirmationText, confirmationTitle, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
                 try
                 {
@@ -307,7 +336,12 @@ namespace Meditrans.Client.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error deleting vehicle: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(
+                            string.Format(LocalizationService.Instance["ErrorDeletingVehicle"], ex.Message), // ej: "Error deleting vehicle: {0}"
+                            ErrorTitle,
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                    //MessageBox.Show($"Error deleting vehicle: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -316,7 +350,7 @@ namespace Meditrans.Client.ViewModels
         {
             if (!_allVehicles.Any())
             {
-                MessageBox.Show("There is no vehicle data to export.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(InfoNoVehicleToExport, InfoTitle, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -405,7 +439,9 @@ namespace Meditrans.Client.ViewModels
 
                 IsExporting = false;
                 // Return to the UI thread to show the success message
-                MessageBox.Show($"Successfully exported {(_allVehicles.Count)} vehicles.", "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                var InfoSuccessExportedVehicles = string.Format(LocalizationService.Instance["InfoSuccessExportedVehicles"], _allVehicles.Count); // "Successfully exported {0} vehicles"
+                MessageBox.Show(InfoSuccessExportedVehicles, ExportCompleteTitle, MessageBoxButton.OK, MessageBoxImage.Information);
+                //MessageBox.Show($"Successfully exported {(_allVehicles.Count)} vehicles.", "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (IOException ioEx)
             {

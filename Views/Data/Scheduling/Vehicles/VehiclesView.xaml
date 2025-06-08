@@ -40,7 +40,7 @@
                     Margin="20,0,0,0"/>
                 
                 <ComboBox
-                    materialDesign:HintAssist.Hint="{Binding SelectVehicleGroup}"
+                    materialDesign:HintAssist.Hint="{Binding SelectVehicleGroupHint}"
                     materialDesign:TextFieldAssist.HasClearButton="True"
                     ItemsSource="{Binding Groups}" 
                     SelectedItem="{Binding SelectedGroup, Mode=TwoWay}" 
@@ -85,7 +85,7 @@
                                     <Button Command="{Binding DataContext.EditVehicleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             CommandParameter="{Binding}"
                                             Style="{StaticResource MaterialDesignToolButton}"
-                                            ToolTip="Edit Vehicle">
+                                            ToolTip="{Binding Data.EditVehicleToolTip, Source={StaticResource vmProxy}}">
                                         <materialDesign:PackIcon Kind="Pencil" Foreground="Orange"/>
                                     </Button>
                                     <Button Command="{Binding DataContext.DeleteVehicleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
@@ -100,13 +100,27 @@
                     </DataGridTemplateColumn>
 
                     <!-- Data Columns -->
-                    <DataGridTextColumn Binding="{Binding Name}" Header="Name" />
-                    <DataGridTextColumn Binding="{Binding CapacityDetailType.Name}" Header="Capacity Type" Width="Auto"/>
-                    <DataGridTextColumn Binding="{Binding VIN}" Header="VIN" />
-                    <DataGridTextColumn Binding="{Binding Plate}" Header="Plate" Width="Auto"/>
-                    <DataGridCheckBoxColumn Binding="{Binding IsInactive}" Header="Inactive" Width="Auto"/>
+                    <DataGridTextColumn 
+                        Binding="{Binding Name}"
+                        Header="{Binding Data.ColumnHeaderName, Source={StaticResource vmProxy}}" />
+                                          
+                    <DataGridTextColumn 
+                        Binding="{Binding CapacityDetailType.Name}" 
+                        Header="{Binding Data.ColumnHeaderCapacity, Source={StaticResource vmProxy}}" Width="Auto"/>
+                        
+                    <DataGridTextColumn 
+                        Binding="{Binding VIN}" 
+                        Header="{Binding Data.ColumnHeaderVIN, Source={StaticResource vmProxy}}" />
+                        
+                    <DataGridTextColumn 
+                        Binding="{Binding Plate}"
+                        Header="{Binding Data.ColumnHeaderPlate, Source={StaticResource vmProxy}}" Width="Auto"/>
+                        
+                    <DataGridCheckBoxColumn 
+                        Binding="{Binding IsInactive}" 
+                        Header="{Binding Data.ColumnHeaderInactive, Source={StaticResource vmProxy}}" Width="Auto"/>
 
-                    <DataGridTemplateColumn Header="Group"  SortMemberPath="VehicleGroup.Name">
+                    <DataGridTemplateColumn Header="{Binding Data.ColumnHeaderGroup, Source={StaticResource vmProxy}}"  SortMemberPath="VehicleGroup.Name">
                         <DataGridTemplateColumn.CellTemplate >
                                
                             <DataTemplate>
@@ -121,13 +135,24 @@
                                 </Border>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                    </DataGridTemplateColumn>                    
                     
-                    
-                    <DataGridTextColumn Binding="{Binding Make}" Header="Make" Width="Auto"/>
-                    <DataGridTextColumn Binding="{Binding Model}" Header="Model" Width="Auto"/>
-                    <DataGridTextColumn Binding="{Binding Color}" Header="Color" Width="Auto"/>
-                    <DataGridTextColumn Binding="{Binding Year}" Header="Year" Width="Auto"/>
+                    <DataGridTextColumn 
+                        Binding="{Binding Make}" 
+                        Header="{Binding Data.ColumnHeaderMake, Source={StaticResource vmProxy}}" Width="Auto"/>
+                        
+                    <DataGridTextColumn 
+                        Binding="{Binding Model}" 
+                        Header="{Binding Data.ColumnHeaderModel, Source={StaticResource vmProxy}}" Width="Auto"/>
+                        
+                    <DataGridTextColumn 
+                        Binding="{Binding Color}" 
+                        Header="{Binding Data.ColumnHeaderColor, Source={StaticResource vmProxy}}" Width="Auto"/>
+                        
+                    <DataGridTextColumn 
+                        Binding="{Binding Year}"
+                        Header="{Binding Data.ColumnHeaderYear, Source={StaticResource vmProxy}}" Width="Auto"/>
+                        
                 </DataGrid.Columns>
             </DataGrid>
 
