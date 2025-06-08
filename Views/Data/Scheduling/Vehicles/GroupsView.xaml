@@ -12,9 +12,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
-    <UserControl.DataContext>
-        <vm:GroupsViewModel />
-    </UserControl.DataContext>
+    
     <UserControl.Resources>
         <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
         <!-- <helpers:MinutesToTimeStringConverter x:Key="MinutesConverter" />  -->

@@ -27,7 +27,7 @@ namespace Meditrans.Client.Services
 
         public async Task<List<Customer>> GetAllCustomersAsync()
         {
-            await Task.Delay(500); // Simulates latency
+            //await Task.Delay(500); // Simulates latency
             try
             {
 

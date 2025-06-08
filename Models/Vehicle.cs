@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Meditrans.Client.Models
 {
-    public class Vehicle
+    public class Vehicle : ICloneable
     {
         public int Id { get; set; }
         [Required]
@@ -31,5 +31,10 @@ namespace Meditrans.Client.Models
         public VehicleType VehicleType { get; set; }
 
         //public ICollection<VehicleRoute> VehicleRoutes { get; set; }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone(); // Esto crea una copia superficial, suficiente si las propiedades anidadas (como VehicleGroup) no se modifican en el popup.
+        }
     }
 }

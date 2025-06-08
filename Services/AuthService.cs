@@ -24,7 +24,7 @@ namespace Meditrans.Client.Services
             try
             {
                 _httpClient.BaseAddress = new Uri(_baseUri);
-                _httpClient.Timeout = TimeSpan.FromSeconds(30); // Set reasonable timeout
+                _httpClient.Timeout = TimeSpan.FromSeconds(300); // Set reasonable timeout
             }
             catch (UriFormatException ex)
             {
@@ -110,12 +110,12 @@ namespace Meditrans.Client.Services
                     Message = $"Server communication error: {ex.Message}"
                 };
             }
-            catch (JsonException)
+            catch (JsonException ex)
             {
                 return new LoginResponse
                 {
                     IsSuccess = false,
-                    Message = "Error processing server response."
+                    Message = $"Error processing server response. -> {ex.Message} InnerException: {ex.InnerException} "
                 };
             }
             catch (TaskCanceledException)

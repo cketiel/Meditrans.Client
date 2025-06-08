@@ -3,10 +3,217 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Meditrans.Client.Views.Data.Scheduling.Vehicles"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:vm="clr-namespace:Meditrans.Client.ViewModels"
+             xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
-    </Grid>
+             
+             d:DesignHeight="600" d:DesignWidth="1000">
+
+    <UserControl.Resources>
+        <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
+        <helpers:StringToBrushConverter x:Key="StringToBrushConverter"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <helpers:BooleanOrMultiConverter x:Key="BooleanOrMultiConverter"/>
+    </UserControl.Resources>
+
+    <Border BorderThickness="1" BorderBrush="#2196f3" Background="White">
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Filters and Actions -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                <Button Command="{Binding AddVehicleCommand}"
+                        Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                        ToolTip="{Binding AddVehicleToolTip}"
+                        Margin="0,0,20,0">
+                    <materialDesign:PackIcon Kind="Add" Height="24" Width="24" />
+                </Button>
+
+                <CheckBox
+                    Content="Show Inactive"
+                    IsChecked="{Binding ShowInactive, Mode=TwoWay}"
+                    VerticalAlignment="Center"
+                    Margin="20,0,0,0"/>
+                
+                <ComboBox
+                    materialDesign:HintAssist.Hint="{Binding SelectVehicleGroup}"
+                    materialDesign:TextFieldAssist.HasClearButton="True"
+                    ItemsSource="{Binding Groups}" 
+                    SelectedItem="{Binding SelectedGroup, Mode=TwoWay}" 
+                    DisplayMemberPath="Name"
+                    Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                    VerticalAlignment="Center"
+                    Margin="20,0,0,0"
+                    Width="300"/>
+
+                
+            </StackPanel>
+
+
+            <Grid Grid.Row="1">
+                <DataGrid 
+                    ItemsSource="{Binding Vehicles}"
+                    SelectedItem="{Binding SelectedVehicle, Mode=TwoWay}"
+                    SelectionMode="Single"
+                    AutoGenerateColumns="False"
+                    IsReadOnly="True"
+                    AlternationCount="2"
+                    AlternatingRowBackground="White"                                    
+                    Style="{StaticResource CustomDataGridStyle}"
+                    ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                    RowStyle="{StaticResource CustomRowStyle}"
+                    CellStyle="{StaticResource CustomCellStyle}"
+                    SelectionUnit="FullRow">
+
+                    <DataGrid.Columns>
+                    <!-- Action Buttons Column -->
+                    <DataGridTemplateColumn Width="Auto">
+                        <DataGridTemplateColumn.Header>
+                            <Button Command="{Binding Data.ExportToExcelCommand, Source={StaticResource vmProxy}}"
+                                    Style="{StaticResource MaterialDesignToolButton}"
+                                    ToolTip="{Binding Data.ExcelExportToolTip, Source={StaticResource vmProxy}}">
+                                <materialDesign:PackIcon Kind="MicrosoftExcel" Foreground="Green"/>
+                            </Button>
+                        </DataGridTemplateColumn.Header>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Command="{Binding DataContext.EditVehicleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignToolButton}"
+                                            ToolTip="Edit Vehicle">
+                                        <materialDesign:PackIcon Kind="Pencil" Foreground="Orange"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.DeleteVehicleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignToolButton}"
+                                            ToolTip="{Binding Data.DeleteVehicleToolTip, Source={StaticResource vmProxy}}">
+                                        <materialDesign:PackIcon Kind="DeleteForever" Foreground="Red"/>
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- Data Columns -->
+                    <DataGridTextColumn Binding="{Binding Name}" Header="Name" />
+                    <DataGridTextColumn Binding="{Binding CapacityDetailType.Name}" Header="Capacity Type" Width="Auto"/>
+                    <DataGridTextColumn Binding="{Binding VIN}" Header="VIN" />
+                    <DataGridTextColumn Binding="{Binding Plate}" Header="Plate" Width="Auto"/>
+                    <DataGridCheckBoxColumn Binding="{Binding IsInactive}" Header="Inactive" Width="Auto"/>
+
+                    <DataGridTemplateColumn Header="Group"  SortMemberPath="VehicleGroup.Name">
+                        <DataGridTemplateColumn.CellTemplate >
+                               
+                            <DataTemplate>
+                                                                    
+                                <Border Background="{Binding VehicleGroup.Color, Converter={StaticResource StringToBrushConverter}}"
+                                        CornerRadius="2"
+                                        Padding="8,2"
+                                        Margin="2">
+                                    <TextBlock Text="{Binding VehicleGroup.Name}" 
+                                               VerticalAlignment="Center" 
+                                               HorizontalAlignment="Center"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    
+                    
+                    <DataGridTextColumn Binding="{Binding Make}" Header="Make" Width="Auto"/>
+                    <DataGridTextColumn Binding="{Binding Model}" Header="Model" Width="Auto"/>
+                    <DataGridTextColumn Binding="{Binding Color}" Header="Color" Width="Auto"/>
+                    <DataGridTextColumn Binding="{Binding Year}" Header="Year" Width="Auto"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+                
+                <!--<Border Background="#80FFFFFF">
+                    
+                    <Border.Visibility>
+                        <MultiBinding Converter="{StaticResource BooleanOrMultiConverter}">
+                            <Binding Path="IsLoading"/>
+                            <Binding Path="IsExporting"/>
+                        </MultiBinding>
+                    </Border.Visibility>
+
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <materialDesign:Card Padding="20" UniformCornerRadius="10">
+                            
+                            <StackPanel Orientation="Horizontal">
+                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" 
+                                             IsIndeterminate="True" 
+                                             Value="0"
+                                             Margin="0,0,15,0"/>
+
+                                
+                                <TextBlock VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignHeadline6TextBlock}">
+                                           
+                                            <Setter Property="Text" Value="Loading data..."/>
+
+                                            
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsExporting}" Value="True">
+                                                    <Setter Property="Text" Value="Exporting data..."/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                
+
+                            </StackPanel>
+                        </materialDesign:Card>
+                    </StackPanel>
+                </Border>-->
+
+        
+                <!-- Semi-transparent white background -->
+                <Border Background="#80FFFFFF" 
+                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <materialDesign:Card Padding="20" UniformCornerRadius="10">
+                            <StackPanel Orientation="Horizontal">
+                                
+                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" 
+                                             IsIndeterminate="True" 
+                                             Value="0"
+                                             Margin="0,0,15,0"/>
+                                <TextBlock Text="Loading data..." 
+                                           VerticalAlignment="Center"
+                                           Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
+                            </StackPanel>
+                        </materialDesign:Card>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="#80FFFFFF" 
+                Visibility="{Binding IsExporting, Converter={StaticResource BoolToVis}}">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <materialDesign:Card Padding="20" UniformCornerRadius="10">
+                            <StackPanel Orientation="Horizontal">
+
+                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" 
+                             IsIndeterminate="True" 
+                             Value="0"
+                             Margin="0,0,15,0"/>
+                                <TextBlock Text="Exporting data..." 
+                           VerticalAlignment="Center"
+                           Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
+                            </StackPanel>
+                        </materialDesign:Card>
+                    </StackPanel>
+                </Border>
+
+            </Grid>
+        
+        </Grid>
+    </Border>
 </UserControl>
