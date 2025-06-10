@@ -6,13 +6,18 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:local="clr-namespace:Meditrans.Client.Views.Data"
              xmlns:vm="clr-namespace:Meditrans.Client.ViewModels"
+             xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800"
              Height="Auto" Width="Auto">
 
-    <UserControl.DataContext>
-        <vm:CustomersViewModel />
-    </UserControl.DataContext>
+
+
+    <UserControl.Resources>
+        <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+       
+    </UserControl.Resources>
 
     <Grid VerticalAlignment="Stretch"
           HorizontalAlignment="Stretch">
@@ -56,7 +61,7 @@
 
             <Button Command="{Binding SearchCommand}"
                     Style="{StaticResource MaterialDesignRaisedButton}">
-                
+
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <materialDesign:PackIcon Kind="Magnify" Width="20" Height="20" Margin="0,0,4,0" />
                     <TextBlock Text="{Binding Search}" />
@@ -69,47 +74,45 @@
         <DataGrid Grid.Row="2" 
                   ItemsSource="{Binding Customers}"
                   SelectedItem="{Binding SelectedCustomer, Mode=TwoWay}"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
                   SelectionMode="Single"
-                  AlternationCount="2"
-              
-                  
-                  GridLinesVisibility="Horizontal"
-                  HorizontalGridLinesBrush="{DynamicResource MaterialDesignDivider}"
-              
-                  HorizontalAlignment="Stretch"
-                  VerticalAlignment="Stretch"
-                  Margin="0,5,0,0">
-            
+                AutoGenerateColumns="False"
+                IsReadOnly="True"
+                AlternationCount="2"
+                AlternatingRowBackground="White"                                    
+                Style="{StaticResource CustomDataGridStyle}"
+                ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                RowStyle="{StaticResource CustomRowStyle}"
+                CellStyle="{StaticResource CustomCellStyle}"
+                SelectionUnit="FullRow">
+
             <DataGrid.Columns>
 
                 <DataGridTemplateColumn Width="Auto">
-                    
+
                     <!-- Header with Excel icon -->
                     <DataGridTemplateColumn.HeaderTemplate>
                         <DataTemplate>
                             <Button Command="{Binding DataContext.ExportToExcelCommand,
                                     RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                     Style="{StaticResource MaterialDesignToolButton}"
-                                    ToolTip="{Binding DataContext.ExcelExport, RelativeSource={RelativeSource AncestorType=local:DataCustomersView}}">
+                                    >
                                 <materialDesign:PackIcon Kind="MicrosoftExcel" Width="20" Height="20"/>
                             </Button>
                         </DataTemplate>
                     </DataGridTemplateColumn.HeaderTemplate>
-                    
+
                     <!-- Cells with edit icon -->
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Command="{Binding DataContext.EditCustomerCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                 CommandParameter="{Binding}"
                                 Style="{StaticResource MaterialDesignToolButton}"
-                                ToolTip="{Binding DataContext.Edit, RelativeSource={RelativeSource AncestorType=local:DataCustomersView}}">
+                                >
                                 <materialDesign:PackIcon Kind="Pencil" Width="20" Height="20" />
                             </Button>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
-                    
+
                 </DataGridTemplateColumn>
 
                 <DataGridTextColumn Binding="{Binding FullName}">
@@ -185,7 +188,7 @@
                                 RelativeSource={RelativeSource AncestorType=UserControl}}"
                               FontWeight="SemiBold"
                               VerticalAlignment="Center"
-                              HorizontalAlignment="Center"/>        
+                              HorizontalAlignment="Center"/>
                     </DataGridTextColumn.Header>
                 </DataGridTextColumn>
 
@@ -196,7 +199,7 @@
                                 RelativeSource={RelativeSource AncestorType=UserControl}}"
                               FontWeight="SemiBold"
                               VerticalAlignment="Center"
-                              HorizontalAlignment="Center"/>    
+                              HorizontalAlignment="Center"/>
                     </DataGridTextColumn.Header>
                 </DataGridTextColumn>
 
@@ -207,11 +210,11 @@
                                 RelativeSource={RelativeSource AncestorType=UserControl}}"
                               FontWeight="SemiBold"
                               VerticalAlignment="Center"
-                              HorizontalAlignment="Center"/>        
+                              HorizontalAlignment="Center"/>
                     </DataGridTextColumn.Header>
                 </DataGridTextColumn>
 
-                <DataGridTextColumn Binding="{Binding FundingSource.Name}">
+                <DataGridTextColumn Binding="{Binding FundingSourceName}">
                     <DataGridTextColumn.Header>
                         <TextBlock
                                   Text="{Binding DataContext.FundingSourceText,
@@ -222,7 +225,7 @@
                     </DataGridTextColumn.Header>
                 </DataGridTextColumn>
 
-                <DataGridTextColumn Binding="{Binding SpaceType.Name}">
+                <DataGridTextColumn Binding="{Binding SpaceTypeName}">
                     <DataGridTextColumn.Header>
                         <TextBlock
                                   Text="{Binding DataContext.SpaceTypeText,
@@ -287,9 +290,9 @@
                                   HorizontalAlignment="Center"/>
                     </DataGridTextColumn.Header>
                 </DataGridTextColumn>
-                
+
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
-    
+
 </UserControl>

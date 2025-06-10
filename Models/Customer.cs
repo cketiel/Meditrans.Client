@@ -47,11 +47,19 @@ namespace Meditrans.Client.Models
         public string? RiderId { get; set; }
         public ICollection<Trip> Trips { get; set; }
 
+        public string? FundingSourceName { get; set; }
+        public string? SpaceTypeName { get; set; }
+
         /*public override string ToString()
         {
             // This is used to display the default text if DisplayMemberPath is not specified
             return $"{FullName} ({ClientCode}) - {MobilePhone}";
         }*/
+
+        public Customer Clone()
+        {
+            return (Customer)this.MemberwiseClone();
+        }
 
     }
 }

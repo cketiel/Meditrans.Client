@@ -9,6 +9,11 @@ using System.Threading.Tasks;
 using Meditrans.Client.Commands;
 using Meditrans.Client.Helpers;
 using System.Windows;
+using Meditrans.Client.Views.Data;
+using ClosedXML.Excel;
+using Microsoft.Win32;
+using System;
+using Meditrans.Client.Exceptions;
 
 namespace Meditrans.Client.ViewModels
 {
@@ -114,9 +119,11 @@ namespace Meditrans.Client.ViewModels
 
         private Task ApplyFilters()
         {
-            if(_customers.Count > 0)
-            {
-                var query = _customers.AsEnumerable();
+            if (_customers.Count < 1)
+                LoadAllCustomers();
+            //if(_customers.Count > 0)
+            //{
+            var query = _customers.AsEnumerable();
 
                 if (!string.IsNullOrWhiteSpace(FilterFullName))
                     query = query.Where(c => c.FullName?.Contains(FilterFullName, System.StringComparison.OrdinalIgnoreCase) == true);
@@ -129,11 +136,11 @@ namespace Meditrans.Client.ViewModels
 
                 Customers = new ObservableCollection<Customer>(query);
                 OnPropertyChanged(nameof(Customers));
-            }
-            else
+            //}
+            /*else
             {
                 LoadAllCustomers();
-            }
+            }*/
 
             return Task.CompletedTask;
         }
@@ -148,17 +155,179 @@ namespace Meditrans.Client.ViewModels
             OnPropertyChanged(nameof(Customers));
         }
 
-        private void EditCustomer(object obj)
+        private async void EditCustomer(object obj)
         {
-            MessageBox.Show("EditCustomer");
-            // Aquí puedes navegar o abrir un modal con los datos de SelectedCustomer
+            if (SelectedCustomer == null) return;
+
+            var editViewModel = new EditCustomerViewModel(SelectedCustomer);
+            var editView = new EditCustomerView
+            {
+                DataContext = editViewModel
+            };
+
+            var result = editView.ShowDialog();
+
+            if (result == true)
+            {
+                try
+                {
+                    // El usuario guardó. Aplicamos los cambios del clon al objeto original.
+                    editViewModel.ApplyChanges(SelectedCustomer);
+
+                    // Aquí llamas al servicio para persistir los cambios en la base de datos
+                    CustomerService _customerService = new CustomerService();
+                    var updatedCustomer = await _customerService.UpdateCustomerAsync(SelectedCustomer.Id, MapToCreateDto(SelectedCustomer));
+                    //await _customerService.UpdateCustomerAsync(SelectedCustomer);
+
+                    await ApplyFilters();
+
+                    MessageBox.Show("Customer updated successfully!");
+                }
+                catch (ApiException ex)
+                {
+                    MessageBox.Show(
+                        $"Error {ex.StatusCode}:\n{ex.ErrorDetails}",
+                        "Server error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"Unexpected error: {ex.Message}",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+
+            }
+            // Si el resultado es false o null (el usuario canceló), no hacemos nada.
+            // El 'SelectedCustomer' original nunca fue modificado.
         }
 
         private void ExportToExcel()
         {
-            MessageBox.Show("ExportToExcel");
-            // TODO: implementar exportación real
-            // por ahora podrías levantar un diálogo o guardar un archivo
+            if (Customers == null || !Customers.Any())
+            {
+                MessageBox.Show("There is no data to export.", "No Data", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var sfd = new SaveFileDialog
+            {
+                Filter = "Excel Workbook|*.xlsx",
+                Title = "Save Customers to Excel",
+                FileName = $"Customers_{DateTime.Now:yyyyMMdd_HHmm}.xlsx"
+            };
+
+            if (sfd.ShowDialog() == true)
+            {
+                try
+                {
+                    using (var workbook = new XLWorkbook())
+                    {
+                        var worksheet = workbook.Worksheets.Add("Customers");
+
+                        // *** MEJORA: Lista completa de cabeceras ***
+                        var headers = new string[]
+                        {
+                    "ID", "Full Name", "Address", "City", "State", "Zip",
+                    "Phone", "Mobile Phone", "Client Code", "Policy Number",
+                    "Funding Source", "Space Type", "Email", "Date of Birth",
+                    "Gender", "Created Date", "Created By", "Rider ID"
+                        };
+
+                        // Escribir cabeceras
+                        for (int i = 0; i < headers.Length; i++)
+                        {
+                            worksheet.Cell(1, i + 1).Value = headers[i];
+                        }
+
+                        // Estilo para las cabeceras
+                        var headerRange = worksheet.Range(1, 1, 1, headers.Length);
+                        headerRange.Style.Font.Bold = true;
+                        headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
+                        headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                        // --- Escribir los datos ---
+                        int currentRow = 2;
+                        foreach (var customer in Customers)
+                        {
+                            int col = 1;
+                            worksheet.Cell(currentRow, col++).Value = customer.Id;
+                            worksheet.Cell(currentRow, col++).Value = customer.FullName;
+                            worksheet.Cell(currentRow, col++).Value = customer.Address;
+                            worksheet.Cell(currentRow, col++).Value = customer.City;
+                            worksheet.Cell(currentRow, col++).Value = customer.State;
+                            worksheet.Cell(currentRow, col++).Value = customer.Zip;
+                            worksheet.Cell(currentRow, col++).Value = customer.Phone;
+                            worksheet.Cell(currentRow, col++).Value = customer.MobilePhone;
+                            worksheet.Cell(currentRow, col++).Value = customer.ClientCode;
+                            worksheet.Cell(currentRow, col++).Value = customer.PolicyNumber;
+                            worksheet.Cell(currentRow, col++).Value = customer.FundingSourceName; // Usamos el nombre, no el ID
+                            worksheet.Cell(currentRow, col++).Value = customer.SpaceTypeName;     // Usamos el nombre, no el ID
+                            worksheet.Cell(currentRow, col++).Value = customer.Email;
+
+                            // Formatear fechas para que Excel las reconozca correctamente
+                            var dobCell = worksheet.Cell(currentRow, col++);
+                            if (customer.DOB.HasValue)
+                            {
+                                dobCell.Value = customer.DOB.Value;
+                                // ISO 8601
+                                dobCell.Style.DateFormat.Format = "yyyy-MM-dd";
+                                //dobCell.Style.DateFormat.Format = "MM-dd-yyyy";
+                            }
+
+                            worksheet.Cell(currentRow, col++).Value = customer.Gender;
+
+                            var createdCell = worksheet.Cell(currentRow, col++);
+                            createdCell.Value = customer.Created;
+                            // ISO 8601
+                            createdCell.Style.DateFormat.Format = "yyyy-MM-dd HH:mm";
+                            //createdCell.Style.DateFormat.Format = "MM-dd-yyyy HH:mm";
+
+                            worksheet.Cell(currentRow, col++).Value = customer.CreatedBy;
+                            worksheet.Cell(currentRow, col++).Value = customer.RiderId;
+
+                            currentRow++;
+                        }
+
+                        // Ajustar el ancho de las columnas al contenido
+                        worksheet.Columns().AdjustToContents();
+
+                        workbook.SaveAs(sfd.FileName);
+                    }
+
+                    MessageBox.Show($"Data exported successfully to:\n{sfd.FileName}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"An error occurred while exporting the data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
+
+        private static CustomerCreateDto MapToCreateDto(Customer customer) 
+        {
+            return new CustomerCreateDto
+            {              
+                FullName = customer.FullName,
+                Address = customer.Address,
+                City = customer.City,
+                State = customer.State,
+                Zip = customer.Zip,
+                Phone = customer.Phone,
+                MobilePhone = customer.MobilePhone,
+                Email = customer.Email,
+                FundingSourceId = customer.FundingSourceId,               
+                SpaceTypeId = customer.SpaceTypeId,                
+                Gender = customer.Gender,
+                Created = customer.Created,
+                CreatedBy = customer.CreatedBy,
+                RiderId = customer.RiderId,
+                DOB = customer.DOB
+            };
+        }
+
     }
 }

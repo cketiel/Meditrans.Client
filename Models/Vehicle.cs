@@ -34,7 +34,7 @@ namespace Meditrans.Client.Models
 
         public object Clone()
         {
-            return this.MemberwiseClone(); // Esto crea una copia superficial, suficiente si las propiedades anidadas (como VehicleGroup) no se modifican en el popup.
+            return this.MemberwiseClone(); 
         }
     }
 }
