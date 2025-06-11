@@ -11,8 +11,7 @@
              d:DesignHeight="450" d:DesignWidth="800"
              Height="Auto" Width="Auto">
 
-
-
+    
     <UserControl.Resources>
         <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -115,7 +114,11 @@
 
                 </DataGridTemplateColumn>
 
-                <DataGridTextColumn Binding="{Binding FullName}">
+                <DataGridTextColumn 
+                    Binding="{Binding FullName}"
+                    Header="{Binding Data.FullNameText, Source={StaticResource vmProxy}}" />
+                
+                <!--<DataGridTextColumn Binding="{Binding FullName}">
                     <DataGridTextColumn.Header>
                         <TextBlock
                               Text="{Binding DataContext.FullNameText,
@@ -124,7 +127,7 @@
                               VerticalAlignment="Center"
                               HorizontalAlignment="Center"/>
                     </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                </DataGridTextColumn>-->
 
                 <DataGridTextColumn Binding="{Binding Address}">
                     <DataGridTextColumn.Header>

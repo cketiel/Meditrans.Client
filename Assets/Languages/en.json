@@ -184,6 +184,11 @@
     "ErrorDeletingVehicle": "Error deleting vehicle: {0}",
     "InfoSuccessExportedVehicles": "Successfully exported {0} vehicles",
     "AddNewVehicle": "Add Vehicle",
-    "EditVehicle": "Update Vehicle"
+    "EditVehicle": "Update Vehicle",
+
+    "NoDataToExport": "There is no data to export.",
+    "NoDataInfo": "No Data",
+    "CustomerHeader": "Customer",
+    "HomeAddressHeader": "Home Address"
 
 }

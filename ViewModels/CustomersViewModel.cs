@@ -48,7 +48,8 @@ namespace Meditrans.Client.ViewModels
         public string CreatedText => LocalizationService.Instance["Created"];
         public string CreatedByText => LocalizationService.Instance["CreatedBy"];
 
-
+        public string NoDataToExport => LocalizationService.Instance["NoDataToExport"]; // There is no data to export.
+        public string NoDataInfo => LocalizationService.Instance["NoDataInfo"]; // No Data
         #endregion
 
         private readonly ICustomerService _customerService;
@@ -171,17 +172,15 @@ namespace Meditrans.Client.ViewModels
             {
                 try
                 {
-                    // El usuario guardó. Aplicamos los cambios del clon al objeto original.
+                    // User saved. We apply the clone changes to the original object.
                     editViewModel.ApplyChanges(SelectedCustomer);
 
-                    // Aquí llamas al servicio para persistir los cambios en la base de datos
                     CustomerService _customerService = new CustomerService();
                     var updatedCustomer = await _customerService.UpdateCustomerAsync(SelectedCustomer.Id, MapToCreateDto(SelectedCustomer));
-                    //await _customerService.UpdateCustomerAsync(SelectedCustomer);
 
                     await ApplyFilters();
 
-                    MessageBox.Show("Customer updated successfully!");
+                    //MessageBox.Show("Customer updated successfully!");
                 }
                 catch (ApiException ex)
                 {
@@ -201,15 +200,15 @@ namespace Meditrans.Client.ViewModels
                 }
 
             }
-            // Si el resultado es false o null (el usuario canceló), no hacemos nada.
-            // El 'SelectedCustomer' original nunca fue modificado.
+            // If the result is false or null (the user canceled), nothing is done.
+            // The original 'SelectedCustomer' was never modified.
         }
 
         private void ExportToExcel()
         {
             if (Customers == null || !Customers.Any())
             {
-                MessageBox.Show("There is no data to export.", "No Data", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show(NoDataToExport, NoDataInfo, MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
@@ -217,7 +216,7 @@ namespace Meditrans.Client.ViewModels
             {
                 Filter = "Excel Workbook|*.xlsx",
                 Title = "Save Customers to Excel",
-                FileName = $"Customers_{DateTime.Now:yyyyMMdd_HHmm}.xlsx"
+                FileName = $"Customers_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
             };
 
             if (sfd.ShowDialog() == true)
@@ -228,28 +227,27 @@ namespace Meditrans.Client.ViewModels
                     {
                         var worksheet = workbook.Worksheets.Add("Customers");
 
-                        // *** MEJORA: Lista completa de cabeceras ***
                         var headers = new string[]
                         {
-                    "ID", "Full Name", "Address", "City", "State", "Zip",
-                    "Phone", "Mobile Phone", "Client Code", "Policy Number",
-                    "Funding Source", "Space Type", "Email", "Date of Birth",
-                    "Gender", "Created Date", "Created By", "Rider ID"
+                            "ID", "Full Name", "Address", "City", "State", "Zip",
+                            "Phone", "Mobile Phone", "Client Code", "Policy Number",
+                            "Funding Source", "Space Type", "Email", "Date of Birth",
+                            "Gender", "Created Date", "Created By", "Rider ID"
                         };
 
-                        // Escribir cabeceras
+                        // Write headers
                         for (int i = 0; i < headers.Length; i++)
                         {
                             worksheet.Cell(1, i + 1).Value = headers[i];
                         }
 
-                        // Estilo para las cabeceras
+                        // Style for headers
                         var headerRange = worksheet.Range(1, 1, 1, headers.Length);
                         headerRange.Style.Font.Bold = true;
                         headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
                         headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-                        // --- Escribir los datos ---
+                        // --- Write the data ---
                         int currentRow = 2;
                         foreach (var customer in Customers)
                         {
@@ -264,11 +262,11 @@ namespace Meditrans.Client.ViewModels
                             worksheet.Cell(currentRow, col++).Value = customer.MobilePhone;
                             worksheet.Cell(currentRow, col++).Value = customer.ClientCode;
                             worksheet.Cell(currentRow, col++).Value = customer.PolicyNumber;
-                            worksheet.Cell(currentRow, col++).Value = customer.FundingSourceName; // Usamos el nombre, no el ID
-                            worksheet.Cell(currentRow, col++).Value = customer.SpaceTypeName;     // Usamos el nombre, no el ID
+                            worksheet.Cell(currentRow, col++).Value = customer.FundingSourceName; 
+                            worksheet.Cell(currentRow, col++).Value = customer.SpaceTypeName;     
                             worksheet.Cell(currentRow, col++).Value = customer.Email;
 
-                            // Formatear fechas para que Excel las reconozca correctamente
+                            // Format dates so Excel recognizes them correctly
                             var dobCell = worksheet.Cell(currentRow, col++);
                             if (customer.DOB.HasValue)
                             {
@@ -292,7 +290,7 @@ namespace Meditrans.Client.ViewModels
                             currentRow++;
                         }
 
-                        // Ajustar el ancho de las columnas al contenido
+                        // Adjust column width to content
                         worksheet.Columns().AdjustToContents();
 
                         workbook.SaveAs(sfd.FileName);

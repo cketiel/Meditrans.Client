@@ -25,9 +25,8 @@ namespace Meditrans.Client.Views.Data
         }
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            // Al hacer clic en Guardar, establecemos el resultado del diálogo en 'true'
-            // y la ventana se cerrará automáticamente porque IsCancel=true en el otro botón
-            // se encarga del caso 'false'.
+            // By clicking Save, we set the dialog result to 'true'
+            // and the window will close automatically because IsCancel=true on the other button takes care of the 'false' case.          
             this.DialogResult = true;
         }
     }

@@ -1,20 +1,43 @@
-﻿// ViewModels/EditCustomerViewModel.cs
-
-using Meditrans.Client.Commands; // Necesario para ICommand
+﻿using Meditrans.Client.Commands; 
 using Meditrans.Client.Models;
 using Meditrans.Client.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq; // Necesario para .FirstOrDefault()
+using System.Linq; 
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input; // Necesario para ICommand
+using System.Windows.Input; 
 
 namespace Meditrans.Client.ViewModels
-{
-    // Asumo que tu BaseViewModel implementa INotifyPropertyChanged
+{    
     public class EditCustomerViewModel : BaseViewModel
     {
+        #region Translation
+        public string FullNameText => LocalizationService.Instance["FullName"];
+        public string PhoneText => LocalizationService.Instance["Phone"];
+        public string ClientCode => LocalizationService.Instance["ClientCode"];
+        public string SelectFundingSource => LocalizationService.Instance["SelectFundingSource"];
+        public string AddressText => LocalizationService.Instance["Address"];
+        public string CityText => LocalizationService.Instance["City"];
+        public string StateText => LocalizationService.Instance["State"];
+        public string ZipText => LocalizationService.Instance["Zip"];
+        public string MobilePhoneText => LocalizationService.Instance["MobilePhone"];
+        public string ClientCodeText => LocalizationService.Instance["ClientCode"];
+        public string PolicyNumberText => LocalizationService.Instance["PolicyNumber"];
+        public string FundingSourceText => LocalizationService.Instance["FundingSource"];
+        public string SpaceTypeText => LocalizationService.Instance["SpaceType"];
+        public string EmailText => LocalizationService.Instance["Email"];
+        public string DOBText => LocalizationService.Instance["DOB"];
+        public string GenderText => LocalizationService.Instance["Gender"];
+        public string CreatedText => LocalizationService.Instance["Created"];
+        public string CreatedByText => LocalizationService.Instance["CreatedBy"];
+
+        public string Save => LocalizationService.Instance["Save"];
+        public string Cancel => LocalizationService.Instance["Cancel"];
+        public string CustomerHeader => LocalizationService.Instance["CustomerHeader"]; // Customer
+        public string HomeAddressHeader => LocalizationService.Instance["HomeAddressHeader"]; // Home Address
+        #endregion
+
         private Customer _customerToEdit;
         public Customer CustomerToEdit
         {
@@ -32,7 +55,7 @@ namespace Meditrans.Client.ViewModels
 
         public EditCustomerViewModel(Customer originalCustomer)
         {
-            // *** MEJORA: Usamos un clon para permitir la cancelación de cambios.
+            // A clone is used to allow changes to be undone.
             CustomerToEdit = originalCustomer.Clone();
 
             FundingSources = new ObservableCollection<FundingSource>();
@@ -44,7 +67,6 @@ namespace Meditrans.Client.ViewModels
 
         private async Task LoadAuxDataAsync()
         {
-            // Cargar Funding Sources
             var fundingSourceService = new FundingSourceService();
             var sources = await fundingSourceService.GetFundingSourcesAsync();
             FundingSources.Clear();
@@ -52,34 +74,33 @@ namespace Meditrans.Client.ViewModels
             {
                 FundingSources.Add(source);
             }
-            // *** MEJORA: Seleccionar el FundingSource actual del cliente en el ComboBox ***
+            // Select the client's current FundingSource in the ComboBox 
             if (CustomerToEdit.FundingSourceId > 0)
             {
                 CustomerToEdit.FundingSource = FundingSources.FirstOrDefault(fs => fs.Id == CustomerToEdit.FundingSourceId);
             }
 
-            // Cargar Space Types
-            var spaceTypeService = new SpaceTypeService(); // Asegúrate de que este servicio existe
-            var types = await spaceTypeService.GetSpaceTypesAsync(); // Y este método también
+            var spaceTypeService = new SpaceTypeService(); 
+            var types = await spaceTypeService.GetSpaceTypesAsync(); 
             SpaceTypes.Clear();
             foreach (var type in types)
             {
                 SpaceTypes.Add(type);
             }
-            // *** MEJORA: Seleccionar el SpaceType actual del cliente en el ComboBox ***
+            // Select the current SpaceType of the client in the ComboBox 
             if (CustomerToEdit.SpaceTypeId > 0)
             {
                 CustomerToEdit.SpaceType = SpaceTypes.FirstOrDefault(st => st.Id == CustomerToEdit.SpaceTypeId);
             }
 
-            // Notificar a la UI que las propiedades de CustomerToEdit pueden haber cambiado.
+            // Notify the UI that CustomerToEdit properties may have changed.
             OnPropertyChanged(nameof(CustomerToEdit));
         }
 
         public void ApplyChanges(Customer originalCustomer)
         {
-            // *** MEJORA: Mapear los cambios del clon al objeto original antes de guardar.
-            // Esto asegura que los Ids correctos se guardan en la BD.
+            // Map changes from clone to original object before saving.
+            // This ensures that the correct IDs are saved in the DB.
             if (CustomerToEdit.FundingSource != null)
             {
                 CustomerToEdit.FundingSourceId = CustomerToEdit.FundingSource.Id;
@@ -89,7 +110,7 @@ namespace Meditrans.Client.ViewModels
                 CustomerToEdit.SpaceTypeId = CustomerToEdit.SpaceType.Id;
             }
 
-            // Copiar todas las propiedades del clon al original
+            // Copy all properties from the clone to the original
             originalCustomer.FullName = CustomerToEdit.FullName;
             originalCustomer.Address = CustomerToEdit.Address;
             originalCustomer.City = CustomerToEdit.City;
@@ -103,8 +124,7 @@ namespace Meditrans.Client.ViewModels
             originalCustomer.DOB = CustomerToEdit.DOB;
             originalCustomer.Gender = CustomerToEdit.Gender;
             originalCustomer.FundingSourceId = CustomerToEdit.FundingSourceId;
-            originalCustomer.SpaceTypeId = CustomerToEdit.SpaceTypeId;
-            // No se copian Created, CreatedBy, etc., ya que no deberían ser editables.
+            originalCustomer.SpaceTypeId = CustomerToEdit.SpaceTypeId;           
         }
     }
 }
