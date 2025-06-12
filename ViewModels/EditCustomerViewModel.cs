@@ -124,7 +124,9 @@ namespace Meditrans.Client.ViewModels
             originalCustomer.DOB = CustomerToEdit.DOB;
             originalCustomer.Gender = CustomerToEdit.Gender;
             originalCustomer.FundingSourceId = CustomerToEdit.FundingSourceId;
-            originalCustomer.SpaceTypeId = CustomerToEdit.SpaceTypeId;           
+            originalCustomer.SpaceTypeId = CustomerToEdit.SpaceTypeId;
+            originalCustomer.Latitude = CustomerToEdit.Latitude;
+            originalCustomer.Longitude = CustomerToEdit.Longitude;
         }
     }
 }

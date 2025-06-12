@@ -50,6 +50,9 @@ namespace Meditrans.Client.Models
         public string? FundingSourceName { get; set; }
         public string? SpaceTypeName { get; set; }
 
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+
         /*public override string ToString()
         {
             // This is used to display the default text if DisplayMemberPath is not specified

@@ -125,6 +125,11 @@ namespace Meditrans.Client.Services
 
             return null;
         }
+        public async Task<Coordinates> GetCoordinates(string street, string city, string state, string zip)
+        {
+            var address = $"{street}, {city}, {state}, {zip}";
+            return await GetCoordinatesFromAddress(address);
+        }
 
     }
     public class RouteDetail

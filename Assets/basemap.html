@@ -88,6 +88,8 @@
         let directionsService, directionsRenderer;
         let infoWindow;
 
+        let loadedPosition = { lat: originLat, lng: originLng }         
+
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
                 mapTypeControl: false,
@@ -98,7 +100,10 @@
             });
 
             initPickupAutocomplete();
-            initDropoffAutocomplete();       
+            initDropoffAutocomplete();
+
+            if (originLat != 25.77427 && originLng != -80.19366)
+                setPickupMarker(loadedPosition) 
         }
 
         function initPickupAutocomplete() {

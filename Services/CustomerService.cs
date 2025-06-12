@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Xps;
 using Meditrans.Client.Exceptions;
 using Newtonsoft.Json.Linq;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace Meditrans.Client.Services
 {
@@ -69,6 +70,14 @@ namespace Meditrans.Client.Services
         public async Task<Customer> CreateCustomerAsync(CustomerCreateDto customer)
         {
             //Customer result = new Customer();
+            if (customer.Latitude == null || customer.Longitude == null) 
+            {
+                GoogleMapsService googleMapsService = new GoogleMapsService();
+                Coordinates coords = await googleMapsService.GetCoordinates(customer.Address, customer.City, customer.State, customer.Zip);
+                customer.Latitude = coords.Latitude;
+                customer.Longitude = coords.Longitude;
+            }
+
             try
             {
 
@@ -93,7 +102,15 @@ namespace Meditrans.Client.Services
         }
 
         public async Task<bool> UpdateCustomerAsync(int id, CustomerCreateDto customer)
-        {                      
+        {
+            if (customer.Latitude == null || customer.Longitude == null)
+            {
+                GoogleMapsService googleMapsService = new GoogleMapsService();
+                Coordinates coords = await googleMapsService.GetCoordinates(customer.Address, customer.City, customer.State, customer.Zip);
+                customer.Latitude = coords.Latitude;
+                customer.Longitude = coords.Longitude;
+            }
+
             try
             {                                
                 var response = await _httpClient.PutAsJsonAsync($"{EndPoint}/{id}", customer);

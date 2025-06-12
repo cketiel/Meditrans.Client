@@ -7,6 +7,7 @@
         xmlns:vm="clr-namespace:Meditrans.Client.ViewModels"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         mc:Ignorable="d"
         Title="Edit Customer" Height="Auto" Width="600"
         SizeToContent="Height"
@@ -19,8 +20,9 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            
         </Grid.RowDefinitions>
-       
+
         <TabControl Grid.Row="0" Style="{StaticResource MaterialDesignFilledTabControl}">
 
             <!-- Tab 1: General Customer Information -->
@@ -30,79 +32,94 @@
                     <StackPanel Margin="10">
 
                         <TextBox Margin="0,8"
-                                 materialDesign:HintAssist.Hint="{Binding FullNameText}"
-                                 Text="{Binding CustomerToEdit.FullName, UpdateSourceTrigger=PropertyChanged}" />
+                         materialDesign:HintAssist.Hint="{Binding FullNameText}"
+                         Text="{Binding CustomerToEdit.FullName, UpdateSourceTrigger=PropertyChanged}" />
 
                         <TextBox Margin="0,8"
-                                 materialDesign:HintAssist.Hint="{Binding PhoneText}"
-                                 Text="{Binding CustomerToEdit.Phone, UpdateSourceTrigger=PropertyChanged}" />
+                         materialDesign:HintAssist.Hint="{Binding PhoneText}"
+                         Text="{Binding CustomerToEdit.Phone, UpdateSourceTrigger=PropertyChanged}" />
 
                         <TextBox Margin="0,8"
-                                 materialDesign:HintAssist.Hint="{Binding MobilePhoneText}"
-                                 Text="{Binding CustomerToEdit.MobilePhone, UpdateSourceTrigger=PropertyChanged}" />
+                         materialDesign:HintAssist.Hint="{Binding MobilePhoneText}"
+                         Text="{Binding CustomerToEdit.MobilePhone, UpdateSourceTrigger=PropertyChanged}" />
 
                         <TextBox Margin="0,8"
-                                 materialDesign:HintAssist.Hint="{Binding ClientCode}"
-                                 Text="{Binding CustomerToEdit.ClientCode, UpdateSourceTrigger=PropertyChanged}" />
+                         materialDesign:HintAssist.Hint="{Binding ClientCode}"
+                         Text="{Binding CustomerToEdit.ClientCode, UpdateSourceTrigger=PropertyChanged}" />
 
                         <TextBox Margin="0,8"
-                                 materialDesign:HintAssist.Hint="{Binding PolicyNumberText}"
-                                 Text="{Binding CustomerToEdit.PolicyNumber, UpdateSourceTrigger=PropertyChanged}" />
+                         materialDesign:HintAssist.Hint="{Binding PolicyNumberText}"
+                         Text="{Binding CustomerToEdit.PolicyNumber, UpdateSourceTrigger=PropertyChanged}" />
 
                         <TextBox Margin="0,8"
-                                 materialDesign:HintAssist.Hint="{Binding EmailText}"
-                                 Text="{Binding CustomerToEdit.Email, UpdateSourceTrigger=PropertyChanged}" />
+                         materialDesign:HintAssist.Hint="{Binding EmailText}"
+                         Text="{Binding CustomerToEdit.Email, UpdateSourceTrigger=PropertyChanged}" />
 
                         <DatePicker Margin="0,8"
-                                    materialDesign:HintAssist.Hint="{Binding DOBText}"
-                                    SelectedDate="{Binding CustomerToEdit.DOB}"
-                                    Style="{StaticResource MaterialDesignFilledDatePicker}" />
+                            materialDesign:HintAssist.Hint="{Binding DOBText}"
+                            SelectedDate="{Binding CustomerToEdit.DOB}"
+                            Style="{StaticResource MaterialDesignFilledDatePicker}" />
 
                         <ComboBox Margin="0,8"
-                                  materialDesign:HintAssist.Hint="{Binding GenderText}" 
-                                  ItemsSource="{Binding Genders}"
-                                  SelectedItem="{Binding CustomerToEdit.Gender, Mode=TwoWay}"
-                                  Style="{StaticResource MaterialDesignFilledComboBox}" />
+                          materialDesign:HintAssist.Hint="{Binding GenderText}" 
+                          ItemsSource="{Binding Genders}"
+                          SelectedItem="{Binding CustomerToEdit.Gender, Mode=TwoWay}"
+                          Style="{StaticResource MaterialDesignFilledComboBox}" />
 
                         <ComboBox Margin="0,8"
-                                  materialDesign:HintAssist.Hint="{Binding FundingSourceText}" 
-                                  ItemsSource="{Binding FundingSources}"
-                                  SelectedItem="{Binding CustomerToEdit.FundingSource, Mode=TwoWay}"
-                                  DisplayMemberPath="Name"
-                                  Style="{StaticResource MaterialDesignFilledComboBox}" />
+                          materialDesign:HintAssist.Hint="{Binding FundingSourceText}" 
+                          ItemsSource="{Binding FundingSources}"
+                          SelectedItem="{Binding CustomerToEdit.FundingSource, Mode=TwoWay}"
+                          DisplayMemberPath="Name"
+                          Style="{StaticResource MaterialDesignFilledComboBox}" />
 
                         <ComboBox Margin="0,8"
-                                  materialDesign:HintAssist.Hint="{Binding SpaceTypeText}" 
-                                  ItemsSource="{Binding SpaceTypes}"
-                                  SelectedItem="{Binding CustomerToEdit.SpaceType, Mode=TwoWay}"
-                                  DisplayMemberPath="Name"
-                                  Style="{StaticResource MaterialDesignFilledComboBox}" />
+                          materialDesign:HintAssist.Hint="{Binding SpaceTypeText}" 
+                          ItemsSource="{Binding SpaceTypes}"
+                          SelectedItem="{Binding CustomerToEdit.SpaceType, Mode=TwoWay}"
+                          DisplayMemberPath="Name"
+                          Style="{StaticResource MaterialDesignFilledComboBox}" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
             <!-- Tab 2: Home Address -->
             <TabItem Header="{Binding HomeAddressHeader}">
-                <StackPanel Margin="10" >
-                    <TextBox Margin="0,8"
-                             materialDesign:HintAssist.Hint="{Binding AddressText}"
-                             Text="{Binding CustomerToEdit.Address, UpdateSourceTrigger=PropertyChanged}" />
+                <Grid Margin="5" Background="Transparent">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="2*" />
+                    </Grid.RowDefinitions>
 
-                    <TextBox Margin="0,8"
-                             materialDesign:HintAssist.Hint="{Binding CityText}"
-                             Text="{Binding CustomerToEdit.City, UpdateSourceTrigger=PropertyChanged}" />
+                    <StackPanel Grid.Row="0" Margin="10" >
+                        <TextBox Margin="0,8" x:Name="AddressTextBox"
+                     materialDesign:HintAssist.Hint="{Binding AddressText}"
+                     Text="{Binding CustomerToEdit.Address, UpdateSourceTrigger=PropertyChanged}" TextChanged="AddressTextBox_TextChanged" />
 
-                    <TextBox Margin="0,8"
-                             materialDesign:HintAssist.Hint="{Binding StateText}"
-                             Text="{Binding CustomerToEdit.State, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox Margin="0,8" x:Name="CityTextBox"
+                     materialDesign:HintAssist.Hint="{Binding CityText}"
+                     Text="{Binding CustomerToEdit.City, UpdateSourceTrigger=PropertyChanged}" />
 
-                    <TextBox Margin="0,8"
-                             materialDesign:HintAssist.Hint="{Binding ZipText}"
-                             Text="{Binding CustomerToEdit.Zip, UpdateSourceTrigger=PropertyChanged}" />
-                </StackPanel>
+                        <TextBox Margin="0,8" x:Name="StateTextBox"
+                     materialDesign:HintAssist.Hint="{Binding StateText}"
+                     Text="{Binding CustomerToEdit.State, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBox Margin="0,8" x:Name="ZipTextBox"
+                     materialDesign:HintAssist.Hint="{Binding ZipText}"
+                     Text="{Binding CustomerToEdit.Zip, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+
+                    
+
+                    <wv2:WebView2 Grid.Row="1" x:Name="MapWebView" Loaded="WebView_Loaded" CoreWebView2InitializationCompleted="MapWebView_CoreWebView2InitializationCompleted"  HorizontalAlignment="Stretch" 
+         VerticalAlignment="Stretch"
+         MinHeight="310"/>
+                    <!--<wv2:WebView2 Grid.Row="2" x:Name="MapWebView" Loaded="WebView_Loaded" CoreWebView2InitializationCompleted="MapWebView_CoreWebView2InitializationCompleted" />-->
+
+                </Grid>
             </TabItem>
         </TabControl>
-
+       
         <!-- Action Buttons (Save and Cancel) -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
             <Button Content="{Binding Save}"

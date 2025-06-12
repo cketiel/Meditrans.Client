@@ -189,6 +189,7 @@
     "NoDataToExport": "There is no data to export.",
     "NoDataInfo": "No Data",
     "CustomerHeader": "Customer",
-    "HomeAddressHeader": "Home Address"
+    "HomeAddressHeader": "Home Address",
+    "Save": "Save"
 
 }
