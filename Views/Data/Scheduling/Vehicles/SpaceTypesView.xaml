@@ -12,11 +12,6 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
-
-    <UserControl.DataContext>
-        <vm:SpaceTypesViewModel />
-    </UserControl.DataContext>
-
     <UserControl.Resources>
         <!-- vmProxy “captures” the current DataContext (SpaceTypesViewModel) -->
         <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
@@ -34,50 +29,43 @@
               HorizontalAlignment="Stretch">
 
             <!-- DATAGRID -->
-            <DataGrid x:Name="SpaceTypesDataGrid"
-                      
-                      ItemsSource="{Binding SpaceTypes}"
-                      SelectedItem="{Binding SelectedSpaceType, Mode=TwoWay}"
-                      SelectionMode="Single"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True"
-                      AlternationCount="2"
-                      AlternatingRowBackground="White"
-                      
-                      
-                      Style="{StaticResource CustomDataGridStyle}"
-                      ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
-                      RowStyle="{StaticResource CustomRowStyle}"
-                      CellStyle="{StaticResource CustomCellStyle}"
-                      SelectionUnit="FullRow"
-                      
-                      
-                      >
+            <DataGrid 
+                x:Name="SpaceTypesDataGrid"                    
+                ItemsSource="{Binding SpaceTypes}"
+                SelectedItem="{Binding SelectedSpaceType, Mode=TwoWay}"
+                SelectionMode="Single"
+                AutoGenerateColumns="False"
+                IsReadOnly="True"
+                AlternationCount="2"
+                AlternatingRowBackground="White"                                    
+                Style="{StaticResource CustomDataGridStyle}"
+                ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                RowStyle="{StaticResource CustomRowStyle}"
+                CellStyle="{StaticResource CustomCellStyle}"
+                SelectionUnit="FullRow">
 
                 <DataGrid.Columns>
 
                     <DataGridTemplateColumn Width="Auto">
-                        
+
                         <!-- Header with Add icon -->
                         <DataGridTemplateColumn.HeaderTemplate>
                             <DataTemplate>
-                                <Button Command="{Binding DataContext.AddSpaceTypeCommand,
-                                        RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                <Button Command="{Binding Data.AddSpaceTypeCommand, Source={StaticResource vmProxy}}"
                                         Style="{StaticResource MaterialDesignToolButton}"
-                                        ToolTip="{Binding DataContext.AddSpaceTypeToolTip, RelativeSource={RelativeSource AncestorType=local:SpaceTypesView}}">
+                                        ToolTip="{Binding Data.AddSpaceTypeToolTip, Source={StaticResource vmProxy}}">
                                     <materialDesign:PackIcon Kind="PlusCircle" Width="20" Height="20"/>
                                 </Button>
                             </DataTemplate>
                         </DataGridTemplateColumn.HeaderTemplate>
-                        
+
                         <!-- Cells with delete icon -->
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <Button Command="{Binding DataContext.DeleteSpaceTypeCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                        CommandParameter="{Binding}"
+                                <Button Command="{Binding Data.DeleteSpaceTypeCommand, Source={StaticResource vmProxy}}"
                                         Style="{StaticResource MaterialDesignToolButton}"
                                         VerticalAlignment="Center"
-                                        ToolTip="{Binding DataContext.DeleteSpaceTypeToolTip, RelativeSource={RelativeSource AncestorType=local:SpaceTypesView}}"> 
+                                        ToolTip="{Binding Data.DeleteSpaceTypeToolTip, Source={StaticResource vmProxy}}">
                                     <materialDesign:PackIcon Kind="DeleteForever" Width="20" Height="20" />
                                 </Button>
                             </DataTemplate>
@@ -85,21 +73,21 @@
 
                     </DataGridTemplateColumn>
 
-
                     <DataGridTextColumn 
                         Binding="{Binding Name}"
                         Header="{Binding Data.SpaceTypeNameText, Source={StaticResource vmProxy}}"/>
-
 
                     <DataGridTextColumn 
                         Binding="{Binding Description}"
                         Header="{Binding Data.DescriptionText, Source={StaticResource vmProxy}}"/>
 
-                    <DataGridTextColumn Binding="{Binding LoadTime, Converter={StaticResource MinutesConverter}}"
-                                        Header="{Binding Data.LoadTimeText, Source={StaticResource vmProxy}}"/>
+                    <DataGridTextColumn 
+                        Binding="{Binding LoadTime, Converter={StaticResource MinutesConverter}}"
+                        Header="{Binding Data.LoadTimeText, Source={StaticResource vmProxy}}"/>
 
-                    <DataGridTextColumn Binding="{Binding UnloadTime, Converter={StaticResource MinutesConverter}}"
-                                        Header="{Binding Data.UnloadTimeText, Source={StaticResource vmProxy}}"/>
+                    <DataGridTextColumn 
+                        Binding="{Binding UnloadTime, Converter={StaticResource MinutesConverter}}"
+                        Header="{Binding Data.UnloadTimeText, Source={StaticResource vmProxy}}"/>
 
                     
                     <!--<DataGridTextColumn 
@@ -110,15 +98,14 @@
                         Binding="{Binding UnloadTime}"
                         Header="{Binding Data.UnloadTimeText, Source={StaticResource vmProxy}}"/>-->
 
-                    <DataGridTextColumn Binding="{Binding CapacityType.Name}"
-                                        Header="{Binding Data.CapacityTypeText, Source={StaticResource vmProxy}}"/>
+                    <DataGridTextColumn 
+                        Binding="{Binding CapacityType.Name}"
+                        Header="{Binding Data.CapacityTypeText, Source={StaticResource vmProxy}}"/>
 
-
- 
-                    <DataGridCheckBoxColumn Binding="{Binding IsActive}"
-                                            Header="{Binding Data.InactiveText, Source={StaticResource vmProxy}}"                       
-                                            IsReadOnly="False"/>
-
+                    <DataGridCheckBoxColumn 
+                        Binding="{Binding IsActive}"
+                        Header="{Binding Data.InactiveText, Source={StaticResource vmProxy}}"                       
+                        IsReadOnly="False"/>
 
                     <!--<DataGridTextColumn Binding="{Binding IsActive}"
                     Header="{Binding Data.InactiveText, Source={StaticResource vmProxy}}"/>
@@ -134,11 +121,8 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>-->
 
-
-
                 </DataGrid.Columns>
-                
-                
+                               
             </DataGrid>
 
         </Grid>

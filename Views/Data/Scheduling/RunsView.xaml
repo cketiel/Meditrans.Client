@@ -4,9 +4,130 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Meditrans.Client.Views.Data.Scheduling"
+             xmlns:vm="clr-namespace:Meditrans.Client.ViewModels"
+             xmlns:converters="clr-namespace:Meditrans.Client.Converters"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
+             d:DesignHeight="600" d:DesignWidth="1000"
+             >
+
+    <UserControl.Resources>
+        <converters:BooleanToSymbolConverter x:Key="BoolToSymbolConverter"/>
+        <converters:BooleanToColorConverter x:Key="BoolToColorConverter"/>
+    </UserControl.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Filtros y botones -->
+            <RowDefinition Height="*"/>
+            <!-- DataGrid -->
+        </Grid.RowDefinitions>
+
+        <!-- Barra de Herramientas y Filtros -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,10">
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                <Button Content="Añadir" Command="{Binding AddCommand}" Margin="0,0,5,0" Padding="10,5"/>
+                <Button Content="Editar" Command="{Binding EditCommand}" Margin="0,0,5,0" Padding="10,5"/>
+                <Button Content="Eliminar" Command="{Binding DeleteCommand}" Padding="10,5"/>
+            </StackPanel>
+
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                <TextBlock Text="Grupo de Vehículo:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <ComboBox ItemsSource="{Binding VehicleGroups}" 
+                          SelectedItem="{Binding SelectedVehicleGroup}" 
+                          DisplayMemberPath="Name"
+                          Width="150" Margin="0,0,10,0"/>
+                <CheckBox Content="Mostrar solo activos" 
+                          IsChecked="{Binding ShowOnlyActive}" 
+                          VerticalAlignment="Center"/>
+            </StackPanel>
+        </DockPanel>
+
+        <!-- Grid de Rutas -->
+        <DataGrid Grid.Row="1" 
+                  ItemsSource="{Binding FilteredRoutes}"
+                  SelectedItem="{Binding SelectedRoute}"
+                  AutoGenerateColumns="False" 
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Nombre" Binding="{Binding Name}" Width="*"/>
+                <DataGridTextColumn Header="Descripción" Binding="{Binding Description}" Width="*"/>
+                <DataGridTextColumn Header="Login Smartphone" Binding="{Binding SmartphoneLogin}" Width="Auto"/>
+                <DataGridTextColumn Header="Conductor" Binding="{Binding Driver}" Width="Auto"/>
+                <DataGridTextColumn Header="Vehículo" Binding="{Binding Vehicle}" Width="Auto"/>
+                <DataGridTextColumn Header="Garaje" Binding="{Binding Garage}" Width="Auto"/>
+                <DataGridTextColumn Header="Desde" Binding="{Binding FromDate, StringFormat='d'}" Width="Auto"/>
+                <DataGridTextColumn Header="Hasta" Binding="{Binding ToDate, StringFormat='d', TargetNullValue='Indefinido'}" Width="Auto"/>
+                <DataGridTextColumn Header="Hora Inicio" Binding="{Binding FromTime, StringFormat='hh\\:mm'}" Width="Auto"/>
+                <DataGridTextColumn Header="Hora Fin" Binding="{Binding ToTime, StringFormat='hh\\:mm'}" Width="Auto"/>
+
+                <!-- Días de la semana -->
+                <DataGridTemplateColumn Header="Dom" SortMemberPath="Sunday">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Sunday, Converter={StaticResource BoolToSymbolConverter}}" 
+                                       Foreground="{Binding Sunday, Converter={StaticResource BoolToColorConverter}}"
+                                       HorizontalAlignment="Center" FontWeight="Bold"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Lun" SortMemberPath="Monday">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Monday, Converter={StaticResource BoolToSymbolConverter}}" 
+                                       Foreground="{Binding Monday, Converter={StaticResource BoolToColorConverter}}"
+                                       HorizontalAlignment="Center" FontWeight="Bold"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Mar" SortMemberPath="Tuesday">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Tuesday, Converter={StaticResource BoolToSymbolConverter}}" 
+                                       Foreground="{Binding Tuesday, Converter={StaticResource BoolToColorConverter}}"
+                                       HorizontalAlignment="Center" FontWeight="Bold"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Mié" SortMemberPath="Wednesday">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Wednesday, Converter={StaticResource BoolToSymbolConverter}}" 
+                                       Foreground="{Binding Wednesday, Converter={StaticResource BoolToColorConverter}}"
+                                       HorizontalAlignment="Center" FontWeight="Bold"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Jue" SortMemberPath="Thursday">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Thursday, Converter={StaticResource BoolToSymbolConverter}}" 
+                                       Foreground="{Binding Thursday, Converter={StaticResource BoolToColorConverter}}"
+                                       HorizontalAlignment="Center" FontWeight="Bold"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Vie" SortMemberPath="Friday">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Friday, Converter={StaticResource BoolToSymbolConverter}}" 
+                                       Foreground="{Binding Friday, Converter={StaticResource BoolToColorConverter}}"
+                                       HorizontalAlignment="Center" FontWeight="Bold"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Sáb" SortMemberPath="Saturday">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Saturday, Converter={StaticResource BoolToSymbolConverter}}" 
+                                       Foreground="{Binding Saturday, Converter={StaticResource BoolToColorConverter}}"
+                                       HorizontalAlignment="Center" FontWeight="Bold"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
 </UserControl>

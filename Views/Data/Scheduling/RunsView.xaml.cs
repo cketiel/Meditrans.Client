@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Meditrans.Client.ViewModels;
 
 namespace Meditrans.Client.Views.Data.Scheduling
 {
@@ -23,6 +24,7 @@ namespace Meditrans.Client.Views.Data.Scheduling
         public RunsView()
         {
             InitializeComponent();
+            this.DataContext = new RunsViewModel();
         }
     }
 }
