@@ -18,9 +18,7 @@
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- Filtros y botones -->
             <RowDefinition Height="*"/>
-            <!-- DataGrid -->
         </Grid.RowDefinitions>
 
         <!-- Barra de Herramientas y Filtros -->
@@ -43,14 +41,21 @@
             </StackPanel>
         </DockPanel>
 
-        <!-- Grid de Rutas -->
+        <!-- Route Grid -->
         <DataGrid Grid.Row="1" 
-                  ItemsSource="{Binding FilteredRoutes}"
-                  SelectedItem="{Binding SelectedRoute}"
-                  AutoGenerateColumns="False" 
-                  IsReadOnly="True"
-                  CanUserAddRows="False"
-                  SelectionMode="Single">
+                ItemsSource="{Binding FilteredRoutes}"
+                SelectedItem="{Binding SelectedRoute}"
+                SelectionMode="Single"
+                AutoGenerateColumns="False"
+                IsReadOnly="True"
+                AlternationCount="2"
+                AlternatingRowBackground="White"                                    
+                Style="{StaticResource CustomDataGridStyle}"
+                ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                RowStyle="{StaticResource CustomRowStyle}"
+                CellStyle="{StaticResource CustomCellStyle}"
+                SelectionUnit="FullRow">
+            
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Nombre" Binding="{Binding Name}" Width="*"/>
                 <DataGridTextColumn Header="Descripción" Binding="{Binding Description}" Width="*"/>
@@ -63,7 +68,7 @@
                 <DataGridTextColumn Header="Hora Inicio" Binding="{Binding FromTime, StringFormat='hh\\:mm'}" Width="Auto"/>
                 <DataGridTextColumn Header="Hora Fin" Binding="{Binding ToTime, StringFormat='hh\\:mm'}" Width="Auto"/>
 
-                <!-- Días de la semana -->
+                <!-- Days of the Week -->
                 <DataGridTemplateColumn Header="Dom" SortMemberPath="Sunday">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>

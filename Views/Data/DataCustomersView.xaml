@@ -129,170 +129,65 @@
                     </DataGridTextColumn.Header>
                 </DataGridTextColumn>-->
 
-                <DataGridTextColumn Binding="{Binding Address}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock
-                              Text="{Binding DataContext.AddressText,
-                                RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              FontWeight="SemiBold"
-                              VerticalAlignment="Center"
-                              HorizontalAlignment="Center"/>
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                <DataGridTextColumn 
+                    Binding="{Binding Address}"
+                    Header="{Binding Data.AddressText, Source={StaticResource vmProxy}}" />
 
-                <DataGridTextColumn Binding="{Binding City}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock
-                              Text="{Binding DataContext.CityText,
-                                RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              FontWeight="SemiBold"
-                              VerticalAlignment="Center"
-                              HorizontalAlignment="Center"/>
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                <DataGridTextColumn 
+                    Binding="{Binding City}"
+                    Header="{Binding Data.CityText, Source={StaticResource vmProxy}}" />
 
-                <DataGridTextColumn Binding="{Binding State}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock
-                              Text="{Binding DataContext.StateText,
-                                RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              FontWeight="SemiBold"
-                              VerticalAlignment="Center"
-                              HorizontalAlignment="Center"/>
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                <DataGridTextColumn 
+                    Binding="{Binding State}"
+                    Header="{Binding Data.StateText, Source={StaticResource vmProxy}}" />
 
-                <DataGridTextColumn Binding="{Binding Zip}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock
-                              Text="{Binding DataContext.ZipText,
-                                RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              FontWeight="SemiBold"
-                              VerticalAlignment="Center"
-                              HorizontalAlignment="Center"/>
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                <DataGridTextColumn 
+                    Binding="{Binding Zip}"
+                    Header="{Binding Data.ZipText, Source={StaticResource vmProxy}}" />
 
-                <DataGridTextColumn Binding="{Binding Phone}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock
-                              Text="{Binding DataContext.PhoneText,
-                                RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              FontWeight="SemiBold"
-                              VerticalAlignment="Center"
-                              HorizontalAlignment="Center"/>
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                <DataGridTextColumn 
+                    Binding="{Binding Phone}"
+                    Header="{Binding Data.PhoneText, Source={StaticResource vmProxy}}" />
 
-                <DataGridTextColumn Binding="{Binding MobilePhone}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock
-                              Text="{Binding DataContext.MobilePhoneText,
-                                RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              FontWeight="SemiBold"
-                              VerticalAlignment="Center"
-                              HorizontalAlignment="Center"/>
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                <DataGridTextColumn 
+                    Binding="{Binding MobilePhone}"
+                    Header="{Binding Data.MobilePhoneText, Source={StaticResource vmProxy}}" />
 
-                <DataGridTextColumn Binding="{Binding ClientCode}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock
-                              Text="{Binding DataContext.ClientCodeText,
-                                RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              FontWeight="SemiBold"
-                              VerticalAlignment="Center"
-                              HorizontalAlignment="Center"/>
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                <DataGridTextColumn 
+                    Binding="{Binding ClientCode}"
+                    Header="{Binding Data.ClientCodeText, Source={StaticResource vmProxy}}" />
 
-                <DataGridTextColumn Binding="{Binding PolicyNumber}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock
-                              Text="{Binding DataContext.PolicyNumberText,
-                                RelativeSource={RelativeSource AncestorType=UserControl}}"
-                              FontWeight="SemiBold"
-                              VerticalAlignment="Center"
-                              HorizontalAlignment="Center"/>
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                <DataGridTextColumn 
+                    Binding="{Binding PolicyNumber}"
+                    Header="{Binding Data.PolicyNumberText, Source={StaticResource vmProxy}}" />
 
-                <DataGridTextColumn Binding="{Binding FundingSourceName}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock
-                                  Text="{Binding DataContext.FundingSourceText,
-                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                  FontWeight="SemiBold"
-                                  VerticalAlignment="Center"
-                                  HorizontalAlignment="Center"/>
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                <DataGridTextColumn 
+                    Binding="{Binding FundingSourceName}"
+                    Header="{Binding Data.FundingSourceText, Source={StaticResource vmProxy}}" />
 
-                <DataGridTextColumn Binding="{Binding SpaceTypeName}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock
-                                  Text="{Binding DataContext.SpaceTypeText,
-                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                  FontWeight="SemiBold"
-                                  VerticalAlignment="Center"
-                                  HorizontalAlignment="Center"/>
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                <DataGridTextColumn 
+                    Binding="{Binding SpaceTypeName}"
+                    Header="{Binding Data.SpaceTypeText, Source={StaticResource vmProxy}}" />
 
-                <DataGridTextColumn Binding="{Binding Email}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock
-                                  Text="{Binding DataContext.EmailText,
-                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                  FontWeight="SemiBold"
-                                  VerticalAlignment="Center"
-                                  HorizontalAlignment="Center"/>
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                <DataGridTextColumn 
+                    Binding="{Binding Email}"
+                    Header="{Binding Data.EmailText, Source={StaticResource vmProxy}}" />
 
-                <DataGridTextColumn Binding="{Binding DOB, StringFormat=\{0:d\}}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock
-                                  Text="{Binding DataContext.DOBText,
-                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                  FontWeight="SemiBold"
-                                  VerticalAlignment="Center"
-                                  HorizontalAlignment="Center"/>
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                <DataGridTextColumn 
+                    Binding="{Binding DOB, StringFormat=\{0:d\}}"
+                    Header="{Binding Data.DOBText, Source={StaticResource vmProxy}}" />
 
-                <DataGridTextColumn Binding="{Binding Gender}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock
-                                  Text="{Binding DataContext.GenderText,
-                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                  FontWeight="SemiBold"
-                                  VerticalAlignment="Center"
-                                  HorizontalAlignment="Center"/>
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                <DataGridTextColumn 
+                    Binding="{Binding Gender}"
+                    Header="{Binding Data.GenderText, Source={StaticResource vmProxy}}" />
 
-                <DataGridTextColumn Binding="{Binding Created, StringFormat=\{0:g\}}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock
-                                  Text="{Binding DataContext.CreatedText,
-                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                  FontWeight="SemiBold"
-                                  VerticalAlignment="Center"
-                                  HorizontalAlignment="Center"/>
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                <DataGridTextColumn 
+                    Binding="{Binding Created, StringFormat=\{0:g\}}"
+                    Header="{Binding Data.CreatedText, Source={StaticResource vmProxy}}" />
 
-                <DataGridTextColumn Binding="{Binding CreatedBy}">
-                    <DataGridTextColumn.Header>
-                        <TextBlock
-                                  Text="{Binding DataContext.CreatedByText,
-                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                  FontWeight="SemiBold"
-                                  VerticalAlignment="Center"
-                                  HorizontalAlignment="Center"/>
-                    </DataGridTextColumn.Header>
-                </DataGridTextColumn>
+                <DataGridTextColumn 
+                    Binding="{Binding CreatedBy}"
+                    Header="{Binding Data.CreatedByText, Source={StaticResource vmProxy}}" />
 
             </DataGrid.Columns>
         </DataGrid>
