@@ -24,7 +24,7 @@ namespace Meditrans.Client.Services
             try
             {
                 _httpClient.BaseAddress = new Uri(_baseUri);
-                _httpClient.Timeout = TimeSpan.FromSeconds(300); // Set reasonable timeout
+                _httpClient.Timeout = TimeSpan.FromSeconds(9000); // Set reasonable timeout //30
             }
             catch (UriFormatException ex)
             {
@@ -53,9 +53,12 @@ namespace Meditrans.Client.Services
                 Username = username,
                 Password = password
             };
-
+           // var showRealResponse = new object();
+            var showRealResponse = "Real response";
             try
             {
+                System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) => true;
+
                 using var response = await _httpClient.PostAsJsonAsync("api/auth/login", request);
 
                 if (!response.IsSuccessStatusCode)
@@ -86,6 +89,8 @@ namespace Meditrans.Client.Services
                     };
                 }
 
+                showRealResponse = await response.Content.ReadAsStringAsync() + "---" + response.StatusCode;
+                response.EnsureSuccessStatusCode();
                 var loginResponse = await response.Content.ReadFromJsonAsync<LoginResponse>();
 
                 return loginResponse ?? new LoginResponse
@@ -115,7 +120,8 @@ namespace Meditrans.Client.Services
                 return new LoginResponse
                 {
                     IsSuccess = false,
-                    Message = $"Error processing server response. -> {ex.Message} InnerException: {ex.InnerException} "
+                    Message = $" Real Response: {showRealResponse} -InnerException: {ex.InnerException} "
+                    //Message = $"Error processing server response. -> {ex.Message} InnerException: {ex.InnerException} "
                 };
             }
             catch (TaskCanceledException)

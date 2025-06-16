@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,6 +22,8 @@ namespace Meditrans.Client.Views.Data.Scheduling
     /// </summary>
     public partial class VehicleRouteEditorWindow : Window
     {
+        public VehicleRouteEditorViewModel ViewModel => DataContext as VehicleRouteEditorViewModel;
+        private bool _isUpdatingFromHtml = false; 
         public VehicleRouteEditorWindow()
         {
             InitializeComponent();
@@ -57,7 +60,99 @@ namespace Meditrans.Client.Views.Data.Scheduling
             this.DialogResult = dialogResult;
             this.Close();
         }
-    }
+
+        private async void WebView_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await MapWebView.EnsureCoreWebView2Async(); //MapWebView.DefaultBackgroundColor = System.Drawing.Color.Red;
+                LoadMap();
+                // Subscribe to message from JavaScript
+                MapWebView.CoreWebView2.WebMessageReceived += (s, args) =>
+                {
+                    try
+                    {
+                        var json = args.WebMessageAsJson;
+                        dynamic data = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
+
+                        if (data.type == "autocomplete")
+                        {
+                            var result = data.result;
+
+                            if (result is null) return;
+
+                            _isUpdatingFromHtml = true;
+
+                            GarageTextBox.Text = result.address;
+                            GarageLatitudeTextBox.Text = result.lat;
+                            GarageLongitudeTextBox.Text = result.lng;
+
+                            ViewModel.Route.GarageLatitude = result.lat;
+                            ViewModel.Route.GarageLongitude = result.lng;
+
+                            /*CityTextBox.Text = result.city;
+                            StateTextBox.Text = result.state;
+                            ZipTextBox.Text = result.zip;
+
+                            ViewModel.CustomerToEdit.Latitude = result.lat;
+                            ViewModel.CustomerToEdit.Longitude = result.lng;*/
+
+                            _isUpdatingFromHtml = false;
+                           
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Error receiving message: " + ex.Message);
+                    }
+                };
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error initializing WebView2: {ex.Message}");
+            }
+
+        }
+
+        private void LoadMap()
+        {
+            if (MapWebView.CoreWebView2 == null)
+                return;
+
+            string apiKey = App.Configuration["GoogleMaps:ApiKey"];
+
+            double latitude = ViewModel?.Route?.GarageLatitude ?? 25.77427;
+            double longitude = ViewModel?.Route?.GarageLongitude ?? -80.19366;
+
+            string htmlPath = File.ReadAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "basemap.html"));
+            htmlPath = htmlPath.Replace("{{API_KEY}}", apiKey);
+
+            htmlPath = htmlPath.Replace("{ORIGIN_LAT}", latitude.ToString(CultureInfo.InvariantCulture))
+                               .Replace("{ORIGIN_LNG}", longitude.ToString(CultureInfo.InvariantCulture));
+
+            MapWebView.NavigateToString(htmlPath);
+            //MapWebView.NavigateToString("<html><body><h1>Prueba WebView2</h1></body></html>");
+            //MapWebView.CoreWebView2.OpenDevToolsWindow();
+        }
+
+        private void GarageTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isUpdatingFromHtml) return;
+
+            var text = GarageTextBox.Text;
+            string js = $"document.getElementById('pickup').value = `{EscapeJs(text)}`;";
+            MapWebView.ExecuteScriptAsync(js);
+        }
+
+        // Escape text for safe use in JavaScript
+        private string EscapeJs(string input)
+        {
+            return input.Replace("\\", "\\\\").Replace("`", "\\`").Replace("\n", "").Replace("\r", "");
+        }
+
+    } // en partial class
 
     // Convertidor para cambiar el título de la ventana
     public class IdToTitleConverter : IValueConverter

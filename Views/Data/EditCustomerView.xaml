@@ -111,9 +111,12 @@
 
                     
 
-                    <wv2:WebView2 Grid.Row="1" x:Name="MapWebView" Loaded="WebView_Loaded" CoreWebView2InitializationCompleted="MapWebView_CoreWebView2InitializationCompleted"  HorizontalAlignment="Stretch" 
-         VerticalAlignment="Stretch"
-         MinHeight="310"/>
+                    <wv2:WebView2 Grid.Row="1" x:Name="MapWebView" 
+                                  Loaded="WebView_Loaded" 
+                                  CoreWebView2InitializationCompleted="MapWebView_CoreWebView2InitializationCompleted"  
+                                  HorizontalAlignment="Stretch" 
+                                  VerticalAlignment="Stretch"
+                                  MinHeight="310"/>
                     <!--<wv2:WebView2 Grid.Row="2" x:Name="MapWebView" Loaded="WebView_Loaded" CoreWebView2InitializationCompleted="MapWebView_CoreWebView2InitializationCompleted" />-->
 
                 </Grid>

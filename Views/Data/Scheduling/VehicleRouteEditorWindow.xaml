@@ -6,6 +6,7 @@
         xmlns:vm="clr-namespace:Meditrans.Client.ViewModels"
         xmlns:local="clr-namespace:Meditrans.Client.Views.Data.Scheduling"
         xmlns:converters="clr-namespace:Meditrans.Client.Converters"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
         mc:Ignorable="d"
         Title="Ruta de Vehículo" 
         Height="650" Width="800"
@@ -94,7 +95,7 @@
                                 <TextBlock Grid.Row="2" Grid.Column="2" Text="Vehículo:" Style="{StaticResource LabelStyle}"/>
                                 <ComboBox Grid.Row="2" Grid.Column="3" Margin="0,5"
                                           ItemsSource="{Binding AllVehicles}" 
-                                          DisplayMemberPath="Plate" 
+                                          DisplayMemberPath="Name" 
                                           SelectedValuePath="Id"
                                           SelectedValue="{Binding Route.VehicleId, ValidatesOnDataErrors=True}"/>
 
@@ -176,17 +177,17 @@
                             </Grid.RowDefinitions>
 
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Garaje/Dirección:" Style="{StaticResource LabelStyle}"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" Margin="0,5" Text="{Binding Route.Garage, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" Margin="0,5" x:Name="GarageTextBox" Text="{Binding Route.Garage, UpdateSourceTrigger=PropertyChanged}" TextChanged="GarageTextBox_TextChanged"/>
 
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Latitud:" Style="{StaticResource LabelStyle}"/>
-                            <TextBox Grid.Row="1" Grid.Column="1" Margin="0,5" Text="{Binding Route.GarageLatitude, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" Margin="0,5" x:Name="GarageLatitudeTextBox" Text="{Binding Route.GarageLatitude, UpdateSourceTrigger=PropertyChanged}"/>
 
                             <TextBlock Grid.Row="2" Grid.Column="0" Text="Longitud:" Style="{StaticResource LabelStyle}"/>
-                            <TextBox Grid.Row="2" Grid.Column="1" Margin="0,5" Text="{Binding Route.GarageLongitude, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" Margin="0,5" x:Name="GarageLongitudeTextBox" Text="{Binding Route.GarageLongitude, UpdateSourceTrigger=PropertyChanged}"/>
 
                             <!-- Opcional: Podrías poner un control de mapa aquí -->
                             <Border Grid.Row="3" Grid.ColumnSpan="2" BorderBrush="Gainsboro" BorderThickness="1" Margin="0,20,0,0" Background="WhiteSmoke">
-                                <TextBlock Text="[Área para un control de mapa]" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Gray"/>
+                                <wv2:WebView2 x:Name="MapWebView" Loaded="WebView_Loaded"/>
                             </Border>
 
                         </Grid>
