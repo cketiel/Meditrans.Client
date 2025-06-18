@@ -72,7 +72,7 @@ namespace Meditrans.Client.ViewModels
             //var groups = await _dataService.GetVehicleGroupsAsync();
             var groups = await _vehicleGroupService.GetGroupsAsync();
             VehicleGroups.Clear();
-            VehicleGroups.Add(new VehicleGroup { Id = 0, Name = "Todos los Grupos" }); // Opción para deseleccionar filtro
+            VehicleGroups.Add(new VehicleGroup { Id = 0, Name = "Todos los Grupos" }); // Option to deselect filter
             foreach (var group in groups)
             {
                 VehicleGroups.Add(group);
@@ -90,7 +90,7 @@ namespace Meditrans.Client.ViewModels
 
         private void AddRoute()
         {
-            var newRoute = new VehicleRoute(); // Crear una ruta vacía por defecto
+            var newRoute = new VehicleRoute(); 
             var editorViewModel = new VehicleRouteEditorViewModel(newRoute, _runService);
 
             var editorWindow = new VehicleRouteEditorWindow
@@ -101,7 +101,7 @@ namespace Meditrans.Client.ViewModels
 
             if (editorWindow.ShowDialog() == true)
             {
-                // La ventana se cerró con "Guardar"
+                // The window was closed with "Save"
                 var savedRouteVM = new VehicleRouteViewModel(newRoute);
                 AllRoutes.Add(savedRouteVM);
                 SelectedRoute = savedRouteVM;                          
@@ -112,7 +112,7 @@ namespace Meditrans.Client.ViewModels
         {
             if (SelectedRoute == null) return;
 
-            // Pasamos una copia para no modificar el original hasta guardar
+            // We pass a copy so as not to modify the original until saving
             var routeToEdit = SelectedRoute.Model;
             var editorViewModel = new VehicleRouteEditorViewModel(routeToEdit, _runService);
 
@@ -124,7 +124,7 @@ namespace Meditrans.Client.ViewModels
 
             if (editorWindow.ShowDialog() == true)
             {
-                // Actualizar la vista del elemento existente
+                // Update existing item view
                 SelectedRoute.Refresh();
                 FilteredRoutes.Refresh();
             }
@@ -133,17 +133,36 @@ namespace Meditrans.Client.ViewModels
         {
             if (SelectedRoute == null) return;
 
-            if (MessageBox.Show($"¿Está seguro de que desea eliminar la ruta '{SelectedRoute.Name}'?", "Confirmar Eliminación", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            if (MessageBox.Show($"Are you sure you want to cancel the route '{SelectedRoute.Name}'?", "Confirm Cancellation", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
             {
                 try
                 {
                     RunService _runService = new RunService();
-                    await _runService.DeleteAsync(SelectedRoute.Id);
-                    AllRoutes.Remove(SelectedRoute);
+                    await _runService.CancelAsync(SelectedRoute.Id);
+                    var routeToCancel = SelectedRoute.Model;
+                    routeToCancel.ToDate = DateTime.Now;
+                    SelectedRoute.Refresh();
+                    FilteredRoutes.Refresh();
+                    //await _runService.DeleteAsync(SelectedRoute.Id);
+                    //AllRoutes.Remove(SelectedRoute);
+
+                    /*bool success = await _runService.CancelAsync(SelectedRoute.Id);
+
+                    if (success)
+                    {
+                        MessageBox.Show("Ruta cancelada exitosamente.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
+                        SelectedRoute.ToDate = DateTime.Now; // Actualiza el objeto en la UI
+                        OnPropertyChanged(nameof(Routes)); // Notifica a la vista que la colección pudo haber cambiado
+                    }
+                    else
+                    {
+                        MessageBox.Show("No se pudo cancelar la ruta. Revisa la consola para más detalles.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }*/
+
                 }
                 catch (ApiException ex)
                 {
-                    MessageBox.Show($"Error al eliminar: {ex.Message}", "Error de API", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Error canceling: {ex.Message}", "API error", MessageBoxButton.OK, MessageBoxImage.Error);
                     //MessageBox.Show($"Error al eliminar: {ex.Message}\nDetalles: {ex.Details}", "Error de API", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
@@ -152,7 +171,7 @@ namespace Meditrans.Client.ViewModels
         {
             if (item is VehicleRouteViewModel route)
             {
-                bool isActiveMatch = !ShowOnlyActive || route.IsActive;
+                bool isActiveMatch = ShowOnlyActive || route.IsActive;
                 bool groupMatch = SelectedVehicleGroup == null || SelectedVehicleGroup.Id == 0 || route.VehicleGroupId == SelectedVehicleGroup.Id;
                 return isActiveMatch && groupMatch;
             }

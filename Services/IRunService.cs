@@ -15,5 +15,6 @@ namespace Meditrans.Client.Services
         Task<VehicleRoute> CreateAsync(VehicleRouteDto dto);
         Task UpdateAsync(int id, VehicleRouteDto dto);
         Task DeleteAsync(int id);
+        Task<bool> CancelAsync(int id);
     }
 }

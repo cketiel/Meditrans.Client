@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -105,6 +106,45 @@ namespace Meditrans.Client.Services
             catch (HttpRequestException ex)
             {
                 throw new ApiException("Connection error with the server.", ex);
+            }
+        }
+
+        public async Task<bool> CancelAsync(int id)
+        {            
+            var requestUrl = $"{_endPoint}/{id}/cancel";
+
+            try
+            {
+                // Make the PATCH request.
+                // We do not need to send a body for this operation, so the second argument is null.
+                HttpResponseMessage response = await _httpClient.PatchAsync(requestUrl, null);
+
+                // Check the server response.
+                // The API returns 204 NoContent on success. IsSuccessStatusCode will detect it.
+                if (response.IsSuccessStatusCode)
+                {
+                    return true;
+                }
+
+                // If the response is 404 Not Found, the route did not exist.
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    Console.WriteLine($"Error: Route with ID:  {id} not found");
+                }
+                else
+                {
+                    // For other error codes (e.g. 500 Internal Server Error).
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"Error canceling the route. Status: {response.StatusCode}. Content: {errorContent}");
+                }
+
+                return false;
+            }
+            catch (HttpRequestException ex)
+            {
+                // Capture network errors (e.g. server is not available).
+                Console.WriteLine($"Network error when trying to cancel the route: {ex.Message}");
+                return false;
             }
         }
 
