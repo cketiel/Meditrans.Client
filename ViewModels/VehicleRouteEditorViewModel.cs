@@ -20,57 +20,54 @@ namespace Meditrans.Client.ViewModels
         private readonly IRunService _runService;
         private readonly VehicleRoute _originalRoute;
 
-        // Propiedad para enlazar a todos los controles del formulario.
-        // Trabajamos sobre esta copia y solo guardamos si el usuario confirma.
+        // Property to bind to all controls on the form.
+        // We work on this copy and only save if the user confirms.
         public VehicleRoute Route { get; private set; }
 
-        // Colecciones para los ComboBoxes y Listas en los Tabs
+        // Collections for ComboBoxes and Lists in Tabs
         public ObservableCollection<User> AllDrivers { get; }
         public ObservableCollection<Vehicle> AllVehicles { get; }
         public ObservableCollection<SelectableFundingSourceViewModel> AllFundingSources { get; }
         public ObservableCollection<DailyAvailabilityViewModel> DailyAvailabilities { get; }
         public ObservableCollection<RouteSuspension> Suspensions { get; }
 
-        // Comandos para los botones Guardar y Cancelar
         public ICommand SaveCommand { get; }
         public ICommand CancelCommand { get; }
         public ICommand AddSuspensionCommand { get; }
         public ICommand RemoveSuspensionCommand { get; }
 
 
-        // Evento para notificar a la vista (la ventana) que debe cerrarse
+        // Event to notify the view (the window) that it should be closed
         public event EventHandler<bool?> RequestClose;
 
         public VehicleRouteEditorViewModel(VehicleRoute route, IRunService runService)
         {
             _runService = runService;
-            _originalRoute = route; // Guardamos el original por si hay que revertir
+            _originalRoute = route; // We keep the original in case we have to revert
 
-            // Creamos una copia profunda (simplificada aquí) para no editar el objeto original directamente.
-            // Para una app real, considera usar una librería como AutoMapper o implementar ICloneable.
+            // We create a deep copy (simplified here) so as not to edit the original object directly.
             Route = CloneRoute(route);
 
-            // Inicializar colecciones
+            // Initialize collections
             AllDrivers = new ObservableCollection<User>();
             AllVehicles = new ObservableCollection<Vehicle>();
             AllFundingSources = new ObservableCollection<SelectableFundingSourceViewModel>();
             DailyAvailabilities = new ObservableCollection<DailyAvailabilityViewModel>();
             Suspensions = new ObservableCollection<RouteSuspension>(Route.Suspensions);
 
-            // Inicializar comandos
+            // Initialize commands
             SaveCommand = new RelayCommandObject(async param => await SaveAsync(), param => CanSave());
             CancelCommand = new RelayCommandObject(param => Cancel());
             AddSuspensionCommand = new RelayCommandObject(param => AddSuspension());
             RemoveSuspensionCommand = new RelayCommandObject(param => RemoveSuspension(param as RouteSuspension), param => param != null);
 
 
-            // Cargar datos asincrónicamente
+            // Load data asynchronously
             LoadDependenciesAsync();
         }
 
         private async Task LoadDependenciesAsync()
         {
-            // Cargar conductores y vehículos
             UserService _userService = new UserService();
             //var drivers = await _userService.GetDriversAsync();
             var drivers = await _userService.GetAllAsync();
@@ -79,8 +76,6 @@ namespace Meditrans.Client.ViewModels
             var vehicles = await _vehicleService.GetVehiclesAsync();
             vehicles.ForEach(v => AllVehicles.Add(v));
 
-            // Asegurarse de que el conductor y vehículo seleccionados en la ruta
-            // estén correctamente asignados en los ComboBoxes.
             if (Route.DriverId > 0)
             {
                 Route.Driver = AllDrivers.FirstOrDefault(d => d.Id == Route.DriverId);
@@ -89,9 +84,8 @@ namespace Meditrans.Client.ViewModels
             {
                 Route.Vehicle = AllVehicles.FirstOrDefault(v => v.Id == Route.VehicleId);
             }
-            OnPropertyChanged(nameof(Route)); // Notificar que la propiedad Route ha sido actualizada
+            OnPropertyChanged(nameof(Route)); // Notify that the Route property has been updated
 
-            // Cargar y preparar la lista de Fuentes de Financiamiento
             FundingSourceService _fundingSourceService = new FundingSourceService();           
             var allFundingSources = await _fundingSourceService.GetFundingSourcesAsync();
             var exclusiveIds = new HashSet<int>(Route.FundingSources.Select(fs => fs.FundingSourceId));
@@ -103,10 +97,10 @@ namespace Meditrans.Client.ViewModels
                     IsSelected = exclusiveIds.Contains(fs.Id)
                 });
             }
-            // Si es una ruta nueva y no tiene fuentes exclusivas, por defecto no se selecciona ninguna.
-            // La lógica de negocio indica que "ninguna seleccionada" significa "todas son válidas".
+            // If it is a new route and does not have exclusive sources, by default none is selected.
+            // The business logic indicates that "none selected" means "all are valid."
 
-            // Preparar la lista de Disponibilidad Diaria
+            // Prepare the Daily Availability list
             var daysOfWeek = Enum.GetValues(typeof(DayOfWeek)).Cast<DayOfWeek>();
             foreach (var day in daysOfWeek)
             {
@@ -115,14 +109,14 @@ namespace Meditrans.Client.ViewModels
 
                 if (existingAvailability != null)
                 {
-                    // Si ya existe una configuración para este día, usarla
+                    // If a configuration already exists for this day, use it
                     dailyVM.IsActive = existingAvailability.IsActive;
                     dailyVM.StartTime = existingAvailability.StartTime;
                     dailyVM.EndTime = existingAvailability.EndTime;
                 }
                 else
                 {
-                    // Si no existe, usar los horarios generales de la ruta
+                    // If it does not exist, use the general route schedules
                     dailyVM.StartTime = Route.FromTime;
                     dailyVM.EndTime = Route.ToTime;
                 }
@@ -132,7 +126,6 @@ namespace Meditrans.Client.ViewModels
 
         private bool CanSave()
         {
-            // Validación simple. Puedes añadir más reglas aquí.
             return !string.IsNullOrWhiteSpace(Route.Name) &&
                    Route.DriverId > 0 &&
                    Route.VehicleId > 0 &&
@@ -146,17 +139,16 @@ namespace Meditrans.Client.ViewModels
         {
             if (!CanSave())
             {
-                MessageBox.Show("Por favor, complete todos los campos requeridos y asegúrese de que los horarios son válidos.", "Datos incompletos", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please complete all required fields and ensure the times are valid.", "Incomplete data", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // 1. Actualizar la colección de Disponibilidad Diaria en el modelo
+            // Update the Daily Availability collection in the model
             Route.Availabilities.Clear();
             foreach (var dailyVM in DailyAvailabilities)
             {
-                // Solo guardamos la configuración si es diferente del comportamiento por defecto
-                // (activo y con los horarios generales de la ruta) para mantener la data limpia.
-                // Opcional: Podrías decidir guardar siempre las 7 entradas para ser más explícito.
+                // We only save the configuration if it is different from the default behavior
+                // (active and with the general route schedules) to keep the data clean.                
                 bool isDefault = dailyVM.IsActive && dailyVM.StartTime == Route.FromTime && dailyVM.EndTime == Route.ToTime;
                 if (!isDefault)
                 {
@@ -171,7 +163,7 @@ namespace Meditrans.Client.ViewModels
                 }
             }
 
-            // 2. Actualizar la colección de Fuentes de Financiamiento en el modelo
+            // Update the Financing Sources collection in the model
             Route.FundingSources.Clear();
             var selectedFundingSources = AllFundingSources.Where(fsvm => fsvm.IsSelected);
             foreach (var fsvm in selectedFundingSources)
@@ -183,52 +175,42 @@ namespace Meditrans.Client.ViewModels
                 });
             }
 
-            // 3. Actualizar Suspensiones
+            // Update Suspensions
             Route.Suspensions = new List<RouteSuspension>(Suspensions);
 
 
-            // 2. Usar el mapper para convertir el Modelo a DTO
+            // Use the mapper to convert Model to DTO
             var routeDto = Route.ToDto();
 
             try
             {
-                if (Route.Id == 0) // Es una nueva ruta
+                if (Route.Id == 0) // It's a new route
                 {
                     var createdRoute = await _runService.CreateAsync(routeDto);
-                    // Actualizar el modelo original con la respuesta de la API (que incluye el nuevo ID)
+                    // Update the original model with the API response (which includes the new ID)
                     UpdateOriginalRoute(createdRoute);
                 }
-                else // Es una actualización
+                else // It's an update
                 {
                     await _runService.UpdateAsync(Route.Id, routeDto);
-                    // Actualizar el modelo original con los datos locales guardados
+                    // Update the original model with saved local data
                     UpdateOriginalRoute(this.Route);
                 }
 
-                // 3. Cerrar la ventana con éxito
+                // Close the window successfully
                 RequestClose?.Invoke(this, true);
             }
             catch (ApiException ex)
             {
-                MessageBox.Show($"Error al guardar: {ex.Message}", "Error de API", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Saving error: {ex.Message}", "API error", MessageBoxButton.OK, MessageBoxImage.Error);
                 //MessageBox.Show($"Error al guardar: {ex.Message}\nDetalles: {ex.Details}", "Error de API", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-            /*
-            // 4. Persistir los cambios usando el servicio de datos
-            RunService _runService = new RunService();
-            //var savedRoute = await _runService.SaveVehicleRouteAsync(Route); // OJO
-
-            // 5. Actualizar el objeto original con los datos guardados
-            // Esto es importante para que la vista principal refleje los cambios.
-            //UpdateOriginalRoute(savedRoute); // OJO
-
-            // 6. Cerrar la ventana con un resultado de éxito
-            RequestClose?.Invoke(this, true);*/
+            
         }
 
         private void Cancel()
         {
-            // Simplemente cierra la ventana sin guardar
+            // Just close the window without saving
             RequestClose?.Invoke(this, false);
         }
 
