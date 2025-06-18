@@ -6,11 +6,14 @@
              xmlns:local="clr-namespace:Meditrans.Client.Views.Data.Scheduling"
              xmlns:vm="clr-namespace:Meditrans.Client.ViewModels"
              xmlns:converters="clr-namespace:Meditrans.Client.Converters"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1000"
              >
 
     <UserControl.Resources>
+        <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
         <converters:BooleanToSymbolConverter x:Key="BoolToSymbolConverter"/>
         <converters:BooleanToColorConverter x:Key="BoolToColorConverter"/>
     </UserControl.Resources>
@@ -21,27 +24,43 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Barra de Herramientas y Filtros -->
-        <DockPanel Grid.Row="0" Margin="0,0,0,10">
-            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+        <!-- Filters -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <!--<StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
                 <Button Content="Añadir" Command="{Binding AddCommand}" Margin="0,0,5,0" Padding="10,5"/>
                 <Button Content="Editar" Command="{Binding EditCommand}" Margin="0,0,5,0" Padding="10,5"/>
                 <Button Content="Eliminar" Command="{Binding DeleteCommand}" Padding="10,5"/>
-            </StackPanel>
+            </StackPanel>-->
 
-            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
-                <TextBlock Text="Grupo de Vehículo:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                <ComboBox ItemsSource="{Binding VehicleGroups}" 
-                          SelectedItem="{Binding SelectedVehicleGroup}" 
-                          DisplayMemberPath="Name"
-                          Width="150" Margin="0,0,10,0"/>
-                <CheckBox Content="Mostrar solo activos" 
-                          IsChecked="{Binding ShowOnlyActive}" 
-                          VerticalAlignment="Center"/>
-            </StackPanel>
-        </DockPanel>
+            <Button Command="{Binding AddCommand}"
+                Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                ToolTip="{Binding AddRunToolTip}"
+                Margin="0,0,20,0">
+                <materialDesign:PackIcon Kind="Add" Height="24" Width="24" />
+            </Button>
 
-        <!-- Route Grid -->
+            <CheckBox
+                Content="Show Inactive"
+                IsChecked="{Binding ShowOnlyActive, Mode=TwoWay}"
+                VerticalAlignment="Center"
+                Margin="20,0,0,0"/>
+
+
+
+            <ComboBox 
+                materialDesign:HintAssist.Hint="{Binding SelectVehicleGroupHint}"
+                materialDesign:TextFieldAssist.HasClearButton="True"
+                ItemsSource="{Binding VehicleGroups}" 
+                SelectedItem="{Binding SelectedVehicleGroup}" 
+                DisplayMemberPath="Name"
+                Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                VerticalAlignment="Center"
+                Margin="20,0,0,0"
+                Width="300"/>
+
+        </StackPanel>
+
+            <!-- Route Grid -->
         <DataGrid Grid.Row="1" 
                 ItemsSource="{Binding FilteredRoutes}"
                 SelectedItem="{Binding SelectedRoute}"
@@ -57,19 +76,83 @@
                 SelectionUnit="FullRow">
             
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Nombre" Binding="{Binding Name}" Width="*"/>
-                <DataGridTextColumn Header="Descripción" Binding="{Binding Description}" Width="*"/>
-                <DataGridTextColumn Header="Login Smartphone" Binding="{Binding SmartphoneLogin}" Width="Auto"/>
-                <DataGridTextColumn Header="Conductor" Binding="{Binding Driver}" Width="Auto"/>
-                <DataGridTextColumn Header="Vehículo" Binding="{Binding Vehicle}" Width="Auto"/>
-                <DataGridTextColumn Header="Garaje" Binding="{Binding Garage}" Width="Auto"/>
-                <DataGridTextColumn Header="Desde" Binding="{Binding FromDate, StringFormat='d'}" Width="Auto"/>
-                <DataGridTextColumn Header="Hasta" Binding="{Binding ToDate, StringFormat='d', TargetNullValue='Indefinido'}" Width="Auto"/>
-                <DataGridTextColumn Header="Hora Inicio" Binding="{Binding FromTime, StringFormat='hh\\:mm'}" Width="Auto"/>
-                <DataGridTextColumn Header="Hora Fin" Binding="{Binding ToTime, StringFormat='hh\\:mm'}" Width="Auto"/>
+
+                <!-- Action Buttons Column -->
+                <DataGridTemplateColumn Width="Auto">
+                    <!--<DataGridTemplateColumn.Header>
+                        <Button Command="{Binding Data.ExportToExcelCommand, Source={StaticResource vmProxy}}"
+                                Style="{StaticResource MaterialDesignToolButton}"
+                                ToolTip="{Binding Data.ExcelExportToolTip, Source={StaticResource vmProxy}}">
+                            <materialDesign:PackIcon Kind="MicrosoftExcel" Foreground="Green"/>
+                        </Button>
+                    </DataGridTemplateColumn.Header>-->
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                
+                                <Button Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource MaterialDesignToolButton}"
+                                        ToolTip="{Binding Data.DeleteRunToolTip, Source={StaticResource vmProxy}}">
+                                    <materialDesign:PackIcon Kind="CloseThick" Foreground="Red"/>
+                                </Button>
+                                
+                                <Button Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource MaterialDesignToolButton}"
+                                        ToolTip="{Binding Data.EditRunToolTip, Source={StaticResource vmProxy}}">
+                                    <materialDesign:PackIcon Kind="Pencil" Foreground="Orange"/>
+                                </Button>
+                                
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <!-- Data Columns -->
+                <DataGridTextColumn 
+                    Binding="{Binding Name}"
+                    Header="{Binding Data.ColumnHeaderName, Source={StaticResource vmProxy}}" />
+
+                <DataGridTextColumn 
+                    Binding="{Binding Description}"
+                    Header="{Binding Data.ColumnHeaderDescription, Source={StaticResource vmProxy}}" />
+
+                <DataGridTextColumn 
+                    Binding="{Binding SmartphoneLogin}"
+                    Header="{Binding Data.ColumnHeaderSmartphoneLogin, Source={StaticResource vmProxy}}" />
+
+                <DataGridTextColumn 
+                    Binding="{Binding Driver}"
+                    Header="{Binding Data.ColumnHeaderDriver, Source={StaticResource vmProxy}}" />
+
+                <DataGridTextColumn 
+                    Binding="{Binding Vehicle}"
+                    Header="{Binding Data.ColumnHeaderVehicle, Source={StaticResource vmProxy}}" />
+
+                <DataGridTextColumn 
+                    Binding="{Binding Garage}"
+                    Header="{Binding Data.ColumnHeaderGarage, Source={StaticResource vmProxy}}" />
+
+                <DataGridTextColumn 
+                    Binding="{Binding FromDate, StringFormat='d'}"
+                    Header="{Binding Data.ColumnHeaderFromDate, Source={StaticResource vmProxy}}" />
+
+                <DataGridTextColumn 
+                    Binding="{Binding ToDate, StringFormat='d', TargetNullValue='Undefined'}"
+                    Header="{Binding Data.ColumnHeaderToDate, Source={StaticResource vmProxy}}" />
+
+                <DataGridTextColumn 
+                    Binding="{Binding FromTime, StringFormat='hh\\:mm'}"
+                    Header="{Binding Data.ColumnHeaderFromTime, Source={StaticResource vmProxy}}" />
+
+                <DataGridTextColumn 
+                    Binding="{Binding ToTime, StringFormat='hh\\:mm'}"
+                    Header="{Binding Data.ColumnHeaderToTime, Source={StaticResource vmProxy}}" />               
 
                 <!-- Days of the Week -->
-                <DataGridTemplateColumn Header="Dom" SortMemberPath="Sunday">
+
+                <DataGridTemplateColumn Header="{Binding Data.Sunday, Source={StaticResource vmProxy}}" SortMemberPath="Sunday">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Sunday, Converter={StaticResource BoolToSymbolConverter}}" 
@@ -78,7 +161,8 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Lun" SortMemberPath="Monday">
+
+                <DataGridTemplateColumn Header="{Binding Data.Monday, Source={StaticResource vmProxy}}" SortMemberPath="Monday"> 
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Monday, Converter={StaticResource BoolToSymbolConverter}}" 
@@ -87,7 +171,8 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Mar" SortMemberPath="Tuesday">
+
+                <DataGridTemplateColumn Header="{Binding Data.Tuesday, Source={StaticResource vmProxy}}" SortMemberPath="Tuesday">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Tuesday, Converter={StaticResource BoolToSymbolConverter}}" 
@@ -96,7 +181,8 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Mié" SortMemberPath="Wednesday">
+
+                <DataGridTemplateColumn Header="{Binding Data.Wednesday, Source={StaticResource vmProxy}}" SortMemberPath="Wednesday">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Wednesday, Converter={StaticResource BoolToSymbolConverter}}" 
@@ -105,7 +191,8 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Jue" SortMemberPath="Thursday">
+
+                <DataGridTemplateColumn Header="{Binding Data.Thursday, Source={StaticResource vmProxy}}" SortMemberPath="Thursday">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Thursday, Converter={StaticResource BoolToSymbolConverter}}" 
@@ -114,7 +201,8 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Vie" SortMemberPath="Friday">
+
+                <DataGridTemplateColumn Header="{Binding Data.Friday, Source={StaticResource vmProxy}}" SortMemberPath="Friday">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Friday, Converter={StaticResource BoolToSymbolConverter}}" 
@@ -123,7 +211,8 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Sáb" SortMemberPath="Saturday">
+
+                <DataGridTemplateColumn Header="{Binding Data.Saturday, Source={StaticResource vmProxy}}" SortMemberPath="Saturday">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Saturday, Converter={StaticResource BoolToSymbolConverter}}" 
@@ -132,6 +221,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
+                
             </DataGrid.Columns>
         </DataGrid>
     </Grid>

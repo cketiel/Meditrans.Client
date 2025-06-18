@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Meditrans.Client.ViewModels
 {
-    // Este ViewModel envuelve el modelo VehicleRoute para añadirle lógica de presentación
+    // This ViewModel wraps the VehicleRoute model to add presentation logic.
     public class VehicleRouteViewModel : BaseViewModel
     {
         private readonly VehicleRoute _route;
@@ -20,7 +20,7 @@ namespace Meditrans.Client.ViewModels
         public string Description => _route.Description;
         public string SmartphoneLogin => _route.SmartphoneLogin;
         public string Driver => _route.Driver?.FullName;
-        public string Vehicle => _route.Vehicle?.Plate;
+        public string Vehicle => _route.Vehicle?.Name;
         public string Garage => _route.Garage;
         public DateTime FromDate => _route.FromDate;
         public DateTime? ToDate => _route.ToDate;

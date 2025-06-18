@@ -113,7 +113,7 @@ namespace Meditrans.Client.Services
         {
             try
             {
-                var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+                var problemDetails = await response.Content.ReadFromJsonAsync<DTOs.ProblemDetails>();
 
                 // Construct a clearer error message, using the issue title if available
                 var errorMessage = $"{context}: {problemDetails?.Title ?? "Error not specified by the API."}";

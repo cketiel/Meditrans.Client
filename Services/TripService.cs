@@ -146,7 +146,7 @@ namespace Meditrans.Client.Services
         {
             try
             {
-                var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+                var problemDetails = await response.Content.ReadFromJsonAsync<Exceptions.ProblemDetails>();
                 return new ApiException(
                     message: $"{context}: {problemDetails?.Title}",
                     statusCode: response.StatusCode,

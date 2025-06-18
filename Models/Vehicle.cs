@@ -36,5 +36,6 @@ namespace Meditrans.Client.Models
         {
             return this.MemberwiseClone(); 
         }
+
     }
 }

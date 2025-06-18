@@ -1,4 +1,7 @@
-﻿using Meditrans.Client.Commands;
+﻿using DocumentFormat.OpenXml.Drawing.ChartDrawing;
+using Meditrans.Client.Commands;
+using Meditrans.Client.Exceptions;
+using Meditrans.Client.Mappers;
 using Meditrans.Client.Models;
 using Meditrans.Client.Services;
 using System;
@@ -7,13 +10,14 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace Meditrans.Client.ViewModels
 {
     public class VehicleRouteEditorViewModel : BaseViewModel
     {
-        //private readonly IDataService _dataService;
+        private readonly IRunService _runService;
         private readonly VehicleRoute _originalRoute;
 
         // Propiedad para enlazar a todos los controles del formulario.
@@ -37,9 +41,9 @@ namespace Meditrans.Client.ViewModels
         // Evento para notificar a la vista (la ventana) que debe cerrarse
         public event EventHandler<bool?> RequestClose;
 
-        public VehicleRouteEditorViewModel(VehicleRoute route/*, IDataService dataService*/)
+        public VehicleRouteEditorViewModel(VehicleRoute route, IRunService runService)
         {
-            //_dataService = dataService;
+            _runService = runService;
             _originalRoute = route; // Guardamos el original por si hay que revertir
 
             // Creamos una copia profunda (simplificada aquí) para no editar el objeto original directamente.
@@ -182,6 +186,34 @@ namespace Meditrans.Client.ViewModels
             // 3. Actualizar Suspensiones
             Route.Suspensions = new List<RouteSuspension>(Suspensions);
 
+
+            // 2. Usar el mapper para convertir el Modelo a DTO
+            var routeDto = Route.ToDto();
+
+            try
+            {
+                if (Route.Id == 0) // Es una nueva ruta
+                {
+                    var createdRoute = await _runService.CreateAsync(routeDto);
+                    // Actualizar el modelo original con la respuesta de la API (que incluye el nuevo ID)
+                    UpdateOriginalRoute(createdRoute);
+                }
+                else // Es una actualización
+                {
+                    await _runService.UpdateAsync(Route.Id, routeDto);
+                    // Actualizar el modelo original con los datos locales guardados
+                    UpdateOriginalRoute(this.Route);
+                }
+
+                // 3. Cerrar la ventana con éxito
+                RequestClose?.Invoke(this, true);
+            }
+            catch (ApiException ex)
+            {
+                MessageBox.Show($"Error al guardar: {ex.Message}", "Error de API", MessageBoxButton.OK, MessageBoxImage.Error);
+                //MessageBox.Show($"Error al guardar: {ex.Message}\nDetalles: {ex.Details}", "Error de API", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            /*
             // 4. Persistir los cambios usando el servicio de datos
             RunService _runService = new RunService();
             //var savedRoute = await _runService.SaveVehicleRouteAsync(Route); // OJO
@@ -191,7 +223,7 @@ namespace Meditrans.Client.ViewModels
             //UpdateOriginalRoute(savedRoute); // OJO
 
             // 6. Cerrar la ventana con un resultado de éxito
-            RequestClose?.Invoke(this, true);
+            RequestClose?.Invoke(this, true);*/
         }
 
         private void Cancel()
@@ -269,6 +301,48 @@ namespace Meditrans.Client.ViewModels
             _originalRoute.Suspensions = savedRoute.Suspensions;
         }
 
+        #endregion
+
+        #region Translation
+        public string TabItemHeaderGeneral => LocalizationService.Instance["General"]; // General
+
+        public string GroupBoxHeaderMainData => LocalizationService.Instance["MainData"]; // Main Data
+        public string TextBlockName => LocalizationService.Instance["TextBlockName"]; // Name:  
+        public string TextBlockDescription => LocalizationService.Instance["TextBlockDescription"]; // Description: 
+        public string TextBlockDriver => LocalizationService.Instance["TextBlockDriver"]; // Driver:
+        public string TextBlockVehicle => LocalizationService.Instance["TextBlockVehicle"]; // Vehicle:
+        public string TextBlockLoginSmartphone => LocalizationService.Instance["TextBlockLoginSmartphone"]; // Mobile Device Login:
+        public string TextBlockFromDate => LocalizationService.Instance["TextBlockFromDate"]; // From Date:
+        public string TextBlockToDate => LocalizationService.Instance["TextBlockToDate"]; // To Date:
+        public string TextBlockFromTime => LocalizationService.Instance["TextBlockFromTime"]; // From Time:
+        public string TextBlockToTime => LocalizationService.Instance["TextBlockToTime"]; // To Time:
+
+        public string GroupBoxHeaderSuspensions => LocalizationService.Instance["GroupBoxHeaderSuspensions"]; // Optional Suspend From-To Dates / Suspensiones de Ruta (Opcional)
+        public string ColumnHeaderStartSuspension => LocalizationService.Instance["StartSuspension"]; // Start Suspension
+        public string ColumnHeaderEndSuspension => LocalizationService.Instance["EndSuspension"]; // End Suspension
+        public string ColumnHeaderReason => LocalizationService.Instance["Reason"]; // Reason
+        public string ButtonContentAddSuspension => LocalizationService.Instance["AddSuspension"]; // Add Suspension
+
+        //Garage Location Tab
+        public string TabItemHeaderGarageLocation => LocalizationService.Instance["GarageLocation"]; // Garage Location
+        public string GroupBoxHeaderGarageLocation => LocalizationService.Instance["GarageLocation"];  
+        public string TextBlockGarageAddress => LocalizationService.Instance["TextBlockGarageAddress"]; // Garage/Address: 
+        public string TextBlockGarageLatitude => LocalizationService.Instance["TextBlockGarageLatitude"]; // Latitude:
+        public string TextBlockGarageLongitude => LocalizationService.Instance["TextBlockGarageLongitude"]; // Longitude:
+
+        //Daily Times Tab
+        public string TabItemHeaderDailyTimes => LocalizationService.Instance["DailyTimes"]; // Daily Times
+        public string GroupBoxHeaderSchedulesPerDay => LocalizationService.Instance["SchedulesPerDay"]; // Schedules per Day (Optional) / Horarios por Día(Opcional)
+        public string SchedulesPerDayExplanatoryText => LocalizationService.Instance["SchedulesPerDayExplanatoryText"]; // Define specific schedules here for each day of the week. If a day is not modified or left active with the general schedules, The schedules defined in the "General" tab will apply.
+        public string Active => LocalizationService.Instance["Active"];
+
+        //Exclusive Funding Sources Tab
+        public string TabItemHeaderExclusiveFundingSources => LocalizationService.Instance["ExclusiveFundingSources"]; // Exclusive Funding Sources
+        public string GroupBoxHeaderOptionalExclusiveFundingSources => LocalizationService.Instance["OptionalExclusiveFundingSources"]; // Exclusive Financing Sources (Optional) / Fuentes de Financiamiento Exclusivas (Opcional)
+        public string OptionalExclusiveFundingSourcesExplanatoryText => LocalizationService.Instance["OptionalExclusiveFundingSourcesExplanatoryText"]; // 
+
+        public string SaveText => LocalizationService.Instance["Save"];
+        public string CancelText => LocalizationService.Instance["Cancel"];
         #endregion
     }
 }

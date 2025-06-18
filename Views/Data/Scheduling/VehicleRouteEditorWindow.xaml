@@ -7,6 +7,7 @@
         xmlns:local="clr-namespace:Meditrans.Client.Views.Data.Scheduling"
         xmlns:converters="clr-namespace:Meditrans.Client.Converters"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
         mc:Ignorable="d"
         Title="Ruta de Vehículo" 
         Height="650" Width="800"
@@ -15,14 +16,14 @@
         d:DataContext="{d:DesignInstance Type=vm:VehicleRouteEditorViewModel, IsDesignTimeCreatable=False}">
 
     <Window.Resources>
-        <!-- Estilo para las etiquetas (TextBlock) para consistencia -->
+        <!-- Style for labels (TextBlock) for consistency -->
         <Style TargetType="TextBlock" x:Key="LabelStyle">
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Margin" Value="0,0,10,0"/>
         </Style>
 
-        <!-- Estilo para los TextBox con validación -->
+        <!-- Style for TextBoxes with validation -->
         <Style TargetType="TextBox">
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Padding" Value="3"/>
@@ -35,9 +36,44 @@
             </Style.Triggers>
         </Style>
 
-        <!-- Convertidor para el título de la ventana (Nuevo/Editar) -->
+        <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
+        
+        <!-- Converter for window title (New/Edit) -->
         <local:IdToTitleConverter x:Key="IdToTitleConverter" />
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+        <!-- Derived from the MaterialDesign style for TabControl -->
+        <Style TargetType="TabControl"
+        BasedOn="{StaticResource MaterialDesignTabControl}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid SnapsToDevicePixels="true">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Here we use TabPanel aligned left -->
+                            <TabPanel x:Name="HeaderPanel"
+                              Grid.Row="0"
+                              IsItemsHost="True"
+                              Panel.ZIndex="1"
+                              Background="{TemplateBinding Background}"
+                              Margin="0"
+                              HorizontalAlignment="Left"/>
+
+                            <!-- ContentPresenter that fills all the space -->
+                            <ContentPresenter x:Name="PART_SelectedContentHost"
+                      Grid.Row="1"
+                      Margin="{TemplateBinding Padding}"
+                      ContentSource="SelectedContent"
+                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid Margin="15">
@@ -48,9 +84,9 @@
 
         <TabControl Grid.Row="0">
             <!-- ============================================ -->
-            <!--                  TAB GENERAL                   -->
+            <!--                  GENERAL TAB                 -->
             <!-- ============================================ -->
-            <TabItem Header="General">
+            <TabItem Header="{Binding TabItemHeaderGeneral}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <Grid Margin="10">
                         <Grid.RowDefinitions>
@@ -59,8 +95,8 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <!-- Sección de Datos Principales -->
-                        <GroupBox Header="Datos Principales" Grid.Row="0" Padding="10">
+                        <!-- Main Data Section -->
+                        <GroupBox Header="{Binding GroupBoxHeaderMainData}" Grid.Row="0" Padding="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -77,48 +113,48 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Nombre:" Style="{StaticResource LabelStyle}"/>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding TextBlockName}" Style="{StaticResource LabelStyle}"/>
                                 <TextBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,5" 
                                          Text="{Binding Route.Name, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
 
-                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Descripción:" Style="{StaticResource LabelStyle}" VerticalAlignment="Top"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding TextBlockDescription}" Style="{StaticResource LabelStyle}" VerticalAlignment="Top"/>
                                 <TextBox Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Margin="0,5" Height="60" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"
                                          Text="{Binding Route.Description, UpdateSourceTrigger=PropertyChanged}"/>
 
-                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Conductor:" Style="{StaticResource LabelStyle}"/>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding TextBlockDriver}" Style="{StaticResource LabelStyle}"/>
                                 <ComboBox Grid.Row="2" Grid.Column="1" Margin="0,5,10,5"
                                           ItemsSource="{Binding AllDrivers}" 
                                           DisplayMemberPath="FullName" 
                                           SelectedValuePath="Id"
                                           SelectedValue="{Binding Route.DriverId, ValidatesOnDataErrors=True}"/>
 
-                                <TextBlock Grid.Row="2" Grid.Column="2" Text="Vehículo:" Style="{StaticResource LabelStyle}"/>
+                                <TextBlock Grid.Row="2" Grid.Column="2" Text="{Binding TextBlockVehicle}" Style="{StaticResource LabelStyle}"/>
                                 <ComboBox Grid.Row="2" Grid.Column="3" Margin="0,5"
                                           ItemsSource="{Binding AllVehicles}" 
                                           DisplayMemberPath="Name" 
                                           SelectedValuePath="Id"
                                           SelectedValue="{Binding Route.VehicleId, ValidatesOnDataErrors=True}"/>
 
-                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Login Smartphone:" Style="{StaticResource LabelStyle}"/>
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding TextBlockLoginSmartphone}" Style="{StaticResource LabelStyle}"/>
                                 <TextBox Grid.Row="3" Grid.Column="1" Margin="0,5,10,5" Text="{Binding Route.SmartphoneLogin, UpdateSourceTrigger=PropertyChanged}"/>
 
-                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Vigencia Desde:" Style="{StaticResource LabelStyle}"/>
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="{Binding TextBlockFromDate}" Style="{StaticResource LabelStyle}"/>
                                 <DatePicker Grid.Row="4" Grid.Column="1" Margin="0,5,10,5" SelectedDate="{Binding Route.FromDate, ValidatesOnDataErrors=True}"/>
 
-                                <TextBlock Grid.Row="4" Grid.Column="2" Text="Vigencia Hasta:" Style="{StaticResource LabelStyle}"/>
+                                <TextBlock Grid.Row="4" Grid.Column="2" Text="{Binding TextBlockToDate}" Style="{StaticResource LabelStyle}"/>
                                 <DatePicker Grid.Row="4" Grid.Column="3" Margin="0,5" SelectedDate="{Binding Route.ToDate}"/>
 
-                                <TextBlock Grid.Row="5" Grid.Column="0" Text="Horario Desde:" Style="{StaticResource LabelStyle}"/>
+                                <TextBlock Grid.Row="5" Grid.Column="0" Text="{Binding TextBlockFromTime}" Style="{StaticResource LabelStyle}"/>
                                 <TextBox Grid.Row="5" Grid.Column="1" Margin="0,5,10,5" Text="{Binding Route.FromTime, UpdateSourceTrigger=PropertyChanged, StringFormat='hh\\:mm', ValidatesOnDataErrors=True}" ToolTip="Formato HH:mm (24h)"/>
 
-                                <TextBlock Grid.Row="5" Grid.Column="2" Text="Horario Hasta:" Style="{StaticResource LabelStyle}"/>
+                                <TextBlock Grid.Row="5" Grid.Column="2" Text="{Binding TextBlockToTime}" Style="{StaticResource LabelStyle}"/>
                                 <TextBox Grid.Row="5" Grid.Column="3" Margin="0,5" Text="{Binding Route.ToTime, UpdateSourceTrigger=PropertyChanged, StringFormat='hh\\:mm', ValidatesOnDataErrors=True}" ToolTip="Formato HH:mm (24h)"/>
 
                             </Grid>
                         </GroupBox>
 
-                        <!-- Sección de Suspensiones -->
-                        <GroupBox Header="Suspensiones de Ruta (Opcional)" Grid.Row="1" Padding="10" Margin="0,10,0,0">
+                        <!-- Suspensions Section -->
+                        <GroupBox Header="{Binding GroupBoxHeaderSuspensions}" Grid.Row="1" Padding="10" Margin="0,10,0,0">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="*"/>
@@ -127,21 +163,21 @@
 
                                 <DataGrid Grid.Row="0" ItemsSource="{Binding Suspensions}" AutoGenerateColumns="False" CanUserAddRows="False" MaxHeight="150">
                                     <DataGrid.Columns>
-                                        <DataGridTemplateColumn Header="Inicio Suspensión" Width="*">
+                                        <DataGridTemplateColumn Header="{Binding Data.ColumnHeaderStartSuspension, Source={StaticResource vmProxy}}" Width="*">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <DatePicker SelectedDate="{Binding SuspensionStart, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0"/>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
-                                        <DataGridTemplateColumn Header="Fin Suspensión" Width="*">
+                                        <DataGridTemplateColumn Header="{Binding Data.ColumnHeaderEndSuspension, Source={StaticResource vmProxy}}" Width="*">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <DatePicker SelectedDate="{Binding SuspensionEnd, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0"/>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
-                                        <DataGridTextColumn Header="Motivo" Binding="{Binding Reason, UpdateSourceTrigger=PropertyChanged}" Width="2*"/>
+                                        <DataGridTextColumn Header="{Binding Data.ColumnHeaderReason , Source={StaticResource vmProxy}}" Binding="{Binding Reason, UpdateSourceTrigger=PropertyChanged}" Width="2*"/>
                                         <DataGridTemplateColumn Width="Auto">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
@@ -151,7 +187,7 @@
                                         </DataGridTemplateColumn>
                                     </DataGrid.Columns>
                                 </DataGrid>
-                                <Button Grid.Row="1" Content="Añadir Suspensión" Command="{Binding AddSuspensionCommand}" HorizontalAlignment="Right" Margin="0,5,0,0"/>
+                                <Button Grid.Row="1" Content="{Binding ButtonContentAddSuspension}" Command="{Binding AddSuspensionCommand}" HorizontalAlignment="Right" Margin="0,5,0,0"/>
                             </Grid>
                         </GroupBox>
                     </Grid>
@@ -159,11 +195,11 @@
             </TabItem>
 
             <!-- ============================================ -->
-            <!--             TAB UBICACIÓN GARAGE             -->
+            <!--             GARAGE LOCATION TAB              -->
             <!-- ============================================ -->
-            <TabItem Header="Garage Location">
+            <TabItem Header="{Binding TabItemHeaderGarageLocation}">
                 <Grid Margin="10">
-                    <GroupBox Header="Ubicación del Garaje" Padding="10">
+                    <GroupBox Header="{Binding TabItemHeaderGarageLocation}" Padding="10">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -176,16 +212,16 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Garaje/Dirección:" Style="{StaticResource LabelStyle}"/>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding TextBlockGarageAddress}" Style="{StaticResource LabelStyle}"/>
                             <TextBox Grid.Row="0" Grid.Column="1" Margin="0,5" x:Name="GarageTextBox" Text="{Binding Route.Garage, UpdateSourceTrigger=PropertyChanged}" TextChanged="GarageTextBox_TextChanged"/>
 
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Latitud:" Style="{StaticResource LabelStyle}"/>
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding TextBlockGarageLatitude}" Style="{StaticResource LabelStyle}"/>
                             <TextBox Grid.Row="1" Grid.Column="1" Margin="0,5" x:Name="GarageLatitudeTextBox" Text="{Binding Route.GarageLatitude, UpdateSourceTrigger=PropertyChanged}"/>
 
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Longitud:" Style="{StaticResource LabelStyle}"/>
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding TextBlockGarageLongitude}" Style="{StaticResource LabelStyle}"/>
                             <TextBox Grid.Row="2" Grid.Column="1" Margin="0,5" x:Name="GarageLongitudeTextBox" Text="{Binding Route.GarageLongitude, UpdateSourceTrigger=PropertyChanged}"/>
 
-                            <!-- Opcional: Podrías poner un control de mapa aquí -->
+                            <!-- Map -->
                             <Border Grid.Row="3" Grid.ColumnSpan="2" BorderBrush="Gainsboro" BorderThickness="1" Margin="0,20,0,0" Background="WhiteSmoke">
                                 <wv2:WebView2 x:Name="MapWebView" Loaded="WebView_Loaded"/>
                             </Border>
@@ -196,21 +232,19 @@
             </TabItem>
 
             <!-- ============================================ -->
-            <!--                TAB HORARIOS DIARIOS            -->
+            <!--                DAILY TIMES TAB               -->
             <!-- ============================================ -->
-            <TabItem Header="Daily Times">
+            <TabItem Header="{Binding TabItemHeaderDailyTimes}">
                 <Grid Margin="10">
-                    <GroupBox Header="Horarios por Día (Opcional)" Padding="10">
+                    <GroupBox Header="{Binding GroupBoxHeaderSchedulesPerDay}" Padding="10">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <TextBlock Grid.Row="0" TextWrapping="Wrap" Margin="0,0,0,10">
-                                Defina aquí horarios específicos para cada día de la semana. Si un día no se modifica o se deja activo con los horarios generales,
-                                se aplicarán los horarios definidos en la pestaña "General".
-                            </TextBlock>
+                            <TextBlock Grid.Row="0" TextWrapping="Wrap" Margin="0,0,0,10"
+                                       Text="{Binding SchedulesPerDayExplanatoryText}"/>
 
                             <ItemsControl Grid.Row="1" ItemsSource="{Binding DailyAvailabilities}">
                                 <ItemsControl.ItemTemplate>
@@ -226,14 +260,14 @@
                                             </Grid.ColumnDefinitions>
 
                                             <TextBlock Grid.Column="0" Text="{Binding DayName}" FontWeight="Bold" VerticalAlignment="Center"/>
-                                            <CheckBox Grid.Column="1" Content="Activo" IsChecked="{Binding IsActive}" VerticalAlignment="Center"/>
+                                            <CheckBox Grid.Column="1" Content="{Binding Data.Active, Source={StaticResource vmProxy}}" IsChecked="{Binding IsActive}" VerticalAlignment="Center"/>
 
-                                            <TextBlock Grid.Column="2" Text="Desde:" VerticalAlignment="Center" Margin="10,0,5,0"
+                                            <TextBlock Grid.Column="2" Text="{Binding Data.TextBlockFromTime, Source={StaticResource vmProxy}}" VerticalAlignment="Center" Margin="10,0,5,0"
                                                        Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                             <TextBox Grid.Column="3" Text="{Binding StartTime, StringFormat='hh\\:mm'}" VerticalAlignment="Center"
                                                      Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
-                                            <TextBlock Grid.Column="4" Text="Hasta:" VerticalAlignment="Center" Margin="10,0,5,0"
+                                            <TextBlock Grid.Column="4" Text="{Binding Data.TextBlockToTime, Source={StaticResource vmProxy}}" VerticalAlignment="Center" Margin="10,0,5,0"
                                                        Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                                             <TextBox Grid.Column="5" Text="{Binding EndTime, StringFormat='hh\\:mm'}" VerticalAlignment="Center"
                                                      Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}}"/>
@@ -247,11 +281,11 @@
             </TabItem>
 
             <!-- ============================================ -->
-            <!--      TAB FUENTES DE FINANCIAMIENTO           -->
+            <!--      EXCLUSIVE FINANCING SOURCES TAB         -->
             <!-- ============================================ -->
-            <TabItem Header="Exclusive Funding Sources">
+            <TabItem Header="{Binding TabItemHeaderExclusiveFundingSources}">
                 <Grid Margin="10">
-                    <GroupBox Header="Fuentes de Financiamiento Exclusivas (Opcional)" Padding="10">
+                    <GroupBox Header="{Binding GroupBoxHeaderOptionalExclusiveFundingSources}" Padding="10">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -259,9 +293,9 @@
                             </Grid.RowDefinitions>
 
                             <TextBlock Grid.Row="0" TextWrapping="Wrap" Margin="0,0,0,10">
-                                Seleccione las fuentes de financiamiento que esta ruta atenderá de forma exclusiva.
+                                Select the financing sources that this route will serve exclusively.
                                 <LineBreak/>
-                                <Span FontWeight="Bold">Si no selecciona ninguna, la ruta atenderá a TODAS las fuentes de financiamiento disponibles.</Span>
+                                <Span FontWeight="Bold">If you do not select any, the route will serve ALL available funding sources.</Span>
                             </TextBlock>
 
                             <ListBox Grid.Row="1" ItemsSource="{Binding AllFundingSources}" SelectionMode="Multiple" BorderBrush="Gainsboro">
@@ -278,10 +312,10 @@
 
         </TabControl>
 
-        <!-- Botones de Acción -->
+        <!-- Action Buttons -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button Content="Guardar" Command="{Binding SaveCommand}" IsDefault="True" MinWidth="100" Padding="10,5" Margin="5"/>
-            <Button Content="Cancelar" Command="{Binding CancelCommand}" IsCancel="True" MinWidth="100" Padding="10,5" Margin="5"/>
+            <Button Content="{Binding SaveText}" Command="{Binding SaveCommand}" IsDefault="True" MinWidth="100" Padding="10,5" Margin="5"/>
+            <Button Content="{Binding CancelText}" Command="{Binding CancelCommand}" IsCancel="True" MinWidth="100" Padding="10,5" Margin="5"/>
         </StackPanel>
     </Grid>
 </Window>

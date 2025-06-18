@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Meditrans.Client.Services;
 using Meditrans.Client.ViewModels;
 
 namespace Meditrans.Client.Views.Data.Scheduling
@@ -21,10 +22,11 @@ namespace Meditrans.Client.Views.Data.Scheduling
     /// </summary>
     public partial class RunsView : UserControl
     {
+        public RunsViewModel ViewModel => DataContext as RunsViewModel;
         public RunsView()
         {
             InitializeComponent();
-            this.DataContext = new RunsViewModel();
+            this.DataContext = new RunsViewModel(new RunService());
         }
     }
 }
