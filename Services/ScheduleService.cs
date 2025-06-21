@@ -12,7 +12,7 @@ namespace Meditrans.Client.Services
 {
     public class ScheduleService
     {
-        //private readonly string _baseUrl = "https://localhost:7123/api/"; // Cambia a tu URL
+        //private readonly string _baseUrl = "https://localhost:7123/api/"; 
         private readonly HttpClient _httpClient;
         private readonly string _endPoint = "schedules";
 
