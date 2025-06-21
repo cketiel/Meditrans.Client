@@ -6,7 +6,61 @@
              xmlns:local="clr-namespace:Meditrans.Client.Views.Schedules"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+
     <Grid>
-            
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Filter Panel -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
+            <DatePicker SelectedDate="{Binding SelectedDate}" Margin="5"/>
+            <ComboBox ItemsSource="{Binding VehicleRoutes}" SelectedItem="{Binding SelectedVehicleRoute}" DisplayMemberPath="Name" Width="200" Margin="5"/>
+            <ComboBox ItemsSource="{Binding VehicleGroups}" DisplayMemberPath="Name" Width="200" Margin="5"/>
+            <Button Content="Route Trip" Command="{Binding RouteTripCommand}" Margin="5"/>
+            <Button Content="Cancel Route" Command="{Binding CancelRouteCommand}" Margin="5"/>
+        </StackPanel>
+
+        <!-- Top Panel Left (Schedules) and Right (Map) -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Schedule Grid -->
+            <DataGrid Grid.Column="0" ItemsSource="{Binding Schedules}" SelectedItem="{Binding SelectedSchedule}" AutoGenerateColumns="False" CanUserAddRows="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                    <DataGridTextColumn Header="Pickup" Binding="{Binding Pickup, StringFormat=\{0:hh\\:mm\}}"/>
+                    <DataGridTextColumn Header="Appt" Binding="{Binding Appt, StringFormat=\{0:hh\\:mm\}}"/>
+                    <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="*"/>
+                    
+                    <DataGridTextColumn Header="Funding Source" Binding="{Binding FundingSource}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- Placeholder for Map -->
+            <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
+                <TextBlock Text="Map Area" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+        </Grid>
+
+        <!-- Lower Grid (Unscheduled Trips) -->
+        <DataGrid Grid.Row="2" ItemsSource="{Binding UnscheduledTrips}" SelectedItem="{Binding SelectedUnscheduledTrip}" AutoGenerateColumns="False" CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="*"/>
+                <DataGridTextColumn Header="From Time" Binding="{Binding FromTime, StringFormat=\{0:hh\\:mm\}}"/>
+                <DataGridTextColumn Header="To Time" Binding="{Binding ToTime, StringFormat=\{0:hh\\:mm\}}"/>
+                <DataGridTextColumn Header="Pickup Address" Binding="{Binding PickupAddress}" Width="*"/>
+                <DataGridTextColumn Header="Dropoff Address" Binding="{Binding DropoffAddress}" Width="*"/>
+                <DataGridTextColumn Header="Space" Binding="{Binding SpaceType}"/>
+                <DataGridTextColumn Header="Funding Source" Binding="{Binding FundingSource}"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
+
+
 </UserControl>
