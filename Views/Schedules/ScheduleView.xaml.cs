@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Meditrans.Client.Services;
+using Meditrans.Client.ViewModels;
 
 namespace Meditrans.Client.Views.Schedules
 {
@@ -23,6 +25,7 @@ namespace Meditrans.Client.Views.Schedules
         public ScheduleView()
         {
             InitializeComponent();
+            DataContext = new SchedulesViewModel(new ScheduleService());
         }
     }
 }

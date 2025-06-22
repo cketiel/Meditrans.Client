@@ -5,6 +5,7 @@ using Meditrans.Client.DTOs;
 using Meditrans.Client.Models;
 using Meditrans.Client.Services;
 using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace Meditrans.Client.ViewModels
 {
@@ -16,12 +17,16 @@ namespace Meditrans.Client.ViewModels
         private DateTime _selectedDate = DateTime.Today;
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(LoadSchedulesAndTripsCommand))] 
+        [NotifyCanExecuteChangedFor(nameof(RouteTripCommand))]
         private VehicleRoute _selectedVehicleRoute;
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(RouteTripCommand))]
         private UnscheduledTripDto _selectedUnscheduledTrip;
 
         [ObservableProperty]
+        [NotifyCanExecuteChangedFor(nameof(CancelRouteCommand))]
         private ScheduleDto _selectedSchedule;
 
         public ObservableCollection<VehicleRoute> VehicleRoutes { get; } = new();
@@ -36,6 +41,8 @@ namespace Meditrans.Client.ViewModels
             LoadSchedulesAndTripsCommand = new AsyncRelayCommand(LoadSchedulesAndTripsAsync, CanLoadSchedulesAndTrips);
             RouteTripCommand = new AsyncRelayCommand(RouteSelectedTripAsync, CanRouteSelectedTrip);
             CancelRouteCommand = new AsyncRelayCommand(CancelSelectedRouteAsync, CanCancelSelectedRoute);
+
+            _ = InitializeAsync();
         }
 
         public IAsyncRelayCommand LoadInitialDataCommand { get; }
@@ -43,6 +50,18 @@ namespace Meditrans.Client.ViewModels
         public IAsyncRelayCommand RouteTripCommand { get; }
         public IAsyncRelayCommand CancelRouteCommand { get; }
 
+        private async Task InitializeAsync()
+        {
+            try
+            {
+                await LoadInitialDataAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading initial data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Console.WriteLine($"Error loading initial data: {ex.Message}");
+            }
+        }
         // Load initial data (route and group lists)
         private async Task LoadInitialDataAsync()
         {

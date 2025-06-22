@@ -12,7 +12,7 @@ namespace Meditrans.Client.ViewModels
         #region Translation
 
         public string Schedule => LocalizationService.Instance["Schedule"];
-        public string Trips => LocalizationService.Instance["Schedule"];
+        public string Trips => LocalizationService.Instance["Trips"];
         public string Revenue => LocalizationService.Instance["Revenue"];
         public string Graphs => LocalizationService.Instance["Graphs"];
 
