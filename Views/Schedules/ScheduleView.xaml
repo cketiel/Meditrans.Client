@@ -11,9 +11,11 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
+            <!-- FILAS PRINCIPALES -->
+            <RowDefinition Height="Auto"/>         <!-- 0: Filters -->
+            <RowDefinition Height="*"/>            <!-- 1: Top Panel (Schedules and Map) -->
+            <RowDefinition Height="5"/>            <!-- 2: HORIZONTAL SPLITTER -->
+            <RowDefinition Height="*"/>            <!-- 3: Bottom Panel (Unrouted Trips) -->
         </Grid.RowDefinitions>
 
         <!-- Top Filter Panel -->
@@ -28,7 +30,13 @@
         <!-- Top Panel Left (Schedules) and Right (Map) -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
+                <!-- Columna 0: Schedule Grid -->
                 <ColumnDefinition Width="*"/>
+
+                <!-- Columna 1: Vertical Grid Splitter -->
+                <ColumnDefinition Width="5"/>
+
+                <!-- Columna 2: Map Area -->
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
@@ -44,14 +52,30 @@
                 </DataGrid.Columns>
             </DataGrid>
 
+            <!-- VERTICAL GridSplitter -->
+            <GridSplitter Grid.Column="1" 
+                          Width="5" 
+                          HorizontalAlignment="Stretch" 
+                          VerticalAlignment="Stretch" 
+                          Background="LightGray"
+                          ShowsPreview="True"/>
+
             <!-- Placeholder for Map -->
-            <Border Grid.Column="1" BorderBrush="Gray" BorderThickness="1" Margin="5">
+            <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1" Margin="5">
                 <TextBlock Text="Map Area" HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
         </Grid>
 
+        <!-- HORIZONTAL GridSplitter  -->
+        <GridSplitter Grid.Row="2" 
+                      Height="5" 
+                      HorizontalAlignment="Stretch" 
+                      VerticalAlignment="Center" 
+                      Background="LightGray"
+                      ShowsPreview="True"/>
+
         <!-- Lower Grid (Unscheduled Trips) -->
-        <DataGrid Grid.Row="2" ItemsSource="{Binding UnscheduledTrips}" SelectedItem="{Binding SelectedUnscheduledTrip}" AutoGenerateColumns="False" CanUserAddRows="False">
+        <DataGrid Grid.Row="3" ItemsSource="{Binding UnscheduledTrips}" SelectedItem="{Binding SelectedUnscheduledTrip}" AutoGenerateColumns="False" CanUserAddRows="False" Cursor="">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="*"/>
                 <DataGridTextColumn Header="From Time" Binding="{Binding FromTime, StringFormat=\{0:hh\\:mm\}}"/>
