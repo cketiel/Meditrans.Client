@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using Meditrans.Client.Models;
 using Meditrans.Client.ViewModels;
 
 namespace Meditrans.Client.Views.Schedules
@@ -23,7 +25,9 @@ namespace Meditrans.Client.Views.Schedules
         public ColumnSelectorView()
         {
             InitializeComponent();
-            //DataContext = new ScheduleColumnSelectorViewModel();
+            //Action closeAction = null;
+            //ObservableCollection<ColumnConfig> ColumnConfigurations = new();
+            //DataContext = new ScheduleColumnSelectorViewModel(ColumnConfigurations, () => closeAction?.Invoke());
         }
     }
 }

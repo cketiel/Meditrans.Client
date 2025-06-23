@@ -6,11 +6,14 @@ using Meditrans.Client.Models;
 using Meditrans.Client.Services;
 using System.Collections.ObjectModel;
 using System.Windows;
+using Meditrans.Client.Views.Schedules;
+using System.Windows.Input;
 
 namespace Meditrans.Client.ViewModels
 {
     public partial class SchedulesViewModel : ObservableObject
     {
+        //private readonly UserConfigService _userConfigService;
         private readonly ScheduleService _scheduleService;
 
         [ObservableProperty]
@@ -34,14 +37,25 @@ namespace Meditrans.Client.ViewModels
         public ObservableCollection<ScheduleDto> Schedules { get; } = new();
         public ObservableCollection<UnscheduledTripDto> UnscheduledTrips { get; } = new();
 
+        // The code generator will create a public ColumnConfigurations property.
+        // Every time you assign a new value to ColumnConfigurations,
+        // OnPropertyChanged(nameof(ColumnConfigurations)) will be called,
+        // which will force the UI to re-evaluate all bindings that depend on this property.
+        [ObservableProperty]
+        private ObservableCollection<ColumnConfig> _columnConfigurations = new();
+        // public ObservableCollection<ColumnConfig> ColumnConfigurations { get; set; } = new();
+
         public SchedulesViewModel(ScheduleService scheduleService)
         {
+            //UserConfigService _userConfigService = new UserConfigService();
             _scheduleService = scheduleService;
             LoadInitialDataCommand = new AsyncRelayCommand(LoadInitialDataAsync);
             LoadSchedulesAndTripsCommand = new AsyncRelayCommand(LoadSchedulesAndTripsAsync, CanLoadSchedulesAndTrips);
             RouteTripCommand = new AsyncRelayCommand(RouteSelectedTripAsync, CanRouteSelectedTrip);
             CancelRouteCommand = new AsyncRelayCommand(CancelSelectedRouteAsync, CanCancelSelectedRoute);
+            OpenColumnSelectorCommand = new RelayCommand(OpenColumnSelector);
 
+            InitializeColumns();
             _ = InitializeAsync();
         }
 
@@ -49,7 +63,90 @@ namespace Meditrans.Client.ViewModels
         public IAsyncRelayCommand LoadSchedulesAndTripsCommand { get; }
         public IAsyncRelayCommand RouteTripCommand { get; }
         public IAsyncRelayCommand CancelRouteCommand { get; }
+        public ICommand OpenColumnSelectorCommand { get; }
 
+        private void OpenColumnSelector()
+        {
+            // Action function that the popup ViewModel will use to close.
+            Action closeAction = null;
+
+            var viewModel = new ScheduleColumnSelectorViewModel(ColumnConfigurations, () => closeAction?.Invoke());
+            var view = new ColumnSelectorView
+            {
+                DataContext = viewModel,
+                Owner = Application.Current.MainWindow // Assign the main window as the owner
+            };
+
+            closeAction = () => view.Close();
+
+            view.ShowDialog();
+
+            if (viewModel.DialogResult == true)
+            {
+                // 1. Replaces the entire collection. This will trigger the UI update.
+                ColumnConfigurations = new ObservableCollection<ColumnConfig>(viewModel.Columns);
+
+                // The new configuration is saved for future sessions.
+                UserConfigService _userConfigService = new UserConfigService();
+                _userConfigService.SaveColumnConfig(ColumnConfigurations);
+
+                // The user pressed OK. The main configuration is updated.
+                /*foreach (var updatedConfig in viewModel.Columns)
+                {
+                    var originalConfig = ColumnConfigurations.FirstOrDefault(c => c.PropertyName == updatedConfig.PropertyName);
+                    if (originalConfig != null)
+                    {
+                        originalConfig.IsVisible = updatedConfig.IsVisible;
+                    }
+                }
+
+                // The new configuration is saved for future sessions.
+                UserConfigService _userConfigService = new UserConfigService();
+                _userConfigService.SaveColumnConfig(ColumnConfigurations);*/
+            }
+        }
+        private void InitializeColumns()
+        {
+            // Try to load user saved settings
+            UserConfigService _userConfigService = new UserConfigService();
+            var savedConfig = _userConfigService.LoadColumnConfig();
+
+            if (savedConfig != null)
+            {
+                foreach (var config in savedConfig)
+                {
+                    ColumnConfigurations.Add(config);
+                }
+            }
+            else
+            {
+                // If there is no saved configuration, it creates the default configuration.
+                // The PropertyName MUST match the property name in ScheduleDto.
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "Action", Header = "Action", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "Name", Header = "Name", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "Pickup", Header = "Pickup", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "Appt", Header = "Appt", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "ETA", Header = "ETA", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "Distance", Header = "Distance", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "Travel", Header = "Travel", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "On", Header = "On", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "SpaceTypeName", Header = "Space", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "Address", Header = "Address", IsVisible = true });
+
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "Comment", Header = "Comment", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "Phone", Header = "Phone", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "Arrive", Header = "Arrive", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "Perform", Header = "Perform", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "ArriveDist", Header = "ArriveDist", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "PerformDist", Header = "PerformDist", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "Driver", Header = "Driver", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "GPSArrive", Header = "GPS Arrive", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "Odometer", Header = "Odometer", IsVisible = true });
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "AuthNo", Header = "AuthNo", IsVisible = true });
+
+                ColumnConfigurations.Add(new ColumnConfig { PropertyName = "FundingSource", Header = "Funding Source", IsVisible = true });
+            }
+        }
         private async Task InitializeAsync()
         {
             try
