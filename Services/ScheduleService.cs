@@ -38,9 +38,9 @@ namespace Meditrans.Client.Services
             return await response.Content.ReadFromJsonAsync<List<UnscheduledTripDto>>();
         }      
 
-        public async Task RouteTripsAsync(int vehicleRouteId, List<int> tripIds)
+        public async Task RouteTripsAsync(RouteTripRequest request)
         {
-            var request = new RouteTripRequest { VehicleRouteId = vehicleRouteId, TripIds = tripIds };
+            //var request = new RouteTripRequest { VehicleRouteId = vehicleRouteId, TripIds = tripIds };
             var response = await _httpClient.PostAsJsonAsync($"{_endPoint}/route", request);
             response.EnsureSuccessStatusCode();
         }

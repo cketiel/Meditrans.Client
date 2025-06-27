@@ -17,5 +17,10 @@ namespace Meditrans.Client.DTOs
         public string DropoffAddress { get; set; }
         public string SpaceType { get; set; }
         public string FundingSource { get; set; }
+        public double PickupLatitude { get; set; }
+        public double PickupLongitude { get; set; }
+        public double DropoffLatitude { get; set; }
+        public double DropoffLongitude { get; set; }
+        public double? Distance { get; set; }
     }
 }

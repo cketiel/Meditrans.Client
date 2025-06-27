@@ -9,7 +9,7 @@ namespace Meditrans.Client.DTOs
     public class ScheduleDto
     {
         public int Id { get; set; }
-        public int TripId { get; set; }
+        public int? TripId { get; set; }
         public string Name { get; set; }
         public TimeSpan? Pickup { get; set; } // Mapped from ScheduledPickupTime
         public TimeSpan? Appt { get; set; }   // Mapped from ScheduledApptTime

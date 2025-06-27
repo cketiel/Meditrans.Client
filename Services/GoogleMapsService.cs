@@ -14,6 +14,52 @@ namespace Meditrans.Client.Services
         private static readonly string apiKey = App.Configuration["GoogleMaps:ApiKey"];
         private static readonly HttpClient client = new HttpClient();
 
+        public async Task<RouteFullDetail> GetRouteFullDetails(double originLat, double originLng, double destLat, double destLng)
+        {
+            RouteFullDetail? routeFullDetail = null;
+
+            string url = $"https://maps.googleapis.com/maps/api/directions/json?" +
+                         $"origin={originLat},{originLng}&destination={destLat},{destLng}&" +
+                         $"departure_time=now&traffic_model=best_guess&key={apiKey}";
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            JObject jsonResponse = JObject.Parse(responseBody);
+
+            var route = jsonResponse["routes"]?.First;
+            var leg = route?["legs"]?.First;
+
+            var distance = leg?["distance"]?["text"]?.ToString();
+            var duration = leg?["duration"]?["text"]?.ToString();
+            var durationInTraffic = leg?["duration_in_traffic"]?["text"]?.ToString();           
+
+            var distanceMiles = leg?["distance"]?["text"]?.ToString();
+            var durationMinutes = leg?["duration"]?["text"]?.ToString();
+            var durationInTrafficMinutes = leg?["duration_in_traffic"]?["text"]?.ToString();
+
+            var distanceMeters = leg?["distance"]?["value"]?.ToString();
+            var durationSeconds = leg?["duration"]?["value"]?.ToString();
+            var durationInTrafficSeconds = leg?["duration_in_traffic"]?["value"]?.ToString();
+
+            routeFullDetail.DistanceString = distance;
+            routeFullDetail.DurationString = duration;
+            routeFullDetail.DurationInTrafficString = durationInTraffic;
+
+            routeFullDetail.DistanceMiles = double.Parse(distanceMiles);
+            routeFullDetail.DurationMinutes = double.Parse(durationMinutes);
+            routeFullDetail.DurationInTrafficMinutes = double.Parse(durationInTrafficMinutes);
+
+            routeFullDetail.DistanceMeters = double.Parse(distanceMeters);
+            routeFullDetail.DurationSeconds = double.Parse(durationSeconds);
+            routeFullDetail.DurationInTrafficSeconds = double.Parse(durationInTrafficSeconds);
+
+
+            return routeFullDetail;
+
+        }
+
         // traffic_model: Can be set to best_guess (best guess), pessimistic (worst case scenario), or optimistic (best case scenario).
         public async Task<RouteDetail> GetRouteDetails(double originLat, double originLng, double destLat, double destLng)
         {
@@ -130,6 +176,20 @@ namespace Meditrans.Client.Services
             var address = $"{street}, {city}, {state}, {zip}";
             return await GetCoordinatesFromAddress(address);
         }
+
+    }
+
+    public class RouteFullDetail
+    {
+        public string DistanceString { get; set; } = "";
+        public string DurationString { get; set; } = "";
+        public string DurationInTrafficString { get; set; } = "";
+        public double DistanceMiles { get; set; }
+        public double DurationMinutes { get; set; }
+        public double DurationInTrafficMinutes { get; set; }
+        public double DistanceMeters { get; set; }
+        public double DurationSeconds { get; set; }
+        public double DurationInTrafficSeconds { get; set; }
 
     }
     public class RouteDetail

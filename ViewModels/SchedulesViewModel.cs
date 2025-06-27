@@ -193,7 +193,70 @@ namespace Meditrans.Client.ViewModels
         // Routing logic
         private async Task RouteSelectedTripAsync()
         {
-            await _scheduleService.RouteTripsAsync(SelectedVehicleRoute.Id, new List<int> { SelectedUnscheduledTrip.Id });
+            // esta complicado
+            // hay que diferenciar si es el primer evento a insertar
+            // si no es el primero hay que insertarlo a una lista auxiliar de eventos y ordenar por eta y entonces aplicar la logica
+            // tengo que hacer la formula del calculo de la eta , la distancia del dropoff se conoce, pero la del pickup se calcula respecto al evento anterior
+
+            var TripToSchedule = SelectedUnscheduledTrip;
+            var run = SelectedVehicleRoute;
+            GoogleMapsService _googleMapsService = new GoogleMapsService();
+
+            // Check if the trip and vehicle route are selected
+            if (TripToSchedule == null || run == null)
+            {
+                MessageBox.Show("Please select a trip and a vehicle route before routing.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            double? pDistance = 0;
+            TimeSpan? pTravelTime = TimeSpan.Zero;
+            TimeSpan? pETA = TimeSpan.Zero;
+
+            double? dDistance = 0;
+            TimeSpan? dTravelTime = TimeSpan.Zero;
+            TimeSpan? dETA = TimeSpan.Zero;
+
+            bool isFirstEvent = Schedules.Count == 0;
+            if (isFirstEvent)
+            {
+                var pickupFullDetails = await _googleMapsService.GetRouteFullDetails(run.GarageLatitude, run.GarageLongitude, TripToSchedule.PickupLatitude, TripToSchedule.PickupLongitude);
+                var dropoffFullDetails = await _googleMapsService.GetRouteFullDetails(TripToSchedule.PickupLatitude, TripToSchedule.PickupLongitude, TripToSchedule.DropoffLatitude, TripToSchedule.DropoffLongitude);
+                
+                if (pickupFullDetails != null && dropoffFullDetails != null)
+                {
+                    pDistance = pickupFullDetails.DistanceMiles;
+                    pTravelTime = TimeSpan.FromSeconds(pickupFullDetails.DurationInTrafficSeconds);
+                    pETA = TripToSchedule.FromTime - TimeSpan.FromMinutes(15);
+
+                    dDistance = dropoffFullDetails.DistanceMiles; // TripToSchedule.Distance;
+                    dTravelTime = TimeSpan.FromSeconds(dropoffFullDetails.DurationInTrafficSeconds);
+                    dETA = TripToSchedule.FromTime + dTravelTime + TimeSpan.FromMinutes(15);
+                }
+                
+            }
+            else 
+            {
+                // que pasaria si intento insertar un evento que tiene hora pickup antes de la hora de pickup del evento anterior?
+                // se puede insertar?
+                // en ese caso hay que editar las distancias tiempos y eta de todos los eventos posteriores
+
+            }
+
+            var request = new RouteTripRequest
+            {
+                VehicleRouteId = SelectedVehicleRoute.Id,
+                TripId = SelectedUnscheduledTrip.Id,
+                PickupDistance = pDistance.Value,
+                PickupTravelTime = pTravelTime.Value,
+                PickupETA = pETA.Value,
+                DropoffDistance = dDistance.Value,
+                DropoffTravelTime = dTravelTime.Value,
+                DropoffETA = dETA.Value
+
+            };
+            await _scheduleService.RouteTripsAsync(request);
+            //await _scheduleService.RouteTripsAsync(SelectedVehicleRoute.Id, new List<int> { SelectedUnscheduledTrip.Id });
 
             // Refresh data
             await LoadSchedulesAndTripsAsync();
