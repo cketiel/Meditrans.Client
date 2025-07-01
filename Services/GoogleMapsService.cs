@@ -16,7 +16,7 @@ namespace Meditrans.Client.Services
 
         public async Task<RouteFullDetail> GetRouteFullDetails(double originLat, double originLng, double destLat, double destLng)
         {
-            RouteFullDetail? routeFullDetail = null;
+            RouteFullDetail? routeFullDetail = new RouteFullDetail();
 
             string url = $"https://maps.googleapis.com/maps/api/directions/json?" +
                          $"origin={originLat},{originLng}&destination={destLat},{destLng}&" +
@@ -47,9 +47,12 @@ namespace Meditrans.Client.Services
             routeFullDetail.DurationString = duration;
             routeFullDetail.DurationInTrafficString = durationInTraffic;
 
-            routeFullDetail.DistanceMiles = double.Parse(distanceMiles);
-            routeFullDetail.DurationMinutes = double.Parse(durationMinutes);
-            routeFullDetail.DurationInTrafficMinutes = double.Parse(durationInTrafficMinutes);
+            string[] parts = distanceMiles?.Split(' ');
+            routeFullDetail.DistanceMiles = double.Parse(parts[0]);
+            parts = durationMinutes?.Split(' ');
+            routeFullDetail.DurationMinutes = double.Parse(parts[0]);
+            parts = durationInTrafficMinutes?.Split(' ');
+            routeFullDetail.DurationInTrafficMinutes = double.Parse(parts[0]);
 
             routeFullDetail.DistanceMeters = double.Parse(distanceMeters);
             routeFullDetail.DurationSeconds = double.Parse(durationSeconds);

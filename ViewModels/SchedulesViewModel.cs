@@ -218,10 +218,20 @@ namespace Meditrans.Client.ViewModels
             TimeSpan? dETA = TimeSpan.Zero;
 
             bool isFirstEvent = Schedules.Count == 0;
+            bool editEvent = false; // Flag to indicate if we need to edit an event
+                                   
             if (isFirstEvent)
             {
-                var pickupFullDetails = await _googleMapsService.GetRouteFullDetails(run.GarageLatitude, run.GarageLongitude, TripToSchedule.PickupLatitude, TripToSchedule.PickupLongitude);
-                var dropoffFullDetails = await _googleMapsService.GetRouteFullDetails(TripToSchedule.PickupLatitude, TripToSchedule.PickupLongitude, TripToSchedule.DropoffLatitude, TripToSchedule.DropoffLongitude);
+                var pickupFullDetails = await _googleMapsService.GetRouteFullDetails(
+                    run.GarageLatitude, 
+                    run.GarageLongitude, 
+                    TripToSchedule.PickupLatitude, 
+                    TripToSchedule.PickupLongitude);
+                var dropoffFullDetails = await _googleMapsService.GetRouteFullDetails(
+                    TripToSchedule.PickupLatitude, 
+                    TripToSchedule.PickupLongitude, 
+                    TripToSchedule.DropoffLatitude,
+                    TripToSchedule.DropoffLongitude);
                 
                 if (pickupFullDetails != null && dropoffFullDetails != null)
                 {
@@ -237,9 +247,106 @@ namespace Meditrans.Client.ViewModels
             }
             else 
             {
-                // que pasaria si intento insertar un evento que tiene hora pickup antes de la hora de pickup del evento anterior?
-                // se puede insertar?
-                // en ese caso hay que editar las distancias tiempos y eta de todos los eventos posteriores
+                TimeSpan? pickupTime = TripToSchedule.FromTime; // pickup time of the trip to be routed             
+                var pickupEvent = Schedules[0];
+                var dropoffEvent = Schedules[^1];
+                var EventToEdit = dropoffEvent;
+                // Get the last scheduled trip
+                var lastScheduledTrip = Schedules[^1]; // Get the last item in the list
+               
+
+                int start = Schedules.Count - 3;
+                int end = 1;
+                for (int i = start; i > end; i-=2)
+                {
+                    pickupEvent = Schedules[i]; 
+                    dropoffEvent = Schedules[i + 1]; 
+                    if (pickupTime > pickupEvent.Pickup) // If the pickup time of the trip to be routed is later than the pickup time of the last event
+                    {
+                        // Insert the schedule normally after the last event
+                        var pickupFullDetails = await _googleMapsService.GetRouteFullDetails(
+                            dropoffEvent.ScheduleLatitude,
+                            dropoffEvent.ScheduleLongitude,
+                            TripToSchedule.PickupLatitude,
+                            TripToSchedule.PickupLongitude);
+                        var dropoffFullDetails = await _googleMapsService.GetRouteFullDetails(
+                            TripToSchedule.PickupLatitude,
+                            TripToSchedule.PickupLongitude,
+                            TripToSchedule.DropoffLatitude,
+                            TripToSchedule.DropoffLongitude);
+
+                        if (pickupFullDetails != null && dropoffFullDetails != null)
+                        {
+                            pDistance = pickupFullDetails.DistanceMiles;
+                            pTravelTime = TimeSpan.FromSeconds(pickupFullDetails.DurationInTrafficSeconds);
+                            pETA = TripToSchedule.FromTime - TimeSpan.FromMinutes(15);
+
+                            dDistance = dropoffFullDetails.DistanceMiles;
+                            dTravelTime = TimeSpan.FromSeconds(dropoffFullDetails.DurationInTrafficSeconds);
+                            dETA = TripToSchedule.FromTime + dTravelTime + TimeSpan.FromMinutes(15);
+                        }
+
+                        if (editEvent) 
+                        {
+                            var editEventFullDetails = await _googleMapsService.GetRouteFullDetails(
+                            TripToSchedule.DropoffLatitude,
+                            TripToSchedule.DropoffLongitude,
+                            EventToEdit.ScheduleLatitude,
+                            EventToEdit.ScheduleLongitude);
+
+                            EventToEdit.Distance = editEventFullDetails.DistanceMiles;
+                            EventToEdit.Travel = TimeSpan.FromSeconds(editEventFullDetails.DurationInTrafficSeconds);
+                            EventToEdit.ETA = EventToEdit.Pickup - TimeSpan.FromMinutes(15);
+                            
+                            await _scheduleService.UpdateAsync(EventToEdit.Id, EventToEdit);
+                            editEvent = false; // Reset the flag after editing the event
+                        }
+                    }
+                    else 
+                    {
+                        editEvent = true;
+                        EventToEdit = pickupEvent; // If the pickup time of the trip to be routed is earlier than the pickup time of the last event, edit the last event
+                    }
+                }
+                // It means that the pick-up time is the first of all the schedules, following of course the Pull-out
+                if (editEvent)
+                {
+                    var pickupFullDetails = await _googleMapsService.GetRouteFullDetails(
+                        run.GarageLatitude,
+                        run.GarageLongitude,
+                        TripToSchedule.PickupLatitude,
+                        TripToSchedule.PickupLongitude);
+                    var dropoffFullDetails = await _googleMapsService.GetRouteFullDetails(
+                        TripToSchedule.PickupLatitude,
+                        TripToSchedule.PickupLongitude,
+                        TripToSchedule.DropoffLatitude,
+                        TripToSchedule.DropoffLongitude);
+
+                    if (pickupFullDetails != null && dropoffFullDetails != null)
+                    {
+                        pDistance = pickupFullDetails.DistanceMiles;
+                        pTravelTime = TimeSpan.FromSeconds(pickupFullDetails.DurationInTrafficSeconds);
+                        pETA = TripToSchedule.FromTime - TimeSpan.FromMinutes(15);
+
+                        dDistance = dropoffFullDetails.DistanceMiles; // TripToSchedule.Distance;
+                        dTravelTime = TimeSpan.FromSeconds(dropoffFullDetails.DurationInTrafficSeconds);
+                        dETA = TripToSchedule.FromTime + dTravelTime + TimeSpan.FromMinutes(15);
+                    }
+
+                    var editEventFullDetails = await _googleMapsService.GetRouteFullDetails(
+                        TripToSchedule.DropoffLatitude,
+                        TripToSchedule.DropoffLongitude,
+                        EventToEdit.ScheduleLatitude,
+                        EventToEdit.ScheduleLongitude);
+
+                    EventToEdit.Distance = editEventFullDetails.DistanceMiles;
+                    EventToEdit.Travel = TimeSpan.FromSeconds(editEventFullDetails.DurationInTrafficSeconds);
+                    EventToEdit.ETA = EventToEdit.Pickup - TimeSpan.FromMinutes(15);
+
+                    await _scheduleService.UpdateAsync(EventToEdit.Id, EventToEdit);
+                    editEvent = false; // Reset the flag after editing the event
+
+                }
 
             }
 
