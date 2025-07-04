@@ -42,6 +42,10 @@ namespace Meditrans.Client.Models
                 new MobilityType {
                     SpaceType = "WCH",
                     Description = "WheelChair"
+                },
+                new MobilityType {
+                    SpaceType = "WCX",
+                    Description = "WheelChairX"
                 }
             };
             return ListMobilityTypes;          

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Meditrans.Client.Models;
 
 namespace Meditrans.Client.DTOs
 {
@@ -32,5 +33,7 @@ namespace Meditrans.Client.DTOs
         public string? AuthNo { get; set; }
         public string? FundingSource { get; set; }
         public DateTime? Date { get; set; }
+        public int? Sequence { get; set; }
+        public ScheduleEventType? EventType { get; set; }
     }
 }

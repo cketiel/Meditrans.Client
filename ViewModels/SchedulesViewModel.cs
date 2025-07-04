@@ -192,12 +192,7 @@ namespace Meditrans.Client.ViewModels
 
         // Routing logic
         private async Task RouteSelectedTripAsync()
-        {
-            // esta complicado
-            // hay que diferenciar si es el primer evento a insertar
-            // si no es el primero hay que insertarlo a una lista auxiliar de eventos y ordenar por eta y entonces aplicar la logica
-            // tengo que hacer la formula del calculo de la eta , la distancia del dropoff se conoce, pero la del pickup se calcula respecto al evento anterior
-
+        {           
             var TripToSchedule = SelectedUnscheduledTrip;
             var run = SelectedVehicleRoute;
             GoogleMapsService _googleMapsService = new GoogleMapsService();
@@ -219,7 +214,11 @@ namespace Meditrans.Client.ViewModels
 
             bool isFirstEvent = Schedules.Count == 0;
             bool editEvent = false; // Flag to indicate if we need to edit an event
-                                   
+
+            double PullInPreviousLatitude = 0.0;
+            double PullInPreviousLongitude = 0.0;
+            TimeSpan? PullInPreviousETA = TimeSpan.Zero;
+
             if (isFirstEvent)
             {
                 var pickupFullDetails = await _googleMapsService.GetRouteFullDetails(
@@ -249,15 +248,18 @@ namespace Meditrans.Client.ViewModels
             {
                 TimeSpan? pickupTime = TripToSchedule.FromTime; // pickup time of the trip to be routed             
                 var pickupEvent = Schedules[0];
-                var dropoffEvent = Schedules[^1];
-                var EventToEdit = dropoffEvent;
+                var dropoffEvent = Schedules[1];
+                var EventToEdit = Schedules[^1];
+                var PullInEvent = Schedules[^1];
+                var PreviousPullInEvent = Schedules[Schedules.Count - 2];
+               
                 // Get the last scheduled trip
                 var lastScheduledTrip = Schedules[^1]; // Get the last item in the list
                
 
                 int start = Schedules.Count - 3;
                 int end = 1;
-                for (int i = start; i > end; i-=2)
+                for (int i = start; i >= end; i-=2)
                 {
                     pickupEvent = Schedules[i]; 
                     dropoffEvent = Schedules[i + 1]; 
@@ -300,7 +302,18 @@ namespace Meditrans.Client.ViewModels
                             
                             await _scheduleService.UpdateAsync(EventToEdit.Id, EventToEdit);
                             editEvent = false; // Reset the flag after editing the event
+
+                            PullInPreviousLatitude = PreviousPullInEvent.ScheduleLatitude;
+                            PullInPreviousLongitude = PreviousPullInEvent.ScheduleLongitude;
+                            PullInPreviousETA = PreviousPullInEvent.ETA;
                         }
+                        else 
+                        {
+                            PullInPreviousLatitude = TripToSchedule.DropoffLatitude;
+                            PullInPreviousLongitude = TripToSchedule.DropoffLongitude;
+                            PullInPreviousETA = dETA;
+                        }
+                        break;
                     }
                     else 
                     {
@@ -346,7 +359,24 @@ namespace Meditrans.Client.ViewModels
                     await _scheduleService.UpdateAsync(EventToEdit.Id, EventToEdit);
                     editEvent = false; // Reset the flag after editing the event
 
+                    PullInPreviousLatitude = PreviousPullInEvent.ScheduleLatitude;
+                    PullInPreviousLongitude = PreviousPullInEvent.ScheduleLongitude;
+                    PullInPreviousETA = PreviousPullInEvent.ETA;
+
                 }
+
+                // Always edit the Pull-in event
+                var editPullInEventFullDetails = await _googleMapsService.GetRouteFullDetails(
+                        PullInPreviousLatitude, //PreviousPullInEvent.ScheduleLatitude,
+                        PullInPreviousLongitude, //PreviousPullInEvent.ScheduleLongitude,
+                        PullInEvent.ScheduleLatitude,
+                        PullInEvent.ScheduleLongitude);
+
+                PullInEvent.Distance = editPullInEventFullDetails.DistanceMiles;
+                PullInEvent.Travel = TimeSpan.FromSeconds(editPullInEventFullDetails.DurationInTrafficSeconds);
+                PullInEvent.ETA = PullInPreviousETA + PullInEvent.Travel; //PreviousPullInEvent.ETA + PullInEvent.Travel;
+
+                await _scheduleService.UpdateAsync(PullInEvent.Id, PullInEvent);
 
             }
 
@@ -362,11 +392,24 @@ namespace Meditrans.Client.ViewModels
                 DropoffETA = dETA.Value
 
             };
-            await _scheduleService.RouteTripsAsync(request);
-            //await _scheduleService.RouteTripsAsync(SelectedVehicleRoute.Id, new List<int> { SelectedUnscheduledTrip.Id });
+            try
+            {
+                await _scheduleService.RouteTripsAsync(request);
+                //await _scheduleService.RouteTripsAsync(SelectedVehicleRoute.Id, new List<int> { SelectedUnscheduledTrip.Id });
 
-            // Refresh data
-            await LoadSchedulesAndTripsAsync();
+                // Refresh data
+                await LoadSchedulesAndTripsAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                        string.Format(TripRoutingError, ex.Message),
+                        ErrorTitle,
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                //MessageBox.Show($"Trip routing error: {ex.Message}", "Error");
+            }
+
         }
 
         private bool CanRouteSelectedTrip() => SelectedVehicleRoute != null && SelectedUnscheduledTrip != null;
@@ -374,10 +417,23 @@ namespace Meditrans.Client.ViewModels
         // Logic to cancel
         private async Task CancelSelectedRouteAsync()
         {
-            await _scheduleService.CancelRouteAsync(SelectedSchedule.Id);
+            try
+            {
+                await _scheduleService.CancelRouteAsync(SelectedSchedule.Id);
 
-            // Refresh data
-            await LoadSchedulesAndTripsAsync();
+                // Refresh data
+                await LoadSchedulesAndTripsAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                        string.Format(CancelScheduleError, ex.Message),
+                        ErrorTitle,
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                //MessageBox.Show($"Error canceling Schedule: {ex.Message}", "Error");
+            }
+
         }
 
         private bool CanCancelSelectedRoute() => SelectedSchedule != null;
@@ -394,5 +450,70 @@ namespace Meditrans.Client.ViewModels
             if (CanLoadSchedulesAndTrips())
                 LoadSchedulesAndTripsCommand.Execute(null);
         }
+
+        #region Translation
+
+        // Schedules Grid
+        public string ColumnHeaderName => LocalizationService.Instance["Name"];
+        public string ColumnHeaderPickup => LocalizationService.Instance["Pickup"];
+        public string ColumnHeaderAppt => LocalizationService.Instance["Appt"];
+        public string ColumnHeaderETA => LocalizationService.Instance["ETA"];
+        public string ColumnHeaderDistance => LocalizationService.Instance["Distance"];
+        public string ColumnHeaderTravel => LocalizationService.Instance["Travel"];
+        public string ColumnHeaderOn => LocalizationService.Instance["On"];
+        public string ColumnHeaderSpace => LocalizationService.Instance["Space"];
+        public string ColumnHeaderAddress => LocalizationService.Instance["Address"];
+        public string ColumnHeaderComment => LocalizationService.Instance["Comment"];
+        public string ColumnHeaderPhone => LocalizationService.Instance["Phone"];
+        public string ColumnHeaderArrive => LocalizationService.Instance["Arrive"];
+        public string ColumnHeaderPerform => LocalizationService.Instance["Perform"];
+        public string ColumnHeaderArriveDist => LocalizationService.Instance["ArriveDist"];
+        public string ColumnHeaderPerformDist => LocalizationService.Instance["PerformDist"];
+        public string ColumnHeaderDriver => LocalizationService.Instance["Driver"];
+        public string ColumnHeaderGPSArrive => LocalizationService.Instance["GPSArrive"];
+        public string ColumnHeaderOdometer => LocalizationService.Instance["Odometer"];
+        public string ColumnHeaderAuthNo => LocalizationService.Instance["AuthNo"];
+        public string ColumnHeaderFundingSource => LocalizationService.Instance["FundingSource"];
+
+        // Actions
+        public string UnscheduleToolTip => LocalizationService.Instance["Unschedule"];
+        public string SelectFieldsToDisplayToolTip => LocalizationService.Instance["SelectFieldsToDisplay"];
+
+        // Unscheduled Trips
+        public string ColumnHeaderDate => LocalizationService.Instance["Date"];
+        public string ColumnHeaderFromTime => LocalizationService.Instance["FromTime"];
+        public string ColumnHeaderToTime => LocalizationService.Instance["ToTime"];
+        public string ColumnHeaderNotificationStatus => LocalizationService.Instance["NotificationStatus"];
+        public string ColumnHeaderPatient => LocalizationService.Instance["Patient"]; // Customer
+        public string ColumnHeaderPickupAddress => LocalizationService.Instance["PickupAddress"];
+        public string ColumnHeaderDropoffAddress => LocalizationService.Instance["DropoffAddress"];
+        public string ColumnHeaderCharge => LocalizationService.Instance["Charge"];
+        public string ColumnHeaderPaid => LocalizationService.Instance["Paid"];
+        //public string ColumnHeaderSpace => LocalizationService.Instance["Space"];
+        public string ColumnHeaderPickupComment => LocalizationService.Instance["PickupComment"];
+        public string ColumnHeaderDropoffComment => LocalizationService.Instance["DropoffComment"];
+        public string ColumnHeaderType => LocalizationService.Instance["Type"];
+        //public string ColumnHeaderPickup => LocalizationService.Instance["Pickup"];
+        public string ColumnHeaderDropoff => LocalizationService.Instance["Dropoff"];
+        public string ColumnHeaderPickupPhone => LocalizationService.Instance["PickupPhone"];
+        public string ColumnHeaderDropoffPhone => LocalizationService.Instance["DropoffPhone"];
+        public string ColumnHeaderAuthorization => LocalizationService.Instance["Authorization"];
+        //public string ColumnHeaderFundingSource => LocalizationService.Instance["FundingSource"];
+        //public string ColumnHeaderDistance => LocalizationService.Instance["Distance"];
+        public string ColumnHeaderPickupCity => LocalizationService.Instance["PickupCity"];
+        public string ColumnHeaderDropoffCity => LocalizationService.Instance["DropoffCity"];
+
+        // Actions
+        public string CancelTripToolTip => LocalizationService.Instance["CancelTrip"];
+        public string EditTripToolTip => LocalizationService.Instance["Edit"]; 
+        public string ScheduleTripToolTip => LocalizationService.Instance["ScheduleTrip"];
+
+
+        // MSSG
+        public string ErrorTitle => LocalizationService.Instance["ErrorTitle"];
+        public string TripRoutingError => LocalizationService.Instance["TripRoutingError"]; // Trip routing error
+        public string CancelScheduleError => LocalizationService.Instance["CancelScheduleError"]; // Error canceling Schedule
+
+        #endregion
     }
 }

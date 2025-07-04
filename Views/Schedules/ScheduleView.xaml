@@ -7,6 +7,7 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:converters="clr-namespace:Meditrans.Client.Converters"
              xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"  
+             xmlns:models="clr-namespace:Meditrans.Client.Models"
              mc:Ignorable="d" 
              xmlns:vm="clr-namespace:Meditrans.Client.ViewModels"
              d:DataContext="{d:DesignInstance Type=vm:SchedulesViewModel}"
@@ -31,8 +32,8 @@
             <DatePicker SelectedDate="{Binding SelectedDate}" Margin="5"/>
             <ComboBox ItemsSource="{Binding VehicleRoutes}" SelectedItem="{Binding SelectedVehicleRoute}" DisplayMemberPath="Name" Width="200" Margin="5"/>
             <ComboBox ItemsSource="{Binding VehicleGroups}" DisplayMemberPath="Name" Width="200" Margin="5"/>
-            <Button Content="Route Trip" Command="{Binding RouteTripCommand}" Margin="5"/>
-            <Button Content="Cancel Route" Command="{Binding CancelRouteCommand}" Margin="5"/>
+            <!--<Button Content="Route Trip" Command="{Binding RouteTripCommand}" Margin="5"/>
+            <Button Content="Cancel Route" Command="{Binding CancelRouteCommand}" Margin="5"/>-->
         </StackPanel>
 
         <!-- Top Panel Left (Schedules) and Right (Map) -->
@@ -60,9 +61,16 @@
                       ScrollViewer.CanContentScroll="True" 
                       ScrollViewer.HorizontalScrollBarVisibility="Auto" 
                       ScrollViewer.VerticalScrollBarVisibility="Auto"
-                       FrozenColumnCount="2">
-
-                
+                      FrozenColumnCount="2"               
+                 
+                      IsReadOnly="True"
+                      AlternationCount="2"
+                      AlternatingRowBackground="White"                                    
+                      Style="{StaticResource CustomDataGridStyle}"
+                      ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                      RowStyle="{StaticResource CustomRowStyle}"
+                      CellStyle="{StaticResource CustomCellStyle}"
+                      SelectionUnit="FullRow">                
 
                 <DataGrid.Columns>
 
@@ -71,9 +79,9 @@
                         <DataGridTemplateColumn.HeaderTemplate>
                             <DataTemplate>
                                 <Button Command="{Binding DataContext.OpenColumnSelectorCommand,
-                        RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                        Style="{StaticResource MaterialDesignToolButton}"
-                        >
+                                        RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        Style="{StaticResource MaterialDesignToolButton}"
+                                        ToolTip="{Binding Data.SelectFieldsToDisplayToolTip, Source={StaticResource vmProxy}}">
                                     <materialDesign:PackIcon Kind="Cog" Width="20" Height="20"/>
                                 </Button>
                             </DataTemplate>
@@ -82,10 +90,27 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button Command="{Binding Data.CancelRouteCommand, Source={StaticResource vmProxy}}"
-                        Style="{StaticResource MaterialDesignToolButton}"
-                        VerticalAlignment="Center"
-                        ToolTip="{Binding Data.UnscheduleToolTip, Source={StaticResource vmProxy}}">
-                                    <materialDesign:PackIcon Kind="SortClockAscendingOutline" Width="20" Height="20" Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                                        
+                                        VerticalAlignment="Center"
+                                        ToolTip="{Binding Data.UnscheduleToolTip, Source={StaticResource vmProxy}}">
+
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignToolButton}">
+                                                    <Style.Triggers>
+                                                        <!-- Trigger to disable if name is "Pull-out" -->
+                                                        <DataTrigger Binding="{Binding Name}" Value="Pull-out">
+                                                            <Setter Property="IsEnabled" Value="False" />
+                                                        </DataTrigger>
+
+                                                        <!-- Trigger to disable if name is "Pull-in" -->
+                                                        <DataTrigger Binding="{Binding Name}" Value="Pull-in">
+                                                            <Setter Property="IsEnabled" Value="False" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+
+                                            <materialDesign:PackIcon Kind="SortClockAscendingOutline" Width="20" Height="20" Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
                                     <!-- ArrowURightBottomBold -->
                                 </Button>
                             </DataTemplate>
@@ -93,48 +118,134 @@
 
                     </DataGridTemplateColumn>
 
-                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="250" IsReadOnly="True" 
+                    <DataGridTextColumn Binding="{Binding Name}" Width="250" IsReadOnly="True" 
+                                        Header="{Binding Data.ColumnHeaderName, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Name}"/>
 
-                    <DataGridTextColumn Header="Pickup" Binding="{Binding Pickup, StringFormat=\{0:hh\\:mm\}}" Width="80"
+                    <DataGridTextColumn Binding="{Binding Pickup, StringFormat=\{0:hh\\:mm\}}" Width="80"
+                                        Header="{Binding Data.ColumnHeaderPickup, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Pickup}"/>
-                    <DataGridTextColumn Header="Appt" Binding="{Binding Appt, StringFormat=\{0:hh\\:mm\}}" Width="80"
+                    <DataGridTextColumn Binding="{Binding Appt, StringFormat=\{0:hh\\:mm\}}" Width="80"
+                                        Header="{Binding Data.ColumnHeaderAppt, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Appt}"/>
-                    <DataGridTextColumn Header="ETA" Binding="{Binding ETA, StringFormat=\{0:hh\\:mm\}}" Width="80" IsReadOnly="True"
+                    <DataGridTextColumn Binding="{Binding ETA, StringFormat=\{0:hh\\:mm\}}" Width="80" IsReadOnly="True"
+                                        Header="{Binding Data.ColumnHeaderETA, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=ETA}"/>
-                    <DataGridTextColumn Header="Distance" Binding="{Binding Distance}" Width="80" IsReadOnly="True"
+
+                    <DataGridTemplateColumn Width="25" IsReadOnly="True">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <!-- A Grid is used to center and overlap elements -->
+                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                                    <!-- The circle that will change color -->
+                                    <Border x:Name="CircleBorder"
+                                        Width="20"
+                                        Height="20"
+                                        CornerRadius="10"
+                                        Background="Gray">
+
+                                        <!-- Content inside the circle -->
+                                        <Grid>
+                                            <TextBlock x:Name="SequenceText"
+                                                        Text="{Binding Sequence}"
+                                                        Foreground="White"
+                                                        FontWeight="Bold"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"/>
+
+                                            <!-- The car icon, hidden by default -->
+                                            <materialDesign:PackIcon x:Name="CarIcon"
+                                                    Kind="Car"
+                                                    Width="18"
+                                                    Height="18"
+                                                    Foreground="White"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Visibility="Collapsed"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Triggers to change appearance based on data -->
+                                <DataTemplate.Triggers>
+                                    <!-- CASE 1: Event is Pickup -->
+                                    <DataTrigger Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Pickup}">
+                                        <Setter TargetName="CircleBorder" Property="Background" Value="Green"/>
+                                    </DataTrigger>
+
+                                    <!-- CASE 2: Event is Dropoff -->
+                                    <DataTrigger Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Dropoff}">
+                                        <Setter TargetName="CircleBorder" Property="Background" Value="Red"/>
+                                    </DataTrigger>
+
+                                    <!-- SPECIAL CASE 3: Name is "Pull-out" -->
+                                    <DataTrigger Binding="{Binding Name}" Value="Pull-out">
+                                        <Setter TargetName="CircleBorder" Property="Background" Value="Green"/>
+                                        <Setter TargetName="SequenceText" Property="Visibility" Value="Collapsed"/>
+                                        <Setter TargetName="CarIcon" Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+
+                                    <!-- SPECIAL CASE 4: Name is "Pull-in" -->
+                                    <DataTrigger Binding="{Binding Name}" Value="Pull-in">
+                                        <Setter TargetName="CircleBorder" Property="Background" Value="Red"/>
+                                        <Setter TargetName="SequenceText" Property="Visibility" Value="Collapsed"/>
+                                        <Setter TargetName="CarIcon" Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTextColumn Binding="{Binding Distance}" Width="80" IsReadOnly="True"
+                                        Header="{Binding Data.ColumnHeaderDistance, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Distance}"/>
-                    <DataGridTextColumn Header="Travel" Binding="{Binding Travel}" Width="80" IsReadOnly="True"
+                    <DataGridTextColumn Binding="{Binding Travel}" Width="80" IsReadOnly="True"
+                                        Header="{Binding Data.ColumnHeaderTravel, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Travel}"/>
-                    <DataGridTextColumn Header="On" Binding="{Binding On}" Width="50" IsReadOnly="True"
+                    <DataGridTextColumn Binding="{Binding On}" Width="50" IsReadOnly="True"
+                                        Header="{Binding Data.ColumnHeaderOn, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=On}"/>
-                    <DataGridTextColumn Header="Space" Binding="{Binding SpaceTypeName}" Width="80"
+                    <DataGridTextColumn Binding="{Binding SpaceTypeName}" Width="80"
+                                        Header="{Binding Data.ColumnHeaderSpace, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=SpaceTypeName}"/>
-                    <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="250"
+                    <DataGridTextColumn Binding="{Binding Address}" Width="250"
+                                        Header="{Binding Data.ColumnHeaderAddress, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Address}"/>
 
-                    <DataGridTextColumn Header="Comment" Binding="{Binding Comment}" Width="200" IsReadOnly="True"
+                    <DataGridTextColumn Binding="{Binding Comment}" Width="200" IsReadOnly="True"
+                                        Header="{Binding Data.ColumnHeaderComment, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Comment}"/>
-                    <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="120" IsReadOnly="True"
+                    <DataGridTextColumn Binding="{Binding Phone}" Width="120" IsReadOnly="True"
+                                        Header="{Binding Data.ColumnHeaderPhone, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Phone}"/>
-                    <DataGridTextColumn Header="Arrive" Binding="{Binding Arrive, StringFormat=\{0:hh\\:mm\}}" Width="80" IsReadOnly="True"
+                    <DataGridTextColumn Binding="{Binding Arrive, StringFormat=\{0:hh\\:mm\}}" Width="80" IsReadOnly="True"
+                                        Header="{Binding Data.ColumnHeaderArrive, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Arrive}"/>
-                    <DataGridTextColumn Header="Perform" Binding="{Binding Perform, StringFormat=\{0:hh\\:mm\}}" Width="80" IsReadOnly="True"
+                    <DataGridTextColumn Binding="{Binding Perform, StringFormat=\{0:hh\\:mm\}}" Width="80" IsReadOnly="True"
+                                        Header="{Binding Data.ColumnHeaderPerform, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Perform}"/>
-                    <DataGridTextColumn Header="ArriveDist" Binding="{Binding ArriveDist}" Width="80" IsReadOnly="True"
+                    <DataGridTextColumn Binding="{Binding ArriveDist}" Width="80" IsReadOnly="True"
+                                        Header="{Binding Data.ColumnHeaderArriveDist, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=ArriveDist}"/>
-                    <DataGridTextColumn Header="PerformDist" Binding="{Binding PerformDist}" Width="80" IsReadOnly="True"
+                    <DataGridTextColumn Binding="{Binding PerformDist}" Width="80" IsReadOnly="True"
+                                        Header="{Binding Data.ColumnHeaderPerformDist, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=PerformDist}"/>
-                    <DataGridTextColumn Header="Driver" Binding="{Binding Driver}" Width="150" IsReadOnly="True"
+                    <DataGridTextColumn Binding="{Binding Driver}" Width="150" IsReadOnly="True"
+                                        Header="{Binding Data.ColumnHeaderDriver, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Driver}"/>
-                    <DataGridTextColumn Header="GPS Arrive" Binding="{Binding GPSArrive}" Width="120" IsReadOnly="True"
+                    <DataGridTextColumn Binding="{Binding GPSArrive}" Width="120" IsReadOnly="True"
+                                        Header="{Binding Data.ColumnHeaderGPSArrive, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=GPSArrive}"/>
-                    <DataGridTextColumn Header="Odometer" Binding="{Binding Odometer}" Width="100" IsReadOnly="True"
+                    <DataGridTextColumn Binding="{Binding Odometer}" Width="100" IsReadOnly="True"
+                                        Header="{Binding Data.ColumnHeaderOdometer, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Odometer}"/>
-                    <DataGridTextColumn Header="AuthNo" Binding="{Binding AuthNo}" Width="120" IsReadOnly="True"
+                    <DataGridTextColumn Binding="{Binding AuthNo}" Width="120" IsReadOnly="True"
+                                        Header="{Binding Data.ColumnHeaderAuthNo, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=AuthNo}"/>
 
-                    <DataGridTextColumn Header="Funding Source" Binding="{Binding FundingSource}"
+                    <DataGridTextColumn Binding="{Binding FundingSource}"
+                                        Header="{Binding Data.ColumnHeaderFundingSource, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=FundingSource}"/>
                 </DataGrid.Columns>
                             
@@ -165,14 +276,32 @@
                       ShowsPreview="True"/>
 
         <!-- Lower Grid (Unscheduled Trips) -->
-        <DataGrid Grid.Row="3" ItemsSource="{Binding UnscheduledTrips}" SelectedItem="{Binding SelectedUnscheduledTrip}" AutoGenerateColumns="False" CanUserAddRows="False" Cursor="">
+        <DataGrid Grid.Row="3" 
+                  ItemsSource="{Binding UnscheduledTrips}" 
+                  SelectedItem="{Binding SelectedUnscheduledTrip}"                                 
+                  SelectionMode="Single"
+                  ScrollViewer.CanContentScroll="True" 
+                  ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                  FrozenColumnCount="2"               
+                 
+                  IsReadOnly="True"
+                  AlternationCount="2"
+                  AlternatingRowBackground="White"                                    
+                  Style="{StaticResource CustomDataGridStyle}"
+                  ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                  RowStyle="{StaticResource CustomRowStyle}"
+                  CellStyle="{StaticResource CustomCellStyle}"
+                  SelectionUnit="FullRow"
+                  
+                  AutoGenerateColumns="False" CanUserAddRows="False" Cursor="Hand">
             <DataGrid.Columns>
 
                 <DataGridTemplateColumn Width="Auto">
 
                     <!--<DataGridTemplateColumn.HeaderTemplate>
                         <DataTemplate>
-                            <Button Command="{Binding DataContext.OpenColumnSelectorCommand,
+                            <Button Command="{Binding DataContext.OpenTripColumnSelectorCommand,
                                     RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                     Style="{StaticResource MaterialDesignToolButton}"
                                     >   
@@ -195,15 +324,15 @@
                                 <Button Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}"
                                         Style="{StaticResource MaterialDesignToolButton}"
-                                        ToolTip="{Binding Data.EditRunToolTip, Source={StaticResource vmProxy}}">
-                                    <materialDesign:PackIcon Kind="Pencil" Foreground="Orange"/>
+                                        ToolTip="{Binding Data.EditTripToolTip, Source={StaticResource vmProxy}}">
+                                    <materialDesign:PackIcon Kind="FileEdit" Foreground="Orange"/>
                                 </Button>
 
                                 <Button Command="{Binding DataContext.RouteTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}"
                                         Style="{StaticResource MaterialDesignToolButton}"
-                                        ToolTip="{Binding Data.ScheduleToolTip, Source={StaticResource vmProxy}}">
-                                    <materialDesign:PackIcon Kind="SortClockDescending" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                        ToolTip="{Binding Data.ScheduleTripToolTip, Source={StaticResource vmProxy}}">
+                                    <materialDesign:PackIcon Kind="SortClockDescending" Foreground="Green"/>
                                 </Button>
 
                             </StackPanel>
@@ -212,14 +341,80 @@
                     </DataGridTemplateColumn.CellTemplate>
 
                 </DataGridTemplateColumn>
-                
-                <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="*"/>
+             
+                <DataGridTextColumn Binding="{Binding Date}"
+                Header="{Binding Data.ColumnHeaderDate, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding FromTime}"
+                Header="{Binding Data.ColumnHeaderFromTime, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding ToTime}"
+                Header="{Binding Data.ColumnHeaderToTime, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding NotificationStatus}"
+                Header="{Binding Data.ColumnHeaderNotificationStatus, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding CustomerName}"
+                Header="{Binding Data.ColumnHeaderPatient, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding PickupAddress}"
+                Header="{Binding Data.ColumnHeaderPickupAddress, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding DropoffAddress}"
+                Header="{Binding Data.ColumnHeaderDropoffAddress, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding Charge}"
+                Header="{Binding Data.ColumnHeaderCharge, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding Paid}"
+                Header="{Binding Data.ColumnHeaderPaid, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding SpaceType}"
+                Header="{Binding Data.ColumnHeaderSpace, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding PickupComment}"
+                Header="{Binding Data.ColumnHeaderPickupComment, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding DropoffComment}"
+                Header="{Binding Data.ColumnHeaderDropoffComment, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding Type}"
+                Header="{Binding Data.ColumnHeaderType, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding Pickup}"
+                Header="{Binding Data.ColumnHeaderPickup, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding Dropoff}"
+                Header="{Binding Data.ColumnHeaderDropoff, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding PickupPhone}"
+                Header="{Binding Data.ColumnHeaderPickupPhone, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding DropoffPhone}"
+                Header="{Binding Data.ColumnHeaderDropoffPhone, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding Authorization}"
+                Header="{Binding Data.ColumnHeaderAuthorization, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding FundingSource}"
+                Header="{Binding Data.ColumnHeaderFundingSource, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding Distance}"
+                Header="{Binding Data.ColumnHeaderDistance, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding PickupCity}"
+                Header="{Binding Data.ColumnHeaderPickupCity, Source={StaticResource vmProxy}}"/>
+
+                <DataGridTextColumn Binding="{Binding DropoffCity}"
+                Header="{Binding Data.ColumnHeaderDropoffCity, Source={StaticResource vmProxy}}"/>
+
+                <!--<DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="*"/>
                 <DataGridTextColumn Header="From Time" Binding="{Binding FromTime, StringFormat=\{0:hh\\:mm\}}"/>
                 <DataGridTextColumn Header="To Time" Binding="{Binding ToTime, StringFormat=\{0:hh\\:mm\}}"/>
                 <DataGridTextColumn Header="Pickup Address" Binding="{Binding PickupAddress}" Width="*"/>
                 <DataGridTextColumn Header="Dropoff Address" Binding="{Binding DropoffAddress}" Width="*"/>
                 <DataGridTextColumn Header="Space" Binding="{Binding SpaceType}"/>
-                <DataGridTextColumn Header="Funding Source" Binding="{Binding FundingSource}"/>
+                <DataGridTextColumn Header="Funding Source" Binding="{Binding FundingSource}"/>-->
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
