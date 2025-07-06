@@ -128,11 +128,11 @@ namespace Meditrans.Client.ViewModels
         {
             return !string.IsNullOrWhiteSpace(Route.Name) &&
                    Route.DriverId > 0 &&
-                   Route.VehicleId > 0 &&
+                   Route.VehicleId > 0; /* &&
                    Route.FromDate != default &&
                    Route.FromTime != default &&
                    Route.ToTime != default &&
-                   Route.ToTime > Route.FromTime;
+                   Route.ToTime > Route.FromTime;*/
         }
 
         private async Task SaveAsync()
