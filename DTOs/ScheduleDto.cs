@@ -35,5 +35,7 @@ namespace Meditrans.Client.DTOs
         public DateTime? Date { get; set; }
         public int? Sequence { get; set; }
         public ScheduleEventType? EventType { get; set; }
+        public string? SpaceType { get; set; }
+        public string? TripType { get; set; }
     }
 }
