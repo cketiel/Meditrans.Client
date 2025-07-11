@@ -28,6 +28,9 @@ namespace Meditrans.Client.ViewModels
         public TimeSpan ToTime => _route.ToTime;
         public int VehicleGroupId => _route.Vehicle?.GroupId ?? 0;
 
+        public double GarageLatitude => _route.GarageLatitude;
+        public double GarageLongitude => _route.GarageLongitude;
+
         public bool IsActive
         {
             get
