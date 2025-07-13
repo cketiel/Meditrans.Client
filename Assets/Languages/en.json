@@ -239,6 +239,8 @@
     "Active": "Active",
     "ExclusiveFundingSources": "Exclusive Funding Sources",
     "OptionalExclusiveFundingSources": "Exclusive Financing Sources (Optional)",
-    "OptionalExclusiveFundingSourcesExplanatoryText": "OptionalExclusiveFundingSourcesExplanatoryText"
+    "OptionalExclusiveFundingSourcesExplanatoryText": "OptionalExclusiveFundingSourcesExplanatoryText",
+
+    "SchedulingSection": "This is the way to group the translations corresponding to Schedule Section"
 
 }
