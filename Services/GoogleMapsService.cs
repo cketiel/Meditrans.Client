@@ -17,47 +17,53 @@ namespace Meditrans.Client.Services
         public async Task<RouteFullDetail> GetRouteFullDetails(double originLat, double originLng, double destLat, double destLng)
         {
             RouteFullDetail? routeFullDetail = new RouteFullDetail();
-
-            string url = $"https://maps.googleapis.com/maps/api/directions/json?" +
+            try
+            {
+                string url = $"https://maps.googleapis.com/maps/api/directions/json?" +
                          $"origin={originLat},{originLng}&destination={destLat},{destLng}&" +
                          $"departure_time=now&traffic_model=best_guess&key={apiKey}";
 
-            HttpResponseMessage response = await client.GetAsync(url);
-            response.EnsureSuccessStatusCode();
+                HttpResponseMessage response = await client.GetAsync(url);
+                response.EnsureSuccessStatusCode();
 
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JObject jsonResponse = JObject.Parse(responseBody);
+                string responseBody = await response.Content.ReadAsStringAsync();
+                JObject jsonResponse = JObject.Parse(responseBody);
 
-            var route = jsonResponse["routes"]?.First;
-            var leg = route?["legs"]?.First;
+                var route = jsonResponse["routes"]?.First;
+                var leg = route?["legs"]?.First;
 
-            var distance = leg?["distance"]?["text"]?.ToString();
-            var duration = leg?["duration"]?["text"]?.ToString();
-            var durationInTraffic = leg?["duration_in_traffic"]?["text"]?.ToString();           
+                var distance = leg?["distance"]?["text"]?.ToString();
+                var duration = leg?["duration"]?["text"]?.ToString();
+                var durationInTraffic = leg?["duration_in_traffic"]?["text"]?.ToString();
 
-            var distanceMiles = leg?["distance"]?["text"]?.ToString();
-            var durationMinutes = leg?["duration"]?["text"]?.ToString();
-            var durationInTrafficMinutes = leg?["duration_in_traffic"]?["text"]?.ToString();
+                var distanceMiles = leg?["distance"]?["text"]?.ToString();
+                var durationMinutes = leg?["duration"]?["text"]?.ToString();
+                var durationInTrafficMinutes = leg?["duration_in_traffic"]?["text"]?.ToString();
 
-            var distanceMeters = leg?["distance"]?["value"]?.ToString();
-            var durationSeconds = leg?["duration"]?["value"]?.ToString();
-            var durationInTrafficSeconds = leg?["duration_in_traffic"]?["value"]?.ToString();
+                var distanceMeters = leg?["distance"]?["value"]?.ToString();
+                var durationSeconds = leg?["duration"]?["value"]?.ToString();
+                var durationInTrafficSeconds = leg?["duration_in_traffic"]?["value"]?.ToString();
 
-            routeFullDetail.DistanceString = distance;
-            routeFullDetail.DurationString = duration;
-            routeFullDetail.DurationInTrafficString = durationInTraffic;
+                routeFullDetail.DistanceString = distance;
+                routeFullDetail.DurationString = duration;
+                routeFullDetail.DurationInTrafficString = durationInTraffic;
 
-            string[] parts = distanceMiles?.Split(' ');
-            routeFullDetail.DistanceMiles = double.Parse(parts[0]);
-            parts = durationMinutes?.Split(' ');
-            routeFullDetail.DurationMinutes = double.Parse(parts[0]);
-            parts = durationInTrafficMinutes?.Split(' ');
-            routeFullDetail.DurationInTrafficMinutes = double.Parse(parts[0]);
+                string[] parts = distanceMiles?.Split(' ');
+                routeFullDetail.DistanceMiles = double.Parse(parts[0]);
+                parts = durationMinutes?.Split(' ');
+                routeFullDetail.DurationMinutes = double.Parse(parts[0]);
+                parts = durationInTrafficMinutes?.Split(' ');
+                routeFullDetail.DurationInTrafficMinutes = double.Parse(parts[0]);
 
-            routeFullDetail.DistanceMeters = double.Parse(distanceMeters);
-            routeFullDetail.DurationSeconds = double.Parse(durationSeconds);
-            routeFullDetail.DurationInTrafficSeconds = double.Parse(durationInTrafficSeconds);
+                routeFullDetail.DistanceMeters = double.Parse(distanceMeters);
+                routeFullDetail.DurationSeconds = double.Parse(durationSeconds);
+                routeFullDetail.DurationInTrafficSeconds = double.Parse(durationInTrafficSeconds);
+            }
+            catch (Exception)
+            {
 
+                throw;
+            }
 
             return routeFullDetail;
 
