@@ -3,10 +3,72 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Meditrans.Client.Views.Admin.Employees"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
-    </Grid>
+
+    <UserControl.Resources>
+        <helpers:BindingProxy x:Key="userVmProxy" Data="{Binding}" />
+    </UserControl.Resources>
+
+    <Border BorderThickness="1" BorderBrush="#2196f3" Background="White">
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                <Button Command="{Binding AddUserCommand}"
+                        Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                        ToolTip="Add New User"
+                        Margin="0,0,20,0">
+                    <materialDesign:PackIcon Kind="AccountPlus" Height="24" Width="24" />
+                </Button>
+            </StackPanel>
+
+            <DataGrid Grid.Row="1"
+                      ItemsSource="{Binding Users}"
+                      SelectedItem="{Binding SelectedUser, Mode=TwoWay}"
+                      SelectionMode="Single"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      Style="{StaticResource CustomDataGridStyle}">
+
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Command="{Binding DataContext.EditUserCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            Style="{StaticResource MaterialDesignToolButton}"
+                                            ToolTip="Edit User">
+                                        <materialDesign:PackIcon Kind="Pencil" Foreground="Orange"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.ChangePasswordCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        Style="{StaticResource MaterialDesignToolButton}"
+                                        ToolTip="Change Password">
+                                        <materialDesign:PackIcon Kind="KeyChange" Foreground="Blue"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.DeleteUserCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            Style="{StaticResource MaterialDesignToolButton}"
+                                            ToolTip="Delete User">
+                                        <materialDesign:PackIcon Kind="DeleteForever" Foreground="Red"/>
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTextColumn Header="Full Name" Binding="{Binding FullName}" Width="2*"/>
+                    <DataGridTextColumn Header="Username" Binding="{Binding Username}" Width="*"/>
+                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="2*"/>
+                    
+                    <DataGridTextColumn Header="Role" Binding="{Binding Role.RoleName}" Width="*"/>
+                    <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="Auto"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </Border>
 </UserControl>
