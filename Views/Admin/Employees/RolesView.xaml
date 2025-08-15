@@ -3,10 +3,86 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:local="clr-namespace:Meditrans.Client.Views.Admin.Employees"
+             xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+
+    <UserControl.Resources>
+        <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
+      
+    </UserControl.Resources>
+
+    <Border BorderThickness="1" BorderBrush="#2196f3" Background="White">
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
             
-    </Grid>
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                <Button Command="{Binding AddRoleCommand}"
+                    Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
+                    ToolTip="{Binding AddRoleToolTip}"
+                    Margin="0,0,20,0">
+                    <materialDesign:PackIcon Kind="Add" Height="24" Width="24" />
+                </Button>
+
+            </StackPanel>
+            
+            <Grid Grid.Row="1">
+                <DataGrid 
+                    ItemsSource="{Binding Roles}"
+                    SelectedItem="{Binding SelectedRole, Mode=TwoWay}"
+                    SelectionMode="Single"
+                    AutoGenerateColumns="False"
+                    IsReadOnly="True"
+                    AlternationCount="2"
+                    AlternatingRowBackground="White"                                    
+                    Style="{StaticResource CustomDataGridStyle}"
+                    ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                    RowStyle="{StaticResource CustomRowStyle}"
+                    CellStyle="{StaticResource CustomCellStyle}"
+                    SelectionUnit="FullRow">
+
+                    <DataGrid.Columns>
+                        <!-- Action Buttons Column -->
+                        <DataGridTemplateColumn Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Command="{Binding DataContext.EditRoleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignToolButton}"
+                                            ToolTip="{Binding Data.EditRoleToolTip, Source={StaticResource vmProxy}}">
+                                            <materialDesign:PackIcon Kind="Pencil" Foreground="Orange"/>
+                                        </Button>
+                                        <Button Command="{Binding DataContext.DeleteRoleCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignToolButton}"
+                                            ToolTip="{Binding Data.DeleteRoleToolTip, Source={StaticResource vmProxy}}">
+                                            <materialDesign:PackIcon Kind="DeleteForever" Foreground="Red"/>
+                                        </Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn 
+                            Binding="{Binding RoleName}"
+                            Header="{Binding Data.ColumnHeaderRoleName, Source={StaticResource vmProxy}}" />
+
+                        <DataGridTextColumn 
+                            Binding="{Binding Description}"
+                            Header="{Binding Data.ColumnHeaderDescription, Source={StaticResource vmProxy}}" />
+
+                    </DataGrid.Columns>
+                </DataGrid>
+
+            </Grid>
+
+        </Grid>
+    </Border>
+    
 </UserControl>

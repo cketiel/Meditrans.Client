@@ -10,21 +10,21 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Meditrans.Client.Models;
 using Meditrans.Client.ViewModels;
 
 namespace Meditrans.Client.Views.Admin.Employees
 {
     /// <summary>
-    /// Lógica de interacción para RolesView.xaml
+    /// Lógica de interacción para AddEditRoleView.xaml
     /// </summary>
-    public partial class RolesView : UserControl
+    public partial class AddEditRoleView : Window
     {
-        public RolesView()
+        public AddEditRoleView(Role role = null)
         {
             InitializeComponent();
-            DataContext = new RolesViewModel();
+            DataContext = new AddEditRoleViewModel(role);
         }
     }
 }

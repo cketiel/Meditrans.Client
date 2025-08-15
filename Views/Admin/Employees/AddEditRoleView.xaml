@@ -1,0 +1,33 @@
+﻿<Window x:Class="Meditrans.Client.Views.Admin.Employees.AddEditRoleView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Meditrans.Client.Views.Admin.Employees"
+        mc:Ignorable="d"
+        Title="AddEditRoleView" Height="250" Width="400"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Label Content="Nombre del Rol:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
+        <TextBox Text="{Binding Role.RoleName, UpdateSourceTrigger=PropertyChanged}" Grid.Row="0" Grid.Column="1" Margin="5"/>
+
+        <Label Content="Descripción:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
+        <TextBox Text="{Binding Role.Description}" Grid.Row="1" Grid.Column="1" Margin="5"/>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right">
+            <Button Content="Guardar" Command="{Binding SaveCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" Margin="0,0,10,0"/>
+            <Button Content="Cancelar" Command="{Binding CancelCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
+        </StackPanel>
+    </Grid>
+</Window>
