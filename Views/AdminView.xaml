@@ -9,11 +9,46 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
+    <UserControl.Resources>
+        <!-- Derived from the MaterialDesign style for TabControl -->
+        <Style TargetType="TabControl"
+      BasedOn="{StaticResource MaterialDesignTabControl}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid SnapsToDevicePixels="true">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Here we use TabPanel aligned left -->
+                            <TabPanel x:Name="HeaderPanel"
+                                   Grid.Row="0"
+                                   IsItemsHost="True"
+                                   Panel.ZIndex="1"
+                                   Background="{TemplateBinding Background}"
+                                   Margin="0"
+                                   HorizontalAlignment="Left"/>
+
+                            <!-- ContentPresenter that fills all the space -->
+                            <ContentPresenter x:Name="PART_SelectedContentHost"
+                           Grid.Row="1"
+                           Margin="{TemplateBinding Padding}"
+                           ContentSource="SelectedContent"
+                           SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    
     <Border BorderThickness="0,1,0,0"
         BorderBrush="#2196f3"
         Background="White">
 
-        <Grid Margin="16">
+        <Grid Margin="4 0 4 4">
 
             <TabControl  HorizontalAlignment="Stretch"
                          VerticalAlignment="Stretch"

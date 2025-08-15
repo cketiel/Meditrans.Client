@@ -12,19 +12,17 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Meditrans.Client.ViewModels;
 
-namespace Meditrans.Client.Views.Admin
+namespace Meditrans.Client.Views.Admin.Employees
 {
     /// <summary>
-    /// Lógica de interacción para Employees.xaml
+    /// Lógica de interacción para UsersView.xaml
     /// </summary>
-    public partial class EmployeesView : UserControl
+    public partial class UsersView : UserControl
     {
-        public EmployeesView()
+        public UsersView()
         {
             InitializeComponent();
-            DataContext = new EmployeesViewModel();
         }
     }
 }
