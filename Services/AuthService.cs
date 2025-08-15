@@ -19,7 +19,7 @@ namespace Meditrans.Client.Services
         {
             _httpClient = new HttpClient();
             //_baseUri = "API" ?? throw new ApiException("API address configuration is missing.");
-            _baseUri = App.Configuration["ApiAddress:ApiService"] ?? throw new ApiException("API address configuration is missing.");
+            _baseUri = App.Configuration["ApiAddress:ApiTest"] ?? throw new ApiException("API address configuration is missing.");
 
             try
             {
