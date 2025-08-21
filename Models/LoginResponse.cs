@@ -16,6 +16,8 @@
         public string UserId { get; set; }
 
         public String Username { get; set; }
+
+        public String Role { get; set; }
         //public Guid Role { get; set; }
         //public UserRole Role { get; set; }
 

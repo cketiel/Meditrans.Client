@@ -93,9 +93,10 @@ namespace Meditrans.Client.Views
 
         private void HandleSuccessfulLogin(string username, LoginResponse result)
         {
-            SessionManager.Token = result.Token;
+            SessionManager.Token = result.Token; 
             SessionManager.Username = username;
             SessionManager.UserId = result.UserId;
+            SessionManager.Role = result.Role;
             StorageHelper.SaveUsername(username);
 
             var mainWindow = new MainWindow();

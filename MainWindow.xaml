@@ -7,12 +7,17 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:materialDesignIcons="http://materialdesigninxaml.net/winfx/xaml/shared"
         xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
+        xmlns:converters="clr-namespace:Meditrans.Client.Converters"
 
         mc:Ignorable="d"
         Title="Milanes Transport" Height="600" Width="800"
         Icon="/Assets/logo.png">
-  
+
+    <Window.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+    </Window.Resources>
     
+
     <DockPanel Background="Transparent">
 
         <!-- Top Menu -->
@@ -176,7 +181,8 @@
                         </TabItem.Header>
                     </TabItem>
 
-                    <TabItem x:Name="AdminTabMenu" Tag="{x:Static local:MENU.Admin}">
+                    <TabItem x:Name="AdminTabMenu" Tag="{x:Static local:MENU.Admin}" 
+                             Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisConverter}}">
                         <TabItem.Header>
 
                             <StackPanel>

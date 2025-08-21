@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Meditrans.Client.Commands;
 using Meditrans.Client.Helpers;
 using Meditrans.Client.Models;
@@ -11,6 +12,12 @@ namespace Meditrans.Client.ViewModels
 {
     public class MainWindowViewModel : BaseViewModel
     {
+        private bool _isAdmin;
+        public bool IsAdmin
+        {
+            get => _isAdmin;
+            set => SetProperty(ref _isAdmin, value);
+        }
         public string LoggedUserName => "Hello, User"; // Example
 
         public ICommand ChangeLanguageCommand { get; }
@@ -86,6 +93,9 @@ namespace Meditrans.Client.ViewModels
         #endregion
         public MainWindowViewModel()
         {
+            IsAdmin = (SessionManager.Role.Equals("1", StringComparison.OrdinalIgnoreCase)) ? true : false;
+            //LoadUsers();
+
             ChangeLanguageCommand = new RelayCommand<string>(ChangeLanguage);
             LogoutCommand = new RelayCommand(Logout);
 
@@ -113,6 +123,20 @@ namespace Meditrans.Client.ViewModels
                 EnglishCheckVisibility = System.Windows.Visibility.Collapsed;
             }
         }
+
+        /*private async void LoadUsers()
+        {
+            UserService userService = new UserService();
+            var users = await userService.GetUsersAsync();            
+            List<User> AllUsers = new List<User>(users);
+            foreach (var user in users)
+            {
+                AllUsers.Add(user);
+            }
+            User CurrentUser = AllUsers.FirstOrDefault(u => u.Id == int.Parse(SessionManager.UserId));
+            IsAdmin = (CurrentUser.RoleId == 1) ? true : false;
+            //IsAdmin = CurrentUser?.Role?.RoleName?.Equals("Admin", StringComparison.OrdinalIgnoreCase) ?? false;
+        }*/
 
         private void ChangeLanguage(string languageCode)
         {

@@ -71,7 +71,7 @@ namespace Meditrans.Client.Services
             }
             return true;
         }
-
+       
         private async Task<ApiException> CreateApiException(HttpResponseMessage response, string context)
         {
             try
