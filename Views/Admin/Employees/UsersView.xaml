@@ -9,7 +9,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
 
     <UserControl.Resources>
-        <helpers:BindingProxy x:Key="userVmProxy" Data="{Binding}" />
+        <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
     </UserControl.Resources>
 
     <Border BorderThickness="1" BorderBrush="#2196f3" Background="White">
@@ -22,7 +22,7 @@
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
                 <Button Command="{Binding AddUserCommand}"
                         Style="{StaticResource MaterialDesignFloatingActionMiniButton}"
-                        ToolTip="Add New User"
+                        ToolTip="{Binding AddUserToolTip}"
                         Margin="0,0,20,0">
                     <materialDesign:PackIcon Kind="AccountPlus" Height="24" Width="24" />
                 </Button>
@@ -43,17 +43,17 @@
                                 <StackPanel Orientation="Horizontal">
                                     <Button Command="{Binding DataContext.EditUserCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             Style="{StaticResource MaterialDesignToolButton}"
-                                            ToolTip="Edit User">
+                                            ToolTip="{Binding Data.EditUserToolTip, Source={StaticResource vmProxy}}">
                                         <materialDesign:PackIcon Kind="Pencil" Foreground="Orange"/>
                                     </Button>
                                     <Button Command="{Binding DataContext.ChangePasswordCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         Style="{StaticResource MaterialDesignToolButton}"
-                                        ToolTip="Change Password">
+                                        ToolTip="{Binding Data.ChangePasswordToolTip, Source={StaticResource vmProxy}}">
                                         <materialDesign:PackIcon Kind="KeyChange" Foreground="Blue"/>
                                     </Button>
                                     <Button Command="{Binding DataContext.DeleteUserCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             Style="{StaticResource MaterialDesignToolButton}"
-                                            ToolTip="Delete User">
+                                            ToolTip="{Binding Data.DeleteUserToolTip, Source={StaticResource vmProxy}}">
                                         <materialDesign:PackIcon Kind="DeleteForever" Foreground="Red"/>
                                     </Button>
                                 </StackPanel>
@@ -61,12 +61,22 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <DataGridTextColumn Header="Full Name" Binding="{Binding FullName}" Width="2*"/>
-                    <DataGridTextColumn Header="Username" Binding="{Binding Username}" Width="*"/>
-                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="2*"/>
+                    <DataGridTextColumn
+                        Header="{Binding Data.ColumnHeaderFullName, Source={StaticResource vmProxy}}" 
+                        Binding="{Binding FullName}" Width="2*"/>
+                    <DataGridTextColumn 
+                        Header="{Binding Data.ColumnHeaderUserName, Source={StaticResource vmProxy}}" 
+                        Binding="{Binding Username}" Width="*"/>
+                    <DataGridTextColumn 
+                        Header="{Binding Data.ColumnHeaderEmail, Source={StaticResource vmProxy}}"  
+                        Binding="{Binding Email}" Width="2*"/>
                     
-                    <DataGridTextColumn Header="Role" Binding="{Binding Role.RoleName}" Width="*"/>
-                    <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="Auto"/>
+                    <DataGridTextColumn 
+                        Header="{Binding Data.ColumnHeaderRole, Source={StaticResource vmProxy}}"
+                        Binding="{Binding Role.RoleName}" Width="*"/>
+                    <DataGridCheckBoxColumn 
+                        Header="{Binding Data.ColumnHeaderActive, Source={StaticResource vmProxy}}"
+                        Binding="{Binding IsActive}" Width="Auto"/>
                 </DataGrid.Columns>
             </DataGrid>
         </Grid>

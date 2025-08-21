@@ -281,6 +281,26 @@
     "Schedule": "Schedule",
     "Trips": "Trips",
     "Revenue": "Revenue",
-    "Graphs": "Graphs"
+    "Graphs": "Graphs",
+
+    "AdminSection": "This is the way to group the translations corresponding to Admin Section",
+    "Users": "Users",
+    "Roles": "Roles",
+    "AddRoleToolTip": "Add new Role",
+    "EditRoleToolTip": "Edit Role",
+    "DeleteRoleToolTip": "Delete Role",
+    "ColumnHeaderRoleName": "Name",
+    "ColumnHeaderDescription": "Description",
+    "ConfirmDeleteRoleText": "Are you sure you want to delete the Role '{0}'?",
+    "AddUserToolTip": "Add new User",
+    "EdituserToolTip": "Edit User",
+    "ChangePasswordToolTip": "Change Password",
+    "DeleteUserToolTip": "Delete User",
+    "ConfirmDeleteUserText": "Are you sure you want to delete the User '{0}'?",
+    "ColumnHeaderFullName": "Full Name",
+    "ColumnHeaderUserName": "Username",
+    "ColumnHeaderEmail": "Email",
+    "ColumnHeaderRole": "Role",
+    "ColumnHeaderActive": "Active"
 
 }

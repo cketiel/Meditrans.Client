@@ -12,6 +12,24 @@ namespace Meditrans.Client.ViewModels
 {
     public class UsersViewModel : BaseViewModel
     {
+        #region Translation
+
+        public string AddUserToolTip => LocalizationService.Instance["AddUserToolTip"];
+        public string EditUserToolTip => LocalizationService.Instance["EditUserToolTip"];
+        public string ChangePasswordToolTip => LocalizationService.Instance["ChangePasswordToolTip"];
+        public string DeleteUserToolTip => LocalizationService.Instance["DeleteUserToolTip"];
+
+        public string ColumnHeaderFullName => LocalizationService.Instance["ColumnHeaderFullName"];
+        public string ColumnHeaderUserName => LocalizationService.Instance["ColumnHeaderUserName"];
+        public string ColumnHeaderEmail => LocalizationService.Instance["ColumnHeaderEmail"];
+        public string ColumnHeaderRole => LocalizationService.Instance["ColumnHeaderRole"];
+        public string ColumnHeaderActive => LocalizationService.Instance["ColumnHeaderActive"];
+
+        public string ErrorTitle => LocalizationService.Instance["ErrorTitle"];
+        public string ConfirmDeleteUserText => LocalizationService.Instance["ConfirmDeleteUserText"];
+        public string ConfirmDeleteTitle => LocalizationService.Instance["ConfirmDeleteTitle"];
+
+        #endregion
         #region Properties
         private ObservableCollection<User> _users;
         private User _selectedUser;

@@ -281,5 +281,25 @@
     "CancelScheduleError": "Error cancelando Planificación",
     "Trips": "Viajes",
     "Revenue": "Ganancia",
-    "Graphs": "Graficos"
+    "Graphs": "Graficos",
+
+    "AdminSection": "Esta es la forma de agrupar las traducciones correspondientes a la Sección Admin",
+    "Users": "Usuarios",
+    "Roles": "Roles",
+    "AddRoleToolTip": "Agregar Rol",
+    "EditRoleToolTip": "Editar Rol",
+    "DeleteRoleToolTip": "Eliminar Rol",
+    "ColumnHeaderRoleName": "Nombre",
+    "ColumnHeaderDescription": "Descripción",
+    "ConfirmDeleteRoleText": "¿Está seguro de que desea eliminar el Rol '{0}'?",
+    "AddUserToolTip": "Adicionar nuevo Usuario",
+    "EdituserToolTip": "Editar Usuario",
+    "ChangePasswordToolTip": "Cambiar clave",
+    "DeleteUserToolTip": "Eliminar Usuario",
+    "ConfirmDeleteUserText": "¿Está seguro de que desea eliminar el Usuario '{0}'?",
+    "ColumnHeaderFullName": "Nombre completo",
+    "ColumnHeaderUserName": "Username",
+    "ColumnHeaderEmail": "Email",
+    "ColumnHeaderRole": "Rol",
+    "ColumnHeaderActive": "Activo"
 }
