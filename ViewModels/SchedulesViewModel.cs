@@ -74,7 +74,7 @@ namespace Meditrans.Client.ViewModels
             var view = new ColumnSelectorView
             {
                 DataContext = viewModel,
-                Owner = Application.Current.MainWindow // Assign the main window as the owner
+                //Owner = Application.Current.MainWindow // Assign the main window as the owner
             };
 
             closeAction = () => view.Close();

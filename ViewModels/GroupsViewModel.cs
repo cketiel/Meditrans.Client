@@ -84,7 +84,7 @@ namespace Meditrans.Client.ViewModels
             var addGroupVM = new AddEditGroupViewModel();
             var addGroupWindow = new AddEditGroupWindow(addGroupVM)
             {
-                Owner = Application.Current.MainWindow // Para que se centre sobre la ventana principal
+                //Owner = Application.Current.MainWindow // Para que se centre sobre la ventana principal
             };
 
             if (addGroupWindow.ShowDialog() == true)

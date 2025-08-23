@@ -230,7 +230,9 @@ namespace Meditrans.Client.ViewModels
             var vehicleToEdit = isNew ? new Vehicle() : (Vehicle)vehicle.Clone();
 
             var vm = new VehicleEditViewModel(vehicleToEdit, AllGroups, AllCapacityTypes, AllVehicleTypes);
-            var view = new VehicleEditView { DataContext = vm, Owner = Application.Current.MainWindow };
+            var view = new VehicleEditView { DataContext = vm};
+
+            //var view = new VehicleEditView { DataContext = vm, Owner = Application.Current.MainWindow };          
 
             if (view.ShowDialog() == true)
             {

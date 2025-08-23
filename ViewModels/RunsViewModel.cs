@@ -95,8 +95,8 @@ namespace Meditrans.Client.ViewModels
 
             var editorWindow = new VehicleRouteEditorWindow
             {
-                DataContext = editorViewModel,
-                Owner = Application.Current.MainWindow
+                DataContext = editorViewModel//,
+                //Owner = Application.Current.MainWindow
             };
 
             if (editorWindow.ShowDialog() == true)
@@ -118,8 +118,8 @@ namespace Meditrans.Client.ViewModels
 
             var editorWindow = new VehicleRouteEditorWindow
             {
-                DataContext = editorViewModel,
-                Owner = Application.Current.MainWindow
+                DataContext = editorViewModel//,
+                //Owner = Application.Current.MainWindow
             };
 
             if (editorWindow.ShowDialog() == true)
