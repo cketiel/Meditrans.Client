@@ -206,7 +206,7 @@
                     <DataGridTextColumn Binding="{Binding On}" Width="50" IsReadOnly="True"
                                         Header="{Binding Data.ColumnHeaderOn, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=On}"/>
-                    <DataGridTextColumn Binding="{Binding SpaceTypeName}" Width="80"
+                    <DataGridTextColumn Binding="{Binding SpaceType}" Width="80"
                                         Header="{Binding Data.ColumnHeaderSpace, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=SpaceTypeName}"/>
                     <DataGridTextColumn Binding="{Binding Address}" Width="250"

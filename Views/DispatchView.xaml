@@ -4,9 +4,484 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Meditrans.Client.Views"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:viewModels="clr-namespace:Meditrans.Client.ViewModels"
+             xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
+             xmlns:converters="clr-namespace:Meditrans.Client.Converters"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="700" d:DesignWidth="1200">
+
+
+    <UserControl.Resources>
+        <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
+        <helpers:BooleanToVisibilityConverter x:Key="BoolToVis" />
+        
+        <!-- Derived from the MaterialDesign style for TabControl -->
+        <Style TargetType="TabControl"
+        BasedOn="{StaticResource MaterialDesignTabControl}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabControl">
+                        <Grid SnapsToDevicePixels="true">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Here we use TabPanel aligned left -->
+                            <TabPanel x:Name="HeaderPanel"
+                              Grid.Row="0"
+                              IsItemsHost="True"
+                              Panel.ZIndex="1"
+                              Background="{TemplateBinding Background}"
+                              Margin="0"
+                              HorizontalAlignment="Left"/>
+
+                            <!-- ContentPresenter that fills all the space -->
+                            <ContentPresenter x:Name="PART_SelectedContentHost"
+                      Grid.Row="1"
+                      Margin="{TemplateBinding Padding}"
+                      ContentSource="SelectedContent"
+                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <materialDesign:DialogHost Identifier="RootDialogHost">
+        
     <Grid>
-            
+    <!-- MAIN VIEW OF DISPATCH (Divided into 2 panels) -->
+    <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource MainBorderBrush}"
+            Visibility="{Binding IsOverviewVisible, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}">
+        <Grid Margin="4 0 4 4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel -->
+            <!--<Border Grid.Column="0" BorderBrush="LightGray" BorderThickness="0,0,1,0" Margin="0,0,5,0">-->
+                <DockPanel>
+                    <!-- Top row for DatePicker and Icon Buttons -->
+                    <Grid DockPanel.Dock="Top">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0">
+                            <TextBlock Text="Date: " VerticalAlignment="Center" Margin="0,0,5,0"/>
+                            <DatePicker SelectedDate="{Binding CurrentDispatchDate, UpdateSourceTrigger=PropertyChanged}" Width="120"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0">
+                            <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="Overview" Command="{Binding OverviewCommand}">
+                                <materialDesign:PackIcon Kind="ViewDashboardOutline" Width="24" Height="24" />
+                            </Button>
+                            <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="Export Schedule" Margin="10,0,0,0" Command="{Binding ExportScheduleCommand}">
+                                <materialDesign:PackIcon Kind="CalendarExport" Width="24" Height="24" />
+                            </Button>
+                            <Button Style="{StaticResource MaterialDesignIconButton}" ToolTip="Refresh" Margin="10,0,0,0" Command="{Binding RefreshCommand}">
+                                <materialDesign:PackIcon Kind="Refresh" Width="24" Height="24" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Tab Panel for Runs and Select -->
+                    <TabControl DockPanel.Dock="Top" Margin="0,0,0,0">
+                        <TabItem Header="{Binding HeaderRuns}">
+                            <DataGrid Margin="0,4,0,0"
+                                AutoGenerateColumns="False" 
+                                IsReadOnly="True" 
+                                ItemsSource="{Binding Runs}"                          
+                                CanUserAddRows="False"
+                                SelectionMode="Single"
+                                ScrollViewer.CanContentScroll="True" 
+                                ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                                ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                FrozenColumnCount="2"                                                           
+                                AlternationCount="2"
+                                AlternatingRowBackground="White"                                    
+                                Style="{StaticResource CustomDataGridStyle}"
+                                ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                                RowStyle="{StaticResource CustomRowStyle}"
+                                CellStyle="{StaticResource CustomCellStyle}"
+                                SelectionUnit="FullRow">
+                            
+                                <DataGrid.Columns>
+
+                                    <DataGridTemplateColumn Width="Auto">
+
+                                        <DataGridTemplateColumn.HeaderTemplate>
+                                            <DataTemplate>
+                                                <Button Command="{Binding DataContext.OpenColumnSelectorCommand,
+                                                    RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    Style="{StaticResource MaterialDesignToolButton}"
+                                                    ToolTip="{Binding Data.SelectFieldsToDisplayToolTip, Source={StaticResource vmProxy}}">
+                                                    <materialDesign:PackIcon Kind="Cog" Width="20" Height="20"/>
+                                                </Button>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.HeaderTemplate>
+                                        
+                                    </DataGridTemplateColumn>
+
+                                    <DataGridTextColumn 
+                                        Header="{Binding Data.ColumnHeaderOn, Source={StaticResource vmProxy}}" 
+                                        Binding="{Binding IsOn}" Width="Auto"/>
+                                    
+                                    <DataGridTextColumn 
+                                        Header="{Binding Data.ColumnHeaderMTE, Source={StaticResource vmProxy}}" 
+                                        Binding="{Binding MTE}" Width="Auto"/>
+                                    
+                                    <DataGridTextColumn 
+                                        Header="{Binding Data.ColumnHeaderME, Source={StaticResource vmProxy}}" 
+                                        Binding="{Binding ME}" Width="Auto"/>
+                                    
+                                    <DataGridTextColumn 
+                                        Header="{Binding Data.ColumnHeaderTrips, Source={StaticResource vmProxy}}"  
+                                        Binding="{Binding TripsCount}" Width="Auto"/>
+                                    
+                                    <DataGridTextColumn 
+                                        Header="{Binding Data.ColumnHeaderUnperf, Source={StaticResource vmProxy}}" 
+                                        Binding="{Binding UnperformedCount}" Width="Auto"/>
+                                    
+                                    <DataGridTextColumn 
+                                        Header="{Binding Data.ColumnHeaderRun, Source={StaticResource vmProxy}}" 
+                                        Binding="{Binding Name}" Width="*"/>
+                                    
+                                    <DataGridTextColumn 
+                                        Header="{Binding Data.ColumnHeaderDriver, Source={StaticResource vmProxy}}" 
+                                        Binding="{Binding DriverFullName}" Width="*"/>
+                                    
+                                    <DataGridTextColumn 
+                                        Header="{Binding Data.ColumnHeaderVehicle, Source={StaticResource vmProxy}}"  
+                                        Binding="{Binding VehicleName}" Width="*"/>
+                                    
+                                    <DataGridTemplateColumn 
+                                        Header="{Binding Data.ColumnHeaderLastNextEvent, Source={StaticResource vmProxy}}"  
+                                        Width="2.5*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding LastNextEvent}" TextWrapping="Wrap" />
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </TabItem>
+                        <TabItem Header="{Binding HeaderSelect}">
+                            <!-- Contenido para la pestaña Select -->
+                            <TextBlock Text="Contenido de la pestaña Select (a definir)" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                        </TabItem>
+                    </TabControl>
+                </DockPanel>
+            <!--</Border>-->
+
+            <!-- Vertical Divider -->
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Center" VerticalAlignment="Stretch" Background="LightGray"/>
+
+            <!-- Right Panel -->
+            <!--<Border Grid.Column="2" BorderBrush="LightGray" BorderThickness="1,0,0,0" Margin="5,0,0,0">-->
+                <DockPanel Grid.Column="2">
+                    <!-- Tab Panel for Unscheduled -->
+                    <TabControl DockPanel.Dock="Top">
+                        <TabItem Header="{Binding HeaderUnscheduled}">
+                            <DockPanel>
+                                <CheckBox DockPanel.Dock="Top" Content="Display Will Calls" IsChecked="{Binding DisplayWillCalls}" Margin="5"/>
+                                <DataGrid 
+                                    AutoGenerateColumns="False" 
+                                    IsReadOnly="True" 
+                                    ItemsSource="{Binding UnscheduledTrips}"
+                                    SelectedItem="{Binding SelectedUnscheduledTrip}"
+                                    CanUserAddRows="False"
+                                    SelectionMode="Single"
+                                    ScrollViewer.CanContentScroll="True" 
+                                    ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                    FrozenColumnCount="2"                                                           
+                                    AlternationCount="2"
+                                    AlternatingRowBackground="White"                                    
+                                    Style="{StaticResource CustomDataGridStyle}"
+                                    ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                                    RowStyle="{StaticResource CustomRowStyle}"
+                                    CellStyle="{StaticResource CustomCellStyle}"
+                                    SelectionUnit="FullRow">
+                                    
+                                    <DataGrid.Columns>
+
+                                        <DataGridTemplateColumn Width="Auto">
+
+                                            <!--<DataGridTemplateColumn.HeaderTemplate>
+                                                <DataTemplate>
+                                                    <Button Command="{Binding DataContext.OpenTripColumnSelectorCommand,
+                                                            RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            Style="{StaticResource MaterialDesignToolButton}"
+                                                            >   
+                                                        <materialDesign:PackIcon Kind="Cog" Width="20" Height="20"/>
+                                                    </Button>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.HeaderTemplate>-->
+
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+
+                                                        <Button Command="{Binding Data.CancelTripCommand, Source={StaticResource vmProxy}}"
+                                                            CommandParameter="{Binding}"
+                                                            Style="{StaticResource MaterialDesignToolButton}"
+                                                            VerticalAlignment="Center"
+                                                            ToolTip="{Binding Data.CancelTripToolTip, Source={StaticResource vmProxy}}">
+                                                            <materialDesign:PackIcon Kind="CloseThick" Foreground="Red" Width="20" Height="20" />
+                                                        </Button>
+
+                                                        <Button Command="{Binding DataContext.EditTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding}"
+                                                            Style="{StaticResource MaterialDesignToolButton}"
+                                                            ToolTip="{Binding Data.EditTripToolTip, Source={StaticResource vmProxy}}">
+                                                            <materialDesign:PackIcon Kind="FileEdit" Foreground="Orange"/>
+                                                        </Button>
+
+                                                        <!--<Button Command="{Binding DataContext.RouteTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding}"
+                                                            Style="{StaticResource MaterialDesignToolButton}"
+                                                            ToolTip="{Binding Data.ScheduleTripToolTip, Source={StaticResource vmProxy}}">
+                                                            <materialDesign:PackIcon Kind="SortClockDescending" Foreground="Green"/>
+                                                        </Button>-->
+
+                                                    </StackPanel>
+
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+
+                                        </DataGridTemplateColumn>
+
+                                        <DataGridTextColumn Binding="{Binding Date, StringFormat='{}{0:MM/dd/yyyy}'}" Width="Auto"
+                                            Header="{Binding Data.ColumnHeaderDate, Source={StaticResource vmProxy}}"/>
+
+                                        <DataGridTextColumn Binding="{Binding FromTime, StringFormat='{}{0:hh\\:mm}'}" Width="Auto"
+                                            Header="{Binding Data.ColumnHeaderFromTime, Source={StaticResource vmProxy}}"/>
+
+                                        <DataGridTextColumn Binding="{Binding ToTime, StringFormat='{}{0:hh\\:mm}'}" Width="Auto"
+                                            Header="{Binding Data.ColumnHeaderToTime, Source={StaticResource vmProxy}}"/>
+
+                                        <DataGridTextColumn Binding="{Binding NotificationStatus}"
+                                            Header="{Binding Data.ColumnHeaderNotificationStatus, Source={StaticResource vmProxy}}"/>
+
+                                        <DataGridTextColumn Binding="{Binding CustomerName}"
+                                            Header="{Binding Data.ColumnHeaderPatient, Source={StaticResource vmProxy}}"/>
+
+                                        <DataGridTextColumn Binding="{Binding PickupAddress}"
+                                            Header="{Binding Data.ColumnHeaderPickupAddress, Source={StaticResource vmProxy}}"/>
+
+                                        <DataGridTextColumn Binding="{Binding DropoffAddress}"
+                                            Header="{Binding Data.ColumnHeaderDropoffAddress, Source={StaticResource vmProxy}}"/>
+
+                                        <DataGridTextColumn Binding="{Binding Charge}"
+                                            Header="{Binding Data.ColumnHeaderCharge, Source={StaticResource vmProxy}}"/>
+
+                                        <DataGridTextColumn Binding="{Binding Paid}"
+                                            Header="{Binding Data.ColumnHeaderPaid, Source={StaticResource vmProxy}}"/>
+
+                                        <DataGridTextColumn Binding="{Binding SpaceType}"
+                                            Header="{Binding Data.ColumnHeaderSpace, Source={StaticResource vmProxy}}"/>
+
+                                        <DataGridTextColumn Binding="{Binding PickupComment}"
+                                            Header="{Binding Data.ColumnHeaderPickupComment, Source={StaticResource vmProxy}}"/>
+
+                                                                                    <DataGridTextColumn Binding="{Binding DropoffComment}"
+                                            Header="{Binding Data.ColumnHeaderDropoffComment, Source={StaticResource vmProxy}}"/>
+
+                                                                                    <DataGridTextColumn Binding="{Binding Type}"
+                                            Header="{Binding Data.ColumnHeaderType, Source={StaticResource vmProxy}}"/>
+
+                                                                                    <DataGridTextColumn Binding="{Binding Pickup}"
+                                            Header="{Binding Data.ColumnHeaderPickup, Source={StaticResource vmProxy}}"/>
+
+                                                                                    <DataGridTextColumn Binding="{Binding Dropoff}"
+                                            Header="{Binding Data.ColumnHeaderDropoff, Source={StaticResource vmProxy}}"/>
+
+                                                                                    <DataGridTextColumn Binding="{Binding PickupPhone}"
+                                            Header="{Binding Data.ColumnHeaderPickupPhone, Source={StaticResource vmProxy}}"/>
+
+                                                                                    <DataGridTextColumn Binding="{Binding DropoffPhone}"
+                                            Header="{Binding Data.ColumnHeaderDropoffPhone, Source={StaticResource vmProxy}}"/>
+
+                                                                                    <DataGridTextColumn Binding="{Binding Authorization}"
+                                            Header="{Binding Data.ColumnHeaderAuthorization, Source={StaticResource vmProxy}}"/>
+
+                                                                                    <DataGridTextColumn Binding="{Binding FundingSource}"
+                                            Header="{Binding Data.ColumnHeaderFundingSource, Source={StaticResource vmProxy}}"/>
+
+                                                                                    <DataGridTextColumn Binding="{Binding Distance}"
+                                            Header="{Binding Data.ColumnHeaderDistance, Source={StaticResource vmProxy}}"/>
+
+                                                                                    <DataGridTextColumn Binding="{Binding PickupCity}"
+                                            Header="{Binding Data.ColumnHeaderPickupCity, Source={StaticResource vmProxy}}"/>
+
+                                                                                    <DataGridTextColumn Binding="{Binding DropoffCity}"
+                                            Header="{Binding Data.ColumnHeaderDropoffCity, Source={StaticResource vmProxy}}"/>
+
+                                        <!--
+                                        <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat='{}{0:MM/dd/yyyy}'}" Width="Auto"/>
+                                        <DataGridTextColumn Header="From Time" Binding="{Binding FromTime, StringFormat='{}{0:hh\\:mm}'}" Width="Auto"/>
+                                        <DataGridTextColumn Header="To Time" Binding="{Binding ToTime, StringFormat='{}{0:hh\\:mm}'}" Width="Auto"/>
+                                        <DataGridTextColumn Header="Patient" Binding="{Binding PatientFullName}" Width="*"/>
+                                        <DataGridTextColumn Header="Space" Binding="{Binding SpaceTypeName}" Width="Auto"/>
+                                        <DataGridTextColumn Header="Pickup Address" Binding="{Binding PickupAddress}" Width="2*"/>
+                                        <DataGridTextColumn Header="Charge" Binding="{Binding Charge, StringFormat='{}{0:C}'}" Width="Auto"/>
+                                        <DataGridTextColumn Header="Paid" Binding="{Binding Paid, StringFormat='{}{0:C}'}" Width="Auto"/>
+                                        <DataGridTextColumn Header="Pickup Comment" Binding="{Binding PickupComment}" Width="*"/>
+                                        <DataGridTextColumn Header="Dropoff Comment" Binding="{Binding DropoffComment}" Width="*"/>
+                                        <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="Auto"/>
+                                        <DataGridTextColumn Header="Pickup Phone" Binding="{Binding PickupPhone}" Width="Auto"/>
+                                        <DataGridTextColumn Header="Dropoff Phone" Binding="{Binding DropoffPhone}" Width="Auto"/>
+                                        <DataGridTextColumn Header="Authorization" Binding="{Binding Authorization}" Width="Auto"/>
+                                        <DataGridTextColumn Header="Funding Source" Binding="{Binding FundingSourceName}" Width="*"/>
+                                        <DataGridTextColumn Header="Distance" Binding="{Binding Distance, StringFormat='{}{0:F2} mi'}" Width="Auto"/>
+                                        <DataGridTextColumn Header="Pickup City" Binding="{Binding PickupCity}" Width="*"/>
+                                        <DataGridTextColumn Header="Dropoff City" Binding="{Binding DropoffCity}" Width="*"/>
+                                        -->
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </DockPanel>
+                        </TabItem>
+                    </TabControl>
+                </DockPanel>
+            <!--</Border>-->
+        
+        </Grid>
+    </Border>
+
+    <!-- OVERVIEW (Full Screen) -->
+    <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource MainBorderBrush}"
+            Visibility="{Binding IsOverviewVisible, Converter={StaticResource BoolToVis}}">
+            <DockPanel Margin="4 0 4 4" >
+            <!-- Top Bar -->
+            <Border DockPanel.Dock="Top" Padding="0" Margin="0" Background="{DynamicResource PrimaryHueMidBrush}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Button to return to Dispatch Main -->
+                    <Button Grid.Column="0" Style="{StaticResource MaterialDesignFlatButton}"
+                                Command="{Binding ShowDispatchMainCommand}" >
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="ViewDashboard" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <TextBlock Text="Dispatch main" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <CheckBox Grid.Column="1" Content="Show Will Calls" 
+                                  VerticalAlignment="Center" Margin="20,0,0,0" />
+
+                        <!-- Refresh button -->
+                        <Button Grid.Column="2" Style="{StaticResource MaterialDesignIconButton}" Margin="60,0,0,0"
+                            ToolTip="Refresh" Command="{Binding RefreshCommand}" >
+                            <materialDesign:PackIcon Kind="Refresh" Width="24" Height="24" />
+                     </Button>
+                    
+                    <!-- Information Headband -->
+                    <TextBlock Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,0" Background="{DynamicResource MaterialDesign.Brush.Primary}" Foreground="White" TextWrapping="Wrap" FontSize="26">
+                            <Run Text="Vehicles: "/><Run Text="{Binding TotalVehicles}" FontWeight="Bold"/>
+                            <Run Text="  Clear: "/><Run Text="{Binding ClearVehicles}" FontWeight="Bold"/>
+                            <Run Text="  Loaded: "/><Run Text="{Binding LoadedVehicles}" FontWeight="Bold"/>
+                            <Run Text="  En Route: "/><Run Text="{Binding EnRouteVehicles}" FontWeight="Bold"/>
+                            <Run Text="  On Break: "/><Run Text="{Binding OnBreakVehicles}" FontWeight="Bold"/>
+                            <Run Text="  Off Line: "/><Run Text="{Binding OfflineVehicles}" FontWeight="Bold"/>
+                    </TextBlock>
+
+                    
+                </Grid>
+            </Border>
+
+            <!-- Tab Control for Map and Events -->
+            <TabControl Margin="0 -15 0 0">
+                <TabItem Header="Map Overview">
+                    <TextBlock Text="El contenido del mapa se implementará más adelante." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" />
+                </TabItem>
+                <TabItem Header="All Events">
+                    <Border BorderThickness="1,1,1,1" BorderBrush="{StaticResource MainBorderBrush}">
+                    <DockPanel Margin="4">
+                        <!-- Superior Grid Controls -->
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,5,0,10">
+                            <TextBlock Text="{Binding EventsSummaryText}" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                            <CheckBox Content="Show Performed" IsChecked="{Binding ShowPerformedEvents}" Margin="20,0,0,0" VerticalAlignment="Center" />
+                            <CheckBox Content="Show Pull-Out/Pull-In" IsChecked="{Binding ShowPullEvents}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                            <CheckBox Content="Show Unperformed Late Pickups" IsChecked="{Binding ShowLatePickups}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Event DataGrid -->
+                        <DataGrid ItemsSource="{Binding AllEvents}"
+                                      AutoGenerateColumns="False" 
+                                      CanUserAddRows="False"
+                                      SelectionMode="Single"
+                                      ScrollViewer.CanContentScroll="True" 
+                                      ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                      FrozenColumnCount="2"                               
+                                    
+                                    AlternationCount="2"
+                                    AlternatingRowBackground="White"                                    
+                                    Style="{StaticResource CustomDataGridStyle}"
+                                    ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                                    RowStyle="{StaticResource CustomRowStyle}"
+                                    CellStyle="{StaticResource CustomCellStyle}"
+                                    SelectionUnit="FullRow">
+                            
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Run" Binding="{Binding Run}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Event Name" Binding="{Binding Name}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Pickup" Binding="{Binding Pickup, StringFormat='{}{0:hh\\:mm}'}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Appt" Binding="{Binding Appt, StringFormat='{}{0:hh\\:mm}'}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="ETA" Binding="{Binding ETA}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Distance" Binding="{Binding Distance}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Travel" Binding="{Binding Travel}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="On" Binding="{Binding On}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Space" Binding="{Binding SpaceType}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="*" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Comment" Binding="{Binding Comment}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Arrive" Binding="{Binding Arrive, StringFormat='{}{0:hh\\:mm}'}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Perform" Binding="{Binding Perform, StringFormat='{}{0:hh\\:mm}'}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Arrive Dist" Binding="{Binding ArriveDist}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Perform Dist" Binding="{Binding PerformDist}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Driver" Binding="{Binding Driver}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="GPS Arrive" Binding="{Binding GPSArrive}" IsReadOnly="True"/>
+                                <DataGridTemplateColumn Header="Odometer" IsReadOnly="False">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Odometer}" Padding="4,2"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                    <DataGridTemplateColumn.CellEditingTemplate>
+                                        <DataTemplate>
+                                            <TextBox Text="{Binding Odometer, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellEditingTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="AuthNo" Binding="{Binding AuthNo}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Funding Source" Binding="{Binding FundingSource}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Vehicle" Binding="{Binding Vehicle}" IsReadOnly="True"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                    </Border>
+                </TabItem>
+            </TabControl>
+        </DockPanel>
+    </Border>
+
     </Grid>
+
+    </materialDesign:DialogHost>
+    
 </UserControl>

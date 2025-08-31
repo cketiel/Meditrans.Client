@@ -12,19 +12,17 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Meditrans.Client.ViewModels;
 
-namespace Meditrans.Client.Views
+namespace Meditrans.Client.Views.Dispatch
 {
     /// <summary>
-    /// Lógica de interacción para DispatchView.xaml
+    /// Lógica de interacción para EditTripDialog.xaml
     /// </summary>
-    public partial class DispatchView : UserControl
+    public partial class EditTripDialog : UserControl
     {
-        public DispatchView()
+        public EditTripDialog()
         {
             InitializeComponent();
-            DataContext = new DispatchViewModel();
         }
     }
 }

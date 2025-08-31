@@ -142,6 +142,18 @@ namespace Meditrans.Client.Services
             return result ?? new List<TripReadDto>();*/
         }
 
+        public async Task CancelTripAsync(int tripId)
+        {
+            var response = await _httpClient.PostAsync($"{EndPoint}/{tripId}/cancel", null);
+            response.EnsureSuccessStatusCode();
+        }
+
+        public async Task UpdateFromDispatchAsync(int tripId, TripDispatchUpdateDto dto)
+        {
+            var response = await _httpClient.PatchAsJsonAsync($"{EndPoint}/{tripId}/dispatch-update", dto);
+            response.EnsureSuccessStatusCode();
+        }
+
         private async Task<ApiException> CreateApiException(HttpResponseMessage response, string context)
         {
             try
