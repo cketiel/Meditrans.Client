@@ -4,9 +4,35 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Meditrans.Client.Views.Admin"
+             xmlns:views="clr-namespace:Meditrans.Client.Views.Admin.Billing"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
-    </Grid>
+
+    <Border BorderThickness="1,1,1,1"
+            BorderBrush="#2196f3"
+            Background="White">
+
+        <Grid Margin="10 0 10 10">
+
+            <TabControl  HorizontalAlignment="Stretch"
+                 VerticalAlignment="Stretch"
+                 HorizontalContentAlignment="Stretch"
+                 VerticalContentAlignment="Stretch">
+
+                <TabItem Header="Billing Items" >
+                    <views:BillingItemsView />
+                </TabItem>
+
+
+                <!--<TabItem Header="{Binding FundingSources}">
+                    <views:RolesView />
+                </TabItem>-->
+
+
+
+            </TabControl>
+
+        </Grid>
+
+    </Border>
 </UserControl>

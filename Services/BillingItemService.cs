@@ -1,5 +1,6 @@
 ﻿
 
+using Meditrans.Client.DTOs;
 using Meditrans.Client.Exceptions;
 using Meditrans.Client.Models;
 using System.Collections.Generic;
@@ -19,15 +20,30 @@ namespace Meditrans.Client.Services
             _httpClient = ApiClientFactory.Create();
         }
 
-        public async Task<List<BillingItem>> GetBillingItemsAsync()
+        public async Task<List<BillingItemGetDto>> GetBillingItemsAsync()
         {
-            var result = await _httpClient.GetFromJsonAsync<List<BillingItem>>(EndPoint);
-            return result ?? new List<BillingItem>();
+            // El tipo genérico ahora es el DTO
+            var result = await _httpClient.GetFromJsonAsync<List<BillingItemGetDto>>(EndPoint);
+            return result ?? new List<BillingItemGetDto>();
         }
 
         public async Task<BillingItem> CreateBillingItemAsync(BillingItem billingItem)
         {
-            var response = await _httpClient.PostAsJsonAsync(EndPoint, billingItem);
+            var dto = new BillingItemDto
+            {
+                Description = billingItem.Description,
+                UnitId = billingItem.UnitId,
+                IsCopay = billingItem.IsCopay,
+                ARAccount = billingItem.ARAccount,
+                ARSubAccount = billingItem.ARSubAccount,
+                ARCompany = billingItem.ARCompany,
+                APAccount = billingItem.APAccount,
+                APSubAccount = billingItem.APSubAccount,
+                APCompany = billingItem.APCompany
+            };
+
+            var response = await _httpClient.PostAsJsonAsync(EndPoint, dto);
+
             if (!response.IsSuccessStatusCode)
             {
                 throw await CreateApiException(response, "Error creating Billing Item");
@@ -37,7 +53,21 @@ namespace Meditrans.Client.Services
 
         public async Task<BillingItem> UpdateBillingItemAsync(BillingItem billingItem)
         {
-            var response = await _httpClient.PutAsJsonAsync($"{EndPoint}/{billingItem.Id}", billingItem);
+            var dto = new BillingItemDto
+            {
+                Description = billingItem.Description,
+                UnitId = billingItem.UnitId,
+                IsCopay = billingItem.IsCopay,
+                ARAccount = billingItem.ARAccount,
+                ARSubAccount = billingItem.ARSubAccount,
+                ARCompany = billingItem.ARCompany,
+                APAccount = billingItem.APAccount,
+                APSubAccount = billingItem.APSubAccount,
+                APCompany = billingItem.APCompany
+            };
+
+            var response = await _httpClient.PutAsJsonAsync($"{EndPoint}/{billingItem.Id}", dto);
+
             if (!response.IsSuccessStatusCode)
             {
                 throw await CreateApiException(response, "Error updating Billing Item");
