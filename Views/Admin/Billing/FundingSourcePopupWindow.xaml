@@ -1,0 +1,116 @@
+﻿
+<Window x:Class="Meditrans.Client.Views.Admin.Billing.FundingSourcePopupWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Funding Source"
+        Width="550" MaxHeight="800"
+        WindowStartupLocation="CenterOwner"
+        SizeToContent="Height">
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <!-- Contenido con Scroll -->
+            <RowDefinition Height="Auto" />
+            <!-- Botones -->
+        </Grid.RowDefinitions>
+
+        <!-- El ScrollViewer es crucial para ventanas con muchos campos -->
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,15,0">
+            <StackPanel>
+                <!-- Grupo de Información Principal -->
+                <GroupBox Header="Main Information" FontWeight="Bold">
+                    <Grid Margin="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Grid.Column="0" Content="Name *:" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding CurrentFundingSource.Name, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
+
+                        <Label Grid.Row="1" Grid.Column="0" Content="Account Number:" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CurrentFundingSource.AccountNumber, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
+
+                        <Label Grid.Row="2" Grid.Column="0" Content="Address:" VerticalAlignment="Top" Margin="0,5,0,0"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding CurrentFundingSource.Address, UpdateSourceTrigger=PropertyChanged}" Margin="5" 
+                                 MinHeight="60" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+
+                        <CheckBox Grid.Row="3" Grid.Column="1" Content="Is Active" IsChecked="{Binding CurrentFundingSource.IsActive}" Margin="5,10,5,5" />
+                    </Grid>
+                </GroupBox>
+
+                <!-- Grupo de Información de Contacto -->
+                <GroupBox Header="Contact Information" FontWeight="Bold" Margin="0,10,0,0">
+                    <Grid Margin="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Label Grid.Row="0" Grid.Column="0" Content="First Name:" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding CurrentFundingSource.ContactFirst, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
+
+                        <Label Grid.Row="0" Grid.Column="2" Content="Last Name:" VerticalAlignment="Center" Margin="10,0,0,0" />
+                        <TextBox Grid.Row="0" Grid.Column="3" Text="{Binding CurrentFundingSource.ContactLast, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
+
+                        <Label Grid.Row="1" Grid.Column="0" Content="Phone:" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding CurrentFundingSource.Phone, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
+
+                        <Label Grid.Row="1" Grid.Column="2" Content="FAX:" VerticalAlignment="Center" Margin="10,0,0,0" />
+                        <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding CurrentFundingSource.FAX, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
+
+                        <Label Grid.Row="2" Grid.Column="0" Content="Email:" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Text="{Binding CurrentFundingSource.Email, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
+                    </Grid>
+                </GroupBox>
+
+                <!-- Grupo de Requisitos -->
+                <GroupBox Header="Signature and Requirements" FontWeight="Bold" Margin="0,10,0,0">
+                    <StackPanel Margin="5">
+                        <CheckBox Content="Signature Required on Pickup" IsChecked="{Binding CurrentFundingSource.SignaturePickup}" IsThreeState="True" Margin="5"/>
+                        <CheckBox Content="Signature Required on Dropoff" IsChecked="{Binding CurrentFundingSource.SignatureDropoff}" IsThreeState="True" Margin="5"/>
+                        <CheckBox Content="Driver Signature Required on Pickup" IsChecked="{Binding CurrentFundingSource.DriverSignaturePickup}" IsThreeState="True" Margin="5"/>
+                        <CheckBox Content="Driver Signature Required on Dropoff" IsChecked="{Binding CurrentFundingSource.DriverSignatureDropoff}" IsThreeState="True" Margin="5"/>
+                        <CheckBox Content="Require Odometer Readings" IsChecked="{Binding CurrentFundingSource.RequireOdometer}" IsThreeState="True" Margin="5"/>
+                        <CheckBox Content="Barcode Scan Required" IsChecked="{Binding CurrentFundingSource.BarcodeScanRequired}" IsThreeState="True" Margin="5"/>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Grupo de Integración -->
+                <GroupBox Header="Integration" FontWeight="Bold" Margin="0,10,0,0">
+                    <Grid Margin="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Label Grid.Column="0" Content="Vectorcare Facility ID:" VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="1" Text="{Binding CurrentFundingSource.VectorcareFacilityId, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
+                    </Grid>
+                </GroupBox>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Botones de Acción -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Save" Command="{Binding SaveCommand}" IsDefault="True" MinWidth="80" Margin="0,0,10,0"/>
+            <Button Content="Cancel" IsCancel="True" MinWidth="80"/>
+        </StackPanel>
+    </Grid>
+</Window>

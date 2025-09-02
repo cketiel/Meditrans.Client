@@ -68,7 +68,7 @@ namespace Meditrans.Client.ViewModels
         private async Task LoadAuxDataAsync()
         {
             var fundingSourceService = new FundingSourceService();
-            var sources = await fundingSourceService.GetFundingSourcesAsync();
+            var sources = await fundingSourceService.GetFundingSourcesAsync(false);
             FundingSources.Clear();
             foreach (var source in sources)
             {

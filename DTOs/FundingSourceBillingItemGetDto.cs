@@ -4,17 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Meditrans.Client.Models
+namespace Meditrans.Client.DTOs
 {
-    public class FundingSourceBillingItem
+    public class FundingSourceBillingItemGetDto
     {
         public int Id { get; set; }
-        public int FundingSourceId { get; set; }
-        public FundingSource FundingSource { get; set; }
-        public int BillingItemId { get; set; }
-        public BillingItem BillingItem { get; set; }
-        public int SpaceTypeId { get; set; }
-        public SpaceType SpaceType { get; set; }
         public decimal Rate { get; set; }
         public string Per { get; set; }
         public bool IsDefault { get; set; }
@@ -26,9 +20,8 @@ namespace Meditrans.Client.Models
         public int? FreeQty { get; set; }
         public DateTime FromDate { get; set; }
         public DateTime ToDate { get; set; }
-
-        // It is only used to calculate the cost in the billing session
-        public decimal Qty { get; set; }
-        public decimal Cost { get; set; }
+        public string BillingItemDescription { get; set; }
+        public string BillingItemUnitAbbreviation { get; set; }
+        public string SpaceTypeName { get; set; }
     }
 }

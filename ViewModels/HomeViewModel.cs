@@ -639,7 +639,7 @@ namespace Meditrans.Client.ViewModels
         public async Task LoadFundingSourcesAsync()
         {
             FundingSourceService _fundingSourceService = new FundingSourceService();
-            var sources = await _fundingSourceService.GetFundingSourcesAsync();
+            var sources = await _fundingSourceService.GetFundingSourcesAsync(false);
             FundingSources.Clear();
             foreach (var source in sources)
                 FundingSources.Add(source);

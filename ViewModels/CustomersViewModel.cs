@@ -112,7 +112,7 @@ namespace Meditrans.Client.ViewModels
             OnPropertyChanged(nameof(Customers));*/
 
             FundingSourceService _fundingSourceService = new FundingSourceService();
-            var sources = await _fundingSourceService.GetFundingSourcesAsync();
+            var sources = await _fundingSourceService.GetFundingSourcesAsync(false);
             FundingSources.Clear();
             foreach (var source in sources)
                 FundingSources.Add(source);

@@ -87,7 +87,7 @@ namespace Meditrans.Client.ViewModels
             OnPropertyChanged(nameof(Route)); // Notify that the Route property has been updated
 
             FundingSourceService _fundingSourceService = new FundingSourceService();           
-            var allFundingSources = await _fundingSourceService.GetFundingSourcesAsync();
+            var allFundingSources = await _fundingSourceService.GetFundingSourcesAsync(false);
             var exclusiveIds = new HashSet<int>(Route.FundingSources.Select(fs => fs.FundingSourceId));
 
             foreach (var fs in allFundingSources)

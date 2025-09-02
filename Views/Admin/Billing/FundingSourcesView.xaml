@@ -1,0 +1,159 @@
+﻿<UserControl x:Class="Meditrans.Client.Views.Admin.Billing.FundingSourcesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="1200">
+    <TabControl>
+        <TabItem Header="Funding Sources and Payees">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Barra de herramientas superior -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
+                    <Button Content="➕" ToolTip="Add New Funding Source"
+                            Command="{Binding AddFundingSourceCommand}"
+                            FontWeight="Bold" Width="30" Height="30"/>
+                    <CheckBox Content="Display Inactive" 
+                              IsChecked="{Binding DisplayInactive}"
+                              VerticalAlignment="Center" Margin="20,0,0,0"/>
+                </StackPanel>
+
+                <!-- DataGrid mejorado -->
+                <DataGrid Grid.Row="1" 
+                          ItemsSource="{Binding FundingSources}"
+                          SelectedItem="{Binding SelectedFundingSource}" 
+                          AutoGenerateColumns="False" 
+                          CanUserAddRows="False" 
+                          IsReadOnly="True"
+                          FrozenColumnCount="2"
+                          SelectionMode="Single"
+                          
+                          
+                    ScrollViewer.CanContentScroll="True"
+                          ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto">
+
+                    <DataGrid.Columns>
+                        <!-- Columna de Acciones (Fija) -->
+                        <DataGridTemplateColumn Width="Auto" >
+                            <DataGridTemplateColumn.HeaderTemplate>
+                                <DataTemplate>
+                                    <Button Content="엑셀" ToolTip="Export to Excel"
+                                            Command="{Binding DataContext.ExportToExcelCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            FontWeight="Bold" Width="30" Height="30"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.HeaderTemplate>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="✎" ToolTip="Edit Funding Source"
+                                            Command="{Binding DataContext.EditFundingSourceCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Columnas principales (Nombre fijado para referencia) -->
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*"  MinWidth="150"/>
+                        <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="Auto"/>
+                        <DataGridTextColumn Header="Account #" Binding="{Binding AccountNumber}" />
+
+                        <!-- Columna de Contacto Combinada (Mejora de UI) -->
+                        <DataGridTemplateColumn Header="Contact" Width="*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0} {1}">
+                                                <Binding Path="ContactFirst"/>
+                                                <Binding Path="ContactLast"/>
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Columnas de Información de Contacto -->
+                        <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="*" MinWidth="180"/>
+                        <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" Width="Auto" MinWidth="120"/>
+                        <DataGridTextColumn Header="FAX" Binding="{Binding FAX}" Width="Auto" MinWidth="120"/>
+                        <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="3*" MinWidth="200"/>
+
+                        <!-- Columnas de Requisitos (Checkboxes) -->
+                        <DataGridCheckBoxColumn Header="Sig. Pickup" Binding="{Binding SignaturePickup}" Width="Auto"/>
+                        <DataGridCheckBoxColumn Header="Sig. Dropoff" Binding="{Binding SignatureDropoff}" Width="Auto"/>
+                        <DataGridCheckBoxColumn Header="Driver Sig. Pickup" Binding="{Binding DriverSignaturePickup}" Width="Auto"/>
+                        <DataGridCheckBoxColumn Header="Driver Sig. Dropoff" Binding="{Binding DriverSignatureDropoff}" Width="Auto"/>
+                        <DataGridCheckBoxColumn Header="Req. Odometer" Binding="{Binding RequireOdometer}" Width="Auto"/>
+                        <DataGridCheckBoxColumn Header="Req. Barcode" Binding="{Binding BarcodeScanRequired}" Width="Auto"/>
+
+                        <!-- Columna de Integración -->
+                        <DataGridTextColumn Header="Vectorcare Facility ID" Binding="{Binding VectorcareFacilityId}" />
+
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </TabItem>
+
+        <TabItem Header="{Binding BillingItemsTabHeader}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Barra de herramientas superior -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10" VerticalAlignment="Center">
+                    <Button Content="➕" ToolTip="Add Billing Item"
+                            Command="{Binding AddBillingItemForSourceCommand}"/>
+                    <TextBlock Text="{Binding SelectedFundingSource.Name, FallbackValue='(none selected)'}" 
+                               FontWeight="Bold" FontSize="16" Margin="20,0,0,0" VerticalAlignment="Center"/>
+                    <CheckBox Content="Display Expired" 
+                              IsChecked="{Binding DisplayExpired}"
+                              VerticalAlignment="Center" Margin="20,0,0,0"/>
+                </StackPanel>
+
+                <!-- DataGrid para Billing Items -->
+                <DataGrid Grid.Row="1" ItemsSource="{Binding BillingItemsForSelectedSource}"
+                          AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" FrozenColumnCount="1">
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn Width="Auto" >
+                            <DataGridTemplateColumn.HeaderTemplate>
+                                <DataTemplate>
+                                    <Button Content="엑셀" ToolTip="Export to Excel" 
+                                            Command="{Binding DataContext.ExportBillingItemsForSourceCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.HeaderTemplate>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="✎" ToolTip="Edit Billing Item"
+                                            Command="{Binding DataContext.EditBillingItemForSourceCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Columnas de datos -->
+                        <DataGridTextColumn Header="Billing Item" Binding="{Binding BillingItem.Description}" Width="2*"/>
+                        <DataGridTextColumn Header="Space Type" Binding="{Binding SpaceType.Name}" Width="*"/>
+                        <DataGridTextColumn Header="Rate" Binding="{Binding Rate, StringFormat=C}" Width="Auto"/>
+                        <DataGridTextColumn Header="Per" Binding="{Binding Per}" Width="Auto"/>
+                        <DataGridTextColumn Header="From Date" Binding="{Binding FromDate, StringFormat=d}" Width="Auto"/>
+                        <DataGridTextColumn Header="To Date" Binding="{Binding ToDate, StringFormat=d}" Width="Auto"/>
+                        <DataGridCheckBoxColumn Header="Default" Binding="{Binding IsDefault}" Width="Auto"/>
+                        <DataGridTextColumn Header="Procedure Code" Binding="{Binding ProcedureCode}" Width="*"/>
+                        <DataGridTextColumn Header="Min Charge" Binding="{Binding MinCharge, StringFormat=C}" Width="Auto"/>
+                        <DataGridTextColumn Header="Max Charge" Binding="{Binding MaxCharge, StringFormat=C}" Width="Auto"/>
+                        <DataGridTextColumn Header="Free Qty" Binding="{Binding FreeQty}" Width="Auto"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </TabItem>
+
+    </TabControl>
+</UserControl>

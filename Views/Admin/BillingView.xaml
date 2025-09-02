@@ -24,9 +24,9 @@
                 </TabItem>
 
 
-                <!--<TabItem Header="{Binding FundingSources}">
-                    <views:RolesView />
-                </TabItem>-->
+                <TabItem Header="FundingSources">
+                    <views:FundingSourcesView />
+                </TabItem>
 
 
 
