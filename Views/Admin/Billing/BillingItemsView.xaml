@@ -23,7 +23,7 @@
         <!-- Add button -->
         <Button Grid.Row="0"               
                 Content="➕" 
-                ToolTip="Add Billing Item" 
+                ToolTip="{Binding AddBillingItemToolTip}"
                 Command="{Binding AddBillingItemCommand}"
                 HorizontalAlignment="Left" 
                 Margin="10" 

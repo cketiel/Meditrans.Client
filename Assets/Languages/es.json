@@ -304,5 +304,17 @@
     "ColumnHeaderUserName": "Username",
     "ColumnHeaderEmail": "Email",
     "ColumnHeaderRole": "Rol",
-    "ColumnHeaderActive": "Activo"
+    "ColumnHeaderActive": "Activo",
+
+    "Unit": "Uniad de medida",
+    "AddBillingItem": "Agregar elemento de facturación",
+    "EditBillingItem": "Editar elemento de facturación",
+    "IsCopay": "Is Copay",
+    "ARAccount": "AR Account",
+    "ARSubAccount": "AR Sub-Account",
+    "ARCompany": "AR Company",
+    "APAccount": "AP Account",
+    "APSubAccount": "AP Sub-Account",
+    "APCompany": "AP Company",
+    "ConfirmDeleteBillingItem": "¿Está seguro de que desea eliminar el elemento '{0}'?"
 }

@@ -304,6 +304,18 @@
     "ColumnHeaderUserName": "Username",
     "ColumnHeaderEmail": "Email",
     "ColumnHeaderRole": "Role",
-    "ColumnHeaderActive": "Active"
+    "ColumnHeaderActive": "Active",
+
+    "Unit": "Unit",
+    "AddBillingItem": "Add Billing Item",
+    "EditBillingItem": "Edit Billing Item",
+    "IsCopay": "Is Copay",
+    "ARAccount": "AR Account",
+    "ARSubAccount": "AR Sub-Account",
+    "ARCompany": "AR Company",
+    "APAccount": "AP Account",
+    "APSubAccount": "AP Sub-Account",
+    "APCompany": "AP Company",
+    "ConfirmDeleteBillingItem": "Are you sure you want to delete the Item '{0}'?"
 
 }

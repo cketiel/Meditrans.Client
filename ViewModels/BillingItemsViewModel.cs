@@ -112,10 +112,10 @@ namespace Meditrans.Client.ViewModels
 
         #region Translation
 
-        public string AddBillingItemToolTip => LocalizationService.Instance["AddBillingItemToolTip"];
-        public string EditBillingItemToolTip => LocalizationService.Instance["EditBillingItemToolTip"];      
+        public string AddBillingItemToolTip => LocalizationService.Instance["AddBillingItem"];
+        public string EditBillingItemToolTip => LocalizationService.Instance["EditBillingItem"];      
 
-        public string ColumnHeaderDescription => LocalizationService.Instance["ColumnHeaderDescription"];
+        public string ColumnHeaderDescription => LocalizationService.Instance["Description"];
         public string ColumnHeaderUnit => LocalizationService.Instance["Unit"];
         public string ColumnHeaderIsCopay => LocalizationService.Instance["IsCopay"]; // "Is Copay"
         public string ColumnHeaderARAccount => LocalizationService.Instance["ARAccount"]; // "AR Account"
@@ -126,7 +126,7 @@ namespace Meditrans.Client.ViewModels
         public string ColumnHeaderAPCompany => LocalizationService.Instance["APCompany"]; // "AP Company"
 
         public string ErrorTitle => LocalizationService.Instance["ErrorTitle"];
-        public string ConfirmDeleteBillingItemText => LocalizationService.Instance["ConfirmDeleteBillingItemText"];
+        public string ConfirmDeleteBillingItemText => LocalizationService.Instance["ConfirmDeleteBillingItem"];
         public string ConfirmDeleteTitle => LocalizationService.Instance["ConfirmDeleteTitle"];
 
         #endregion
