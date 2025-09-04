@@ -6,7 +6,7 @@ namespace Meditrans.Client.Services
 {
     public interface IFundingSourceBillingItemService
     {
-        Task<List<FundingSourceBillingItem>> GetAllAsync();
+        Task<List<FundingSourceBillingItemGetDto>> GetAllAsync();
         Task<List<FundingSourceBillingItemGetDto>> GetByFundingSourceIdAsync(int fundingSourceId, bool includeExpired);
 
         Task<FundingSourceBillingItem> CreateAsync(FundingSourceBillingItemDto dto);

@@ -14,6 +14,67 @@ namespace Meditrans.Client.Services
         private static readonly string apiKey = App.Configuration["GoogleMaps:ApiKey"];
         private static readonly HttpClient client = new HttpClient();
 
+        /// <summary>
+        /// Perform reverse geocoding to obtain the city name from coordinates.
+        /// </summary>
+        /// <param name="latitude">The latitude of the point.</param>
+        /// <param name="longitude">The longitude of the point.</param>
+        /// <returns>El nombre de la ciudad (locality) o null si no se encuentra.</returns>
+        public async Task<string?> GetCityFromCoordinates(double latitude, double longitude)
+        {
+            // Avoid making API calls for invalid or default coordinates (0,0)
+            if (latitude == 0 && longitude == 0)
+            {
+                return null;
+            }
+
+            string url = $"https://maps.googleapis.com/maps/api/geocode/json?" +
+                         $"latlng={latitude},{longitude}&key={apiKey}";
+
+            try
+            {
+                HttpResponseMessage response = await client.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+
+                string responseBody = await response.Content.ReadAsStringAsync();
+                JObject jsonResponse = JObject.Parse(responseBody);
+
+                if (jsonResponse["status"]?.ToString() == "OK")
+                {
+                    // The Google API returns several results; We are looking for the component of type "locality".
+                    var results = jsonResponse["results"];
+                    if (results != null)
+                    {
+                        foreach (var result in results)
+                        {
+                            var addressComponents = result["address_components"];
+                            if (addressComponents != null)
+                            {
+                                foreach (var component in addressComponents)
+                                {
+                                    var types = component["types"]?.ToObject<List<string>>();
+                                    // "locality" It is the type that Google uses to identify a city.
+                                    if (types != null && types.Contains("locality"))
+                                    {
+                                        return component["long_name"]?.ToString();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // If no locality is found, null is returned.
+                return null;
+            }
+            catch (Exception ex)
+            {
+                // It is important to log the error for debugging, but not crash the application.
+                System.Diagnostics.Debug.WriteLine($"Error during reverse geocoding: {ex.Message}");
+                return null; // Return null if there is a network or API error.
+            }
+        }
+
         public async Task<RouteFullDetail> GetRouteFullDetails(double originLat, double originLng, double destLat, double destLng)
         {
             RouteFullDetail? routeFullDetail = new RouteFullDetail();

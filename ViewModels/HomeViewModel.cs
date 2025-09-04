@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Xml.Linq;
+
 using Meditrans.Client.DTOs;
 using Meditrans.Client.Exceptions;
 using Meditrans.Client.Helpers;
@@ -103,6 +104,19 @@ namespace Meditrans.Client.ViewModels
         public string IsDefaultText => LocalizationService.Instance["IsDefaultText"]; // Is Default
         public string FundingSourceText => LocalizationService.Instance["FundingSource"];
         public string AuthorizationText => LocalizationService.Instance["Authorization"];
+
+        public string DropoffCommentText => LocalizationService.Instance["DropoffComment"];
+        public string TypeText => LocalizationService.Instance["Type"];
+        public string PickupText => LocalizationService.Instance["Pickup"]; 
+        public string DropoffText => LocalizationService.Instance["Dropoff"];
+        public string PickupPhoneText => LocalizationService.Instance["PickupPhone"];
+        public string DropoffPhoneText => LocalizationService.Instance["DropoffPhone"];
+        public string TripIdText => LocalizationService.Instance["TripId"];
+        public string DistanceText => LocalizationService.Instance["Distance"];
+        public string RunText => LocalizationService.Instance["Run"];
+        public string PickupCityText => LocalizationService.Instance["PickupCity"];
+        public string DropoffCityText => LocalizationService.Instance["DropoffCity"];
+        public string DriverNoShowReasonText => LocalizationService.Instance["DriverNoShowReason"]; // Driver No-Show Reason
 
         #region DataGrid
         public string DayText => LocalizationService.Instance["DayText"]; // Day
@@ -590,7 +604,10 @@ namespace Meditrans.Client.ViewModels
 
         public ICommand SaveTripCommand { get; }
 
+        private readonly GoogleMapsService _googleMapsService;
         public HomeViewModel() {
+
+            _googleMapsService = new GoogleMapsService();
 
             FilterDate = DateTime.Today; // DateTime.Now
             
@@ -621,10 +638,42 @@ namespace Meditrans.Client.ViewModels
         public async Task LoadFundingSourceBillingItemAsync()
         {
             IFundingSourceBillingItemService _fundingSourceService = new FundingSourceBillingItemService();
-            var sources = await _fundingSourceService.GetAllAsync();
-            
-            foreach (var source in sources)
-                _allFundingSourceBillingItem.Add(source);
+           
+            var sourcesDto = await _fundingSourceService.GetAllAsync();
+
+            _allFundingSourceBillingItem.Clear(); 
+           
+            foreach (var dto in sourcesDto)
+            {
+                var model = new FundingSourceBillingItem
+                {
+                    Id = dto.Id,
+                    BillingItemId = dto.BillingItemId,
+                    SpaceTypeId = dto.SpaceTypeId,
+                    Rate = dto.Rate,
+                    Per = dto.Per,
+                    IsDefault = dto.IsDefault,
+                    ProcedureCode = dto.ProcedureCode,
+                    MinCharge = dto.MinCharge,
+                    MaxCharge = dto.MaxCharge,
+                    GreaterThanMinQty = dto.GreaterThanMinQty,
+                    LessOrEqualMaxQty = dto.LessOrEqualMaxQty,
+                    FreeQty = dto.FreeQty,
+                    FromDate = dto.FromDate,
+                    ToDate = dto.ToDate,
+                  
+                    BillingItem = new BillingItem
+                    {
+                        Description = dto.BillingItemDescription,
+                        Unit = new Unit { Abbreviation = dto.BillingItemUnitAbbreviation }
+                    },
+                    SpaceType = new SpaceType
+                    {
+                        Name = dto.SpaceTypeName
+                    }
+                };
+                _allFundingSourceBillingItem.Add(model);
+            }
         }
         public async Task LoadSpaceTypesAsync()
         {
@@ -703,10 +752,27 @@ namespace Meditrans.Client.ViewModels
             TripService _tripService = new TripService();
             var sources = await _tripService.GetTripsByDateAsync(date);
             GridSummary = sources.Count().ToString();
+
+            var geocodingTasks = sources.Select(trip => PopulateCitiesForTravel(trip)).ToList();
+            await Task.WhenAll(geocodingTasks);
+
             TripsByDate.Clear();
             foreach (var source in sources)
                 TripsByDate.Add(source);
 
+        }
+
+        private async Task PopulateCitiesForTravel(TripReadDto trip)
+        {
+            // Get the city of origin (Pickup)
+            trip.PickupCity = await _googleMapsService.GetCityFromCoordinates(
+                trip.PickupLatitude,
+                trip.PickupLongitude) ?? "N/A"; // "N/A" = Not Available
+
+            // Get the destination city (Dropoff)
+            trip.DropoffCity = await _googleMapsService.GetCityFromCoordinates(
+                trip.DropoffLatitude,
+                trip.DropoffLongitude) ?? "N/A";
         }
 
         #endregion

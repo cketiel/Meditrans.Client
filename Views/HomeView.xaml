@@ -1087,6 +1087,48 @@
                         <DataGridTextColumn Binding="{Binding PickupComment}"
                                         Header="{Binding Data.PickupCommentText, Source={StaticResource vmProxy}}"/>
 
+                        <DataGridTextColumn Binding="{Binding DropoffComment}"
+                                        Header="{Binding Data.DropoffCommentText, Source={StaticResource vmProxy}}"/>
+
+                        <DataGridTextColumn Binding="{Binding Type}"
+                                        Header="{Binding Data.TypeText, Source={StaticResource vmProxy}}"/>
+
+                        <DataGridTextColumn Binding="{Binding Pickup}"
+                                        Header="{Binding Data.PickupText, Source={StaticResource vmProxy}}"/>
+
+                        <DataGridTextColumn Binding="{Binding Dropoff}"
+                                        Header="{Binding Data.DropoffText, Source={StaticResource vmProxy}}"/>
+
+                        <DataGridTextColumn Binding="{Binding PickupPhone}"
+                                        Header="{Binding Data.PickupPhoneText, Source={StaticResource vmProxy}}"/>
+
+                        <DataGridTextColumn Binding="{Binding DropoffPhone}"
+                                        Header="{Binding Data.DropoffPhoneText, Source={StaticResource vmProxy}}"/>
+
+                        <DataGridTextColumn Binding="{Binding TripId}"
+                                        Header="{Binding Data.TripIdText, Source={StaticResource vmProxy}}"/>
+
+                        <DataGridTextColumn Binding="{Binding Authorization}"
+                                        Header="{Binding Data.AuthorizationText, Source={StaticResource vmProxy}}"/>
+
+                        <DataGridTextColumn Binding="{Binding FundingSourceName}"
+                                        Header="{Binding Data.FundingSourceText, Source={StaticResource vmProxy}}"/>
+
+                        <DataGridTextColumn Binding="{Binding Distance}"
+                                        Header="{Binding Data.DistanceText, Source={StaticResource vmProxy}}"/>
+
+                        <DataGridTextColumn Binding="{Binding RunName}"
+                                        Header="{Binding Data.RunText, Source={StaticResource vmProxy}}"/>
+
+                        <DataGridTextColumn Binding="{Binding PickupCity}"
+                                        Header="{Binding Data.PickupCityText, Source={StaticResource vmProxy}}"/>
+
+                        <DataGridTextColumn Binding="{Binding DropoffCity}"
+                                        Header="{Binding Data.DropoffCityText, Source={StaticResource vmProxy}}"/>
+
+                        <DataGridTextColumn Binding="{Binding DriverNoShowReason}"
+                                        Header="{Binding Data.DriverNoShowReasonText, Source={StaticResource vmProxy}}"/>
+
 
                 </DataGrid.Columns>
 

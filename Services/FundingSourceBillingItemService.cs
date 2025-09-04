@@ -17,10 +17,10 @@ public class FundingSourceBillingItemService : IFundingSourceBillingItemService
         _httpClient = ApiClientFactory.Create();
     }
 
-    public async Task<List<FundingSourceBillingItem>> GetAllAsync()
+    public async Task<List<FundingSourceBillingItemGetDto>> GetAllAsync()
     {
-        var result = await _httpClient.GetFromJsonAsync<List<FundingSourceBillingItem>>(EndPoint);
-        return result ?? new List<FundingSourceBillingItem>();
+        var result = await _httpClient.GetFromJsonAsync<List<FundingSourceBillingItemGetDto>>(EndPoint);
+        return result ?? new List<FundingSourceBillingItemGetDto>();
     }
 
     public async Task<List<FundingSourceBillingItemGetDto>> GetByFundingSourceIdAsync(int fundingSourceId, bool includeExpired)
