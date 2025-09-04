@@ -24,6 +24,17 @@ namespace Meditrans.Client.ViewModels
 {
     public class HomeViewModel : BaseViewModel
     {
+        private bool _isLoadingTrips;
+        public bool IsLoadingTrips
+        {
+            get => _isLoadingTrips;
+            set
+            {
+                _isLoadingTrips = value;
+                OnPropertyChanged(); 
+            }
+        }
+
         #region Translation
 
         // Client AutoSuggestBox
@@ -608,8 +619,9 @@ namespace Meditrans.Client.ViewModels
         public HomeViewModel() {
 
             _googleMapsService = new GoogleMapsService();
-
-            FilterDate = DateTime.Today; // DateTime.Now
+            _allFundingSourceBillingItem = new ObservableCollection<FundingSourceBillingItem>();
+            Trips = new ObservableCollection<TripReadDto>();
+            TripsByDate = new ObservableCollection<TripReadDto>();          
             
             //SaveCustomerCommand = new RelayCommand(SaveCustomer);
             NewCustomerCommand = new RelayCommand(NewCustomer);
@@ -617,14 +629,11 @@ namespace Meditrans.Client.ViewModels
             ExportCommand = new RelayCommand(ExportTrips);
             SaveTripCommand = new RelayCommand(SaveTrip);
 
-            Trips = new ObservableCollection<TripReadDto>();
-            TripsByDate = new ObservableCollection<TripReadDto>();
-
-            _allFundingSourceBillingItem = new ObservableCollection<FundingSourceBillingItem>();
-
             LoadData();
-            InitializeData();          
-            
+            InitializeData();
+
+            FilterDate = DateTime.Today; // DateTime.Now
+
             // Manual subscription for debug
             /*this.PropertyChanged += (s, e) => {
                 if (e.PropertyName == nameof(SelectedCustomer))
@@ -749,16 +758,30 @@ namespace Meditrans.Client.ViewModels
 
         public async Task LoadTripsByDateAsync(DateTime date)
         {
-            TripService _tripService = new TripService();
-            var sources = await _tripService.GetTripsByDateAsync(date);
-            GridSummary = sources.Count().ToString();
-
-            var geocodingTasks = sources.Select(trip => PopulateCitiesForTravel(trip)).ToList();
-            await Task.WhenAll(geocodingTasks);
-
+            IsLoadingTrips = true;
             TripsByDate.Clear();
-            foreach (var source in sources)
-                TripsByDate.Add(source);
+
+            try
+            {
+                TripService _tripService = new TripService();
+                var sources = await _tripService.GetTripsByDateAsync(date);
+                GridSummary = sources.Count().ToString();
+
+                var geocodingTasks = sources.Select(trip => PopulateCitiesForTravel(trip)).ToList();
+                await Task.WhenAll(geocodingTasks);
+
+                foreach (var source in sources)
+                    TripsByDate.Add(source);
+            }
+            catch (Exception ex)
+            {
+
+                MessageBox.Show($"An error occurred while loading trips: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                IsLoadingTrips = false; 
+            }
 
         }
 

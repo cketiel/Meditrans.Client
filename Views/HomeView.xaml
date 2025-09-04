@@ -1003,10 +1003,10 @@
 
                 <!-- Bottom DataGrid -->
 
-               
 
-                    <!-- DATAGRID -->
-                <DataGrid Grid.Row="2" x:Name="GridRow2"                           
+            <Grid Grid.Row="2" x:Name="GridRow2">
+                <!-- DATAGRID -->
+                <DataGrid                            
                     ItemsSource="{Binding TripsByDate}" 
                     SelectedItem="{Binding SelectedTrip, Mode=TwoWay}"                                  
                             
@@ -1132,12 +1132,26 @@
 
                 </DataGrid.Columns>
 
-            </DataGrid>
+                </DataGrid>
+                
+                <Border Background="#80FFFFFF" 
+                    Visibility="{Binding IsLoadingTrips, Converter={StaticResource BoolToVisibility}}">
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <ProgressBar IsIndeterminate="True"
+                         Style="{StaticResource MaterialDesignCircularProgressBar}"
+                         Width="50" Height="50" />
+                        <TextBlock Text="Loading trips and locations..."
+                       Margin="0,15,0,0"
+                       FontSize="16"
+                       FontWeight="Bold" />
+                    </StackPanel>
+                </Border>
+
+            </Grid>
 
 
 
-
-            <!--<DataGrid Grid.Row="2" x:Name="GridRow2"
+        <!--<DataGrid Grid.Row="2" x:Name="GridRow2"
                           ItemsSource="{Binding TripsByDate}" 
                           SelectedItem="{Binding SelectedTrip, Mode=TwoWay}"
                           AutoGenerateColumns="false" SelectionMode="Single">
@@ -1191,7 +1205,9 @@
                         <DataGrid x:Name="PreviewGrid" AutoGenerateColumns="True" Height="350"/>
                     </StackPanel>
                 </Grid>-->
-        </Grid>
+        
+            
+            </Grid>
 
         </Border>
 

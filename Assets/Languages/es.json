@@ -139,6 +139,9 @@
     "PickupCommentText": "Comentario de recogida",
     "SelectCsvButtonContent": "Seleccione el archivo CSV",
     "ProgressPanelText": "Procesando 0 de N viajes...",
+    "TripId": "Trip Id",
+    "Run": "Ruta",
+    "DriverNoShowReason": "Motivo de no presentarse",
 
     "GroupsView": "Esta es la forma de agrupar las traducciones correspondientes a GroupsView",
     "GroupNameText": "Nombre",

@@ -139,6 +139,9 @@
     "PickupCommentText": "Pickup Comment",
     "SelectCsvButtonContent": "Select CSV file",
     "ProgressPanelText": "Processing 0 of N trips...",
+    "TripId": "Trip Id",
+    "Run": "Run",
+    "DriverNoShowReason": "Driver No-Show Reason",
 
     "GroupsView": "This is the way to group the translations corresponding to GroupsView",
     "GroupNameText": "Name",
