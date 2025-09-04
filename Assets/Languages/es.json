@@ -316,5 +316,24 @@
     "APAccount": "AP Account",
     "APSubAccount": "AP Sub-Account",
     "APCompany": "AP Company",
-    "ConfirmDeleteBillingItem": "¿Está seguro de que desea eliminar el elemento '{0}'?"
+    "ConfirmDeleteBillingItem": "¿Está seguro de que desea eliminar el elemento '{0}'?",
+
+    "AddFundingSource": "Adicionar New Funding Source",
+    "EditFundingSource": "Editar Funding Source",
+    "AccountNumber": "Número de cuenta",
+    "FAX": "FAX",
+    "Contact": "Contacto",
+    "SignaturePickup": "Firma Pickup",
+    "SignatureDropoff": "Firma Dropoff",
+    "DriverSignaturePickup": "Firma Conductor Pickup",
+    "DriverSignatureDropoff": "Firma Conductor Dropoff",
+    "RequireOdometer": "Requiere odómetro",
+    "BarcodeScanRequired": "Barcode Scan Requirido",
+    "DeleteBillingItem": "Eliminar elemento de facturación",
+    "Rate": "Tasa",
+    "Per": "Por",
+    "ProcedureCode": "Código de Procedimiento",
+    "MaxCharge": "Carga máxima",
+    "MinCharge": "Carga mínima",
+    "FreeQty": "Cantidad gratuita"
 }

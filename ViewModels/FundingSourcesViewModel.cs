@@ -13,6 +13,44 @@ namespace Meditrans.Client.ViewModels
 {
     public partial class FundingSourcesViewModel : ObservableObject
     {
+        #region Translation
+
+        public string AddFundingSourceToolTip => LocalizationService.Instance["AddFundingSource"]; // Add New Funding Source
+        public string ExcelExportToolTip => LocalizationService.Instance["ExcelExport"]; // Excel export
+        public string EditFundingSourceToolTip => LocalizationService.Instance["EditFundingSource"];     
+
+        public string ColumnHeaderName => LocalizationService.Instance["Name"];
+        public string ColumnHeaderAccountNumber => LocalizationService.Instance["AccountNumber"];
+        public string ColumnHeaderAddress => LocalizationService.Instance["Address"]; 
+        public string ColumnHeaderPhone => LocalizationService.Instance["Phone"]; 
+        public string ColumnHeaderFAX => LocalizationService.Instance["FAX"];
+        public string ColumnHeaderEmail => LocalizationService.Instance["Email"]; 
+        public string ColumnHeaderContact => LocalizationService.Instance["Contact"]; 
+        public string ColumnHeaderSignaturePickup => LocalizationService.Instance["SignaturePickup"]; 
+        public string ColumnHeaderSignatureDropoff => LocalizationService.Instance["SignatureDropoff"];
+        public string ColumnHeaderDriverSignaturePickup => LocalizationService.Instance["DriverSignaturePickup"];
+        public string ColumnHeaderDriverSignatureDropoff => LocalizationService.Instance["DriverSignatureDropoff"];
+        public string ColumnHeaderRequireOdometer => LocalizationService.Instance["RequireOdometer"];
+        public string ColumnHeaderBarcodeScanRequired => LocalizationService.Instance["BarcodeScanRequired"];
+        public string EditBillingItemToolTip => LocalizationService.Instance["EditBillingItem"];
+        public string DeleteBillingItemToolTip => LocalizationService.Instance["DeleteBillingItem"];
+
+        public string ColumnHeaderDescription => LocalizationService.Instance["Description"]; 
+        public string ColumnHeaderSpaceType => LocalizationService.Instance["SpaceType"];
+        public string ColumnHeaderRate => LocalizationService.Instance["Rate"];
+
+        public string ColumnHeaderPer => LocalizationService.Instance["Per"];
+        public string ColumnHeaderProcedureCode => LocalizationService.Instance["ProcedureCode"];
+        public string ColumnHeaderMaxCharge => LocalizationService.Instance["MaxCharge"];
+        public string ColumnHeaderMinCharge => LocalizationService.Instance["MinCharge"];
+        public string ColumnHeaderFreeQty => LocalizationService.Instance["FreeQty"];
+        public string ColumnHeaderFromDate => LocalizationService.Instance["FromDate"];
+        public string ColumnHeaderToDate => LocalizationService.Instance["ToDate"];
+
+       
+        #endregion
+
+
         private readonly IFundingSourceService _fundingSourceService;
         private readonly IFundingSourceBillingItemService _fsBillingItemService;
         private readonly IBillingItemService _billingItemService;

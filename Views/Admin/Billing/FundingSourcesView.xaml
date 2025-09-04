@@ -25,7 +25,7 @@
 
                 <!-- Top toolbar -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
-                    <Button Content="➕" ToolTip="Add New Funding Source"
+                    <Button Content="➕" ToolTip="{Binding AddFundingSourceToolTip}"
                             Command="{Binding AddFundingSourceCommand}"
                             />
                     <CheckBox Content="Display Inactive" 
@@ -199,7 +199,7 @@
                 </Grid.RowDefinitions>
               
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10" VerticalAlignment="Center">
-                    <Button Content="➕" ToolTip="Add Billing Item"
+                    <Button Content="➕" ToolTip="Add"
                             Command="{Binding AddBillingItemForSourceCommand}"/>
                     <TextBlock Text="{Binding SelectedFundingSource.Name, FallbackValue='(none selected)'}" 
                                FontWeight="Bold" FontSize="16" Margin="20,0,0,0" VerticalAlignment="Center"/>
