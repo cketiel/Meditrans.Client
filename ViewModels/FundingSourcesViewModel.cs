@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Meditrans.Client.DTOs;
 using Meditrans.Client.Models;
 using Meditrans.Client.Services;
-using Meditrans.Client.Views.Admin.Billing; // Reemplaza con la ruta correcta a tu popup
+using Meditrans.Client.Views.Admin.Billing; 
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -134,6 +134,8 @@ namespace Meditrans.Client.ViewModels
                     var model = new FundingSourceBillingItem
                     {
                         Id = dto.Id,
+                        BillingItemId = dto.BillingItemId, 
+                        SpaceTypeId = dto.SpaceTypeId,
                         Rate = dto.Rate,
                         Per = dto.Per,
                         IsDefault = dto.IsDefault,

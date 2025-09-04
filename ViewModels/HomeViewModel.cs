@@ -603,8 +603,10 @@ namespace Meditrans.Client.ViewModels
             Trips = new ObservableCollection<TripReadDto>();
             TripsByDate = new ObservableCollection<TripReadDto>();
 
+            _allFundingSourceBillingItem = new ObservableCollection<FundingSourceBillingItem>();
+
             LoadData();
-            InitializeData();
+            InitializeData();          
             
             // Manual subscription for debug
             /*this.PropertyChanged += (s, e) => {

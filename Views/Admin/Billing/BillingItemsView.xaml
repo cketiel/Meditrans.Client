@@ -21,8 +21,9 @@
         </Grid.RowDefinitions>
 
         <!-- Add button -->
-        <Button Grid.Row="0" 
-                Content="Add Billing Item" 
+        <Button Grid.Row="0"               
+                Content="➕" 
+                ToolTip="Add Billing Item" 
                 Command="{Binding AddBillingItemCommand}"
                 HorizontalAlignment="Left" 
                 Margin="10" 
