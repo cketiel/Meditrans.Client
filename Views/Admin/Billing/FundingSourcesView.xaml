@@ -197,8 +197,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-
-                <!-- Barra de herramientas superior -->
+              
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10" VerticalAlignment="Center">
                     <Button Content="➕" ToolTip="Add Billing Item"
                             Command="{Binding AddBillingItemForSourceCommand}"/>
@@ -208,39 +207,94 @@
                               IsChecked="{Binding DisplayExpired}"
                               VerticalAlignment="Center" Margin="20,0,0,0"/>
                 </StackPanel>
-
-                <!-- DataGrid para Billing Items -->
-                <DataGrid Grid.Row="1" ItemsSource="{Binding BillingItemsForSelectedSource}"
-                          AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" FrozenColumnCount="1">
+               
+                <DataGrid Grid.Row="1" 
+                          ItemsSource="{Binding BillingItemsForSelectedSource}"
+                          AutoGenerateColumns="False" 
+                          CanUserAddRows="False" 
+                          IsReadOnly="True" 
+                          AlternationCount="2"
+                            AlternatingRowBackground="White"                                    
+                            Style="{StaticResource CustomDataGridStyle}"
+                            ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                            RowStyle="{StaticResource CustomRowStyle}"
+                            CellStyle="{StaticResource CustomCellStyle}"
+                            SelectionUnit="FullRow">
+                    
                     <DataGrid.Columns>
                         <DataGridTemplateColumn Width="Auto" >
-                            <DataGridTemplateColumn.HeaderTemplate>
-                                <DataTemplate>
-                                    <Button Content="엑셀" ToolTip="Export to Excel" 
-                                            Command="{Binding DataContext.ExportBillingItemsForSourceCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.HeaderTemplate>
+                            
+                            <DataGridTemplateColumn.Header>
+                                <Button Command="{Binding Data.ExportBillingItemsForSourceCommand, Source={StaticResource vmProxy}}"
+                                    Style="{StaticResource MaterialDesignToolButton}"
+                                    ToolTip="{Binding Data.ExcelExportToolTip, Source={StaticResource vmProxy}}">
+                                    <materialDesign:PackIcon Kind="MicrosoftExcel" Foreground="Green"/>
+                                </Button>
+                            </DataGridTemplateColumn.Header>
+                            
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Button Content="✎" ToolTip="Edit Billing Item"
-                                            Command="{Binding DataContext.EditBillingItemForSourceCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                            CommandParameter="{Binding}"/>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Command="{Binding DataContext.EditBillingItemForSourceCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource MaterialDesignToolButton}"
+                                                ToolTip="{Binding Data.EditBillingItemToolTip, Source={StaticResource vmProxy}}">
+                                            <materialDesign:PackIcon Kind="Pencil" Foreground="Orange"/>
+                                        </Button>
+                                        <Button Command="{Binding DataContext.DeleteBillingItemForSourceCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource MaterialDesignToolButton}"
+                                                ToolTip="{Binding Data.DeleteBillingItemToolTip, Source={StaticResource vmProxy}}">
+                                            <materialDesign:PackIcon Kind="DeleteForever" Foreground="Red"/>
+                                        </Button>
+                                    </StackPanel>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
+                           
                         </DataGridTemplateColumn>
 
-                        <!-- Columnas de datos -->
-                        <DataGridTextColumn Header="Billing Item" Binding="{Binding BillingItem.Description}" Width="2*"/>
-                        <DataGridTextColumn Header="Space Type" Binding="{Binding SpaceType.Name}" Width="*"/>
-                        <DataGridTextColumn Header="Rate" Binding="{Binding Rate, StringFormat=C}" Width="Auto"/>
-                        <DataGridTextColumn Header="Per" Binding="{Binding Per}" Width="Auto"/>
-                        <DataGridTextColumn Header="From Date" Binding="{Binding FromDate, StringFormat=d}" Width="Auto"/>
-                        <DataGridTextColumn Header="To Date" Binding="{Binding ToDate, StringFormat=d}" Width="Auto"/>
+                        <DataGridTextColumn 
+                            Binding="{Binding BillingItem.Description}"
+                            Header="{Binding Data.ColumnHeaderDescription, Source={StaticResource vmProxy}}" Width="2*" />
+
+                        <DataGridTextColumn 
+                            Binding="{Binding SpaceType.Name}"
+                            Header="{Binding Data.ColumnHeaderSpaceType, Source={StaticResource vmProxy}}" Width="*" />
+
+                        <DataGridTextColumn 
+                            Binding="{Binding Rate}"
+                            Header="{Binding Data.ColumnHeaderRate, Source={StaticResource vmProxy}}" Width="Auto" />
+
+                        <DataGridTextColumn 
+                            Binding="{Binding Per}"
+                            Header="{Binding Data.ColumnHeaderPer, Source={StaticResource vmProxy}}" Width="Auto" />
+
                         <DataGridCheckBoxColumn Header="Default" Binding="{Binding IsDefault}" Width="Auto"/>
-                        <DataGridTextColumn Header="Procedure Code" Binding="{Binding ProcedureCode}" Width="*"/>
-                        <DataGridTextColumn Header="Min Charge" Binding="{Binding MinCharge, StringFormat=C}" Width="Auto"/>
-                        <DataGridTextColumn Header="Max Charge" Binding="{Binding MaxCharge, StringFormat=C}" Width="Auto"/>
-                        <DataGridTextColumn Header="Free Qty" Binding="{Binding FreeQty}" Width="Auto"/>
+
+                        <DataGridTextColumn 
+                            Binding="{Binding ProcedureCode}"
+                            Header="{Binding Data.ColumnHeaderProcedureCode, Source={StaticResource vmProxy}}"  Width="*" />
+
+                        <DataGridTextColumn 
+                            Binding="{Binding MinCharge, StringFormat=C}" 
+                            Header="{Binding Data.ColumnHeaderMinCharge, Source={StaticResource vmProxy}}"  Width="Auto" />
+
+                        <DataGridTextColumn 
+                            Binding="{Binding MaxCharge, StringFormat=C}" 
+                            Header="{Binding Data.ColumnHeaderMaxCharge, Source={StaticResource vmProxy}}"  Width="Auto" />
+
+                        <DataGridTextColumn 
+                            Binding="{Binding FreeQty}"
+                            Header="{Binding Data.ColumnHeaderFreeQty, Source={StaticResource vmProxy}}"  Width="Auto" />
+
+                        <DataGridTextColumn 
+                            Binding="{Binding FromDate, StringFormat=d}" 
+                            Header="{Binding Data.ColumnHeaderFromDate, Source={StaticResource vmProxy}}"  Width="Auto" />
+
+                        <DataGridTextColumn 
+                            Binding="{Binding ToDate, StringFormat=d}" 
+                            Header="{Binding Data.ColumnHeaderToDate, Source={StaticResource vmProxy}}"  Width="Auto" />
+                        
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>

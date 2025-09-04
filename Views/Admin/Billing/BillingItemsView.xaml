@@ -48,11 +48,13 @@
                 <DataGridTemplateColumn>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Content="✎"
-                                    Command="{Binding DataContext.EditBillingItemCommand, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}"
+                            <Button Command="{Binding DataContext.EditBillingItemCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                     CommandParameter="{Binding}"
-                                    ToolTip="Edit Item"
-                                    Cursor="Hand"/>
+                                    Style="{StaticResource MaterialDesignToolButton}"
+                                    ToolTip="{Binding Data.EditBillingItemToolTip, Source={StaticResource vmProxy}}">
+                                <materialDesign:PackIcon Kind="Pencil" Foreground="Orange"/>
+                            </Button>
+                            
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
