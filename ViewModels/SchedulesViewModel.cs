@@ -263,6 +263,19 @@ namespace Meditrans.Client.ViewModels
                 int end = 1;
                 for (int i = start; i >= end; i-=2)
                 {
+                    // Lo mas temprano que se puede llegar antes en Appt es 15 min. , en un Return 5 min
+                    if (Schedules[i].TripType == TripType.Appointment)
+                    {
+                        violationSetLimit = TripToSchedule.FromTime - TimeSpan.FromMinutes(15);
+                    }
+                    else // TripType.Return
+                    {
+                        violationSetLimit = TripToSchedule.FromTime - TimeSpan.FromMinutes(5);
+                    }
+
+                    TimeSpan? referenceTime = TimeSpan.Zero;
+                    TimeSpan? referenceTimeD = TimeSpan.Zero;
+
                     pickupEvent = Schedules[i]; 
                     dropoffEvent = Schedules[i + 1]; 
                     if (pickupTime > pickupEvent.Pickup) // If the pickup time of the trip to be routed is later than the pickup time of the last event
@@ -272,6 +285,7 @@ namespace Meditrans.Client.ViewModels
                         //Porque si es  TripType.Return el dropoff no tiene appt
                         if (Schedules[i].TripType == TripType.Appointment && (pickupTime > dropoffEvent.Appt || pickupTime == dropoffEvent.Appt))
                         {
+                            referenceTime = dropoffEvent.ETA;
                             olat = dropoffEvent.ScheduleLatitude;
                             olng = dropoffEvent.ScheduleLongitude;
                         }
@@ -279,6 +293,7 @@ namespace Meditrans.Client.ViewModels
                         {
                             olat = pickupEvent.ScheduleLatitude;
                             olng = pickupEvent.ScheduleLongitude;
+                            referenceTime = pickupEvent.ETA;
                         }
                         
                         var pickupFullDetails = await _googleMapsService.GetRouteFullDetails(
@@ -287,36 +302,34 @@ namespace Meditrans.Client.ViewModels
                             TripToSchedule.PickupLatitude,
                             TripToSchedule.PickupLongitude);
 
+                        double olatD = TripToSchedule.PickupLatitude;
+                        double olngD = TripToSchedule.PickupLongitude;
+                        bool flag = false;
+
                         TimeSpan? pickupAppt = TripToSchedule.ToTime;
                         if (Schedules[i].TripType == TripType.Appointment)
                         {
                             if (pickupAppt < dropoffEvent.Appt) // trip to schedule order
                             {
-                                olat = TripToSchedule.PickupLatitude;
-                                olng = TripToSchedule.PickupLongitude;
+                                flag = false;//referenceTimeD = dropoffEvent.ETA;
+                                olatD = TripToSchedule.PickupLatitude;
+                                olngD = TripToSchedule.PickupLongitude;
                             }
                             else // se alterna
-                            {
-                                olat = dropoffEvent.ScheduleLatitude;
-                                olng = dropoffEvent.ScheduleLongitude;
+                            {                               
+                                flag = true;
+                                olatD = dropoffEvent.ScheduleLatitude;
+                                olngD = dropoffEvent.ScheduleLongitude;
                             }
                         }
 
                         var dropoffFullDetails = await _googleMapsService.GetRouteFullDetails(
-                            olat,
-                            olng,
+                            olatD,
+                            olngD,
                             TripToSchedule.DropoffLatitude,
                             TripToSchedule.DropoffLongitude);
 
-                        // Lo mas temprano que se puede llegar antes en Appt es 15 min. , en un Return 5 min
-                        if (Schedules[i].TripType == TripType.Appointment)
-                        {
-                            violationSetLimit = TripToSchedule.FromTime - TimeSpan.FromMinutes(15);
-                        }
-                        else // TripType.Return
-                        {
-                            violationSetLimit = TripToSchedule.FromTime - TimeSpan.FromMinutes(5);
-                        }
+                        
 
 
                         if (pickupFullDetails != null && dropoffFullDetails != null)
@@ -324,16 +337,26 @@ namespace Meditrans.Client.ViewModels
                             pDistance = pickupFullDetails.DistanceMiles;
                             pTravelTime = TimeSpan.FromSeconds(pickupFullDetails.DurationInTrafficSeconds);
                             // Lo mas temprano que se puede llegar antes en Appt es 15 min. , en un Return 5 min
-                            TimeSpan? realETA = pickupEvent.ETA + dTravelTime;                            
+                            TimeSpan? realETA = referenceTime + pTravelTime;                            
                             pETA = (realETA < violationSetLimit) ? violationSetLimit : realETA;
 
                             dDistance = dropoffFullDetails.DistanceMiles;
                             dTravelTime = TimeSpan.FromSeconds(dropoffFullDetails.DurationInTrafficSeconds);
-                            dETA = TripToSchedule.FromTime + dTravelTime + TimeSpan.FromMinutes(15);
+                            referenceTimeD = flag ? pETA : dropoffEvent.ETA;
+                            dETA = referenceTimeD + dTravelTime + TimeSpan.FromMinutes(15);
                         }
 
                         if (editEvent) 
                         {
+                            if (EventToEdit.TripType == TripType.Appointment)
+                            {
+                                violationSetLimit = EventToEdit.Pickup - TimeSpan.FromMinutes(15);
+                            }
+                            else // TripType.Return
+                            {
+                                violationSetLimit = EventToEdit.Pickup - TimeSpan.FromMinutes(5);
+                            }
+
                             var editEventFullDetails = await _googleMapsService.GetRouteFullDetails(
                             TripToSchedule.DropoffLatitude,
                             TripToSchedule.DropoffLongitude,
@@ -369,7 +392,17 @@ namespace Meditrans.Client.ViewModels
                 }
                 // It means that the pick-up time is the first of all the schedules, following of course the Pull-out
                 if (editEvent)
-                {
+                {                  
+
+                    if (TripToSchedule.Type == TripType.Appointment)
+                    {
+                        violationSetLimit = TripToSchedule.FromTime - TimeSpan.FromMinutes(15);
+                    }
+                    else // TripType.Return
+                    {
+                        violationSetLimit = TripToSchedule.FromTime - TimeSpan.FromMinutes(5);
+                    }
+
                     var pickupFullDetails = await _googleMapsService.GetRouteFullDetails(
                         run.GarageLatitude,
                         run.GarageLongitude,
@@ -391,6 +424,11 @@ namespace Meditrans.Client.ViewModels
                         dTravelTime = TimeSpan.FromSeconds(dropoffFullDetails.DurationInTrafficSeconds);
                         dETA = TripToSchedule.FromTime + dTravelTime + TimeSpan.FromMinutes(15);
                     }
+
+                    // Edit the ETA of the Pull-out event
+                    var PullOutEvent = Schedules[0];
+                    PullOutEvent.ETA = TripToSchedule.FromTime - (TimeSpan.FromMinutes(20) + pTravelTime);
+                    await _scheduleService.UpdateAsync(PullOutEvent.Id, PullOutEvent);
 
                     var editEventFullDetails = await _googleMapsService.GetRouteFullDetails(
                         TripToSchedule.DropoffLatitude,
