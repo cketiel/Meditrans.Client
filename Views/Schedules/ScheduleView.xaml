@@ -9,13 +9,14 @@
              xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"  
              xmlns:models="clr-namespace:Meditrans.Client.Models"
              xmlns:gmaps="clr-namespace:GMap.NET.WindowsPresentation;assembly=GMap.NET.WindowsPresentation"
+             xmlns:gong="clr-namespace:GongSolutions.Wpf.DragDrop;assembly=GongSolutions.Wpf.DragDrop"
              mc:Ignorable="d" 
              xmlns:vm="clr-namespace:Meditrans.Client.ViewModels"
              
              d:DesignHeight="450" d:DesignWidth="800">
 
     <UserControl.Resources>
-        
+        <converters:EtaViolationConverter x:Key="EtaViolationConverter"/>
         <converters:LocationToPointConverter x:Key="LocationToPointConverter"/>
         <converters:ColumnVisibilityConverter x:Key="ColumnVisibilityConverter"/>
         <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
@@ -48,7 +49,45 @@
             <DockPanel Grid.Column="0">
                 <!-- Schedule Grid -->
                 <ScrollViewer HorizontalScrollBarVisibility="Visible" >
-                    <DataGrid ItemsSource="{Binding Schedules}" SelectedItem="{Binding SelectedSchedule, Mode=TwoWay}" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Single" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" FrozenColumnCount="2" IsReadOnly="True" AlternationCount="2" AlternatingRowBackground="White" Style="{StaticResource CustomDataGridStyle}" ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}" RowStyle="{StaticResource CustomRowStyle}" CellStyle="{StaticResource CustomCellStyle}" SelectionUnit="FullRow">
+                    <DataGrid 
+                        ItemsSource="{Binding Schedules}"
+                        SelectedItem="{Binding SelectedSchedule, Mode=TwoWay}" 
+                        AutoGenerateColumns="False" CanUserAddRows="False" 
+                        SelectionMode="Single" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" 
+                        FrozenColumnCount="2" IsReadOnly="True" 
+                        AlternationCount="2" AlternatingRowBackground="White" 
+                        Style="{StaticResource CustomDataGridStyle}" ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}" 
+                        
+                        CellStyle="{StaticResource CustomCellStyle}" 
+                        SelectionUnit="FullRow"
+                        gong:DragDrop.IsDragSource="True"
+                        gong:DragDrop.IsDropTarget="True"
+                        gong:DragDrop.DropHandler="{Binding}">
+
+                        <DataGrid.RowStyle>
+                            <!-- Nos basamos en tu estilo de fila personalizado para no perderlo -->
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource CustomRowStyle}">
+                                <Style.Triggers>
+                                    <!-- Este es el disparador para la violación de tiempo -->
+                                    <DataTrigger Value="True">
+                                        <DataTrigger.Binding>
+                                            <!-- El MultiBinding pasará los 4 valores a nuestro convertidor -->
+                                            <MultiBinding Converter="{StaticResource EtaViolationConverter}">
+                                                <Binding Path="EventType" />
+                                                <Binding Path="ETA" />
+                                                <Binding Path="Pickup" />
+                                                <Binding Path="Appt" />
+                                            </MultiBinding>
+                                        </DataTrigger.Binding>
+
+                                        <!-- Cuando el convertidor devuelve True, se aplican estos Setters -->
+                                        <Setter Property="Background" Value="#FFFAA0A0" />
+                                        <!-- Un rojo claro -->
+                                        <Setter Property="Foreground" Value="Black" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
                         
                         <DataGrid.Columns>
 

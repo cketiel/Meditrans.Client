@@ -11,11 +11,20 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using GongSolutions.Wpf.DragDrop;
+
 
 namespace Meditrans.Client.ViewModels
 {
-    public partial class SchedulesViewModel : ObservableObject
+    public partial class SchedulesViewModel : ObservableObject, IDragSource, IDropTarget
+
     {
+        [ObservableProperty]
+        private bool _isBusy;
+
+        [ObservableProperty]
+        private string _busyMessage;
+
         public event EventHandler<ZoomAndCenterEventArgs> ZoomAndCenterRequest;
 
         //private readonly UserConfigService _userConfigService;
@@ -661,6 +670,259 @@ namespace Meditrans.Client.ViewModels
             // 3. Call the existing method that calculates the rectangle and raises the event
             ZoomAndCenterOnPoints(allPoints);
         }
+
+
+        #region Drag and Drop Implementation
+
+        // --- IDragSource: Controls the start of the drag ---
+
+        public void StartDrag(IDragInfo dragInfo)
+        {
+            
+        }
+
+        public bool CanStartDrag(IDragInfo dragInfo)
+        {
+            // Validation to NOT allow "Pull-out" or "Pull-in" dragging.
+            if (dragInfo.SourceItem is ScheduleDto schedule)
+            {
+                return schedule.Name != "Pull-out" && schedule.Name != "Pull-in";
+            }
+            return false;
+        }
+
+        public void Dropped(IDropInfo dropInfo)
+        {
+            // This is called after the drop operation has been completed
+           
+        }
+
+        public void DragCancelled()
+        {
+            // Called if the drag is canceled (e.g. by pressing ESC).
+        }
+
+        public bool TryCatchOccurredException(Exception exception)
+        {
+            // Allows you to handle exceptions that may occur during the drag-drop.
+            MessageBox.Show($"An error occurred during drag and drop: {exception.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            return true; // true to indicate that the exception has been handled.
+        }
+
+
+        // --- IDropTarget: Control the validation and execution of the drop ---
+
+        public void DragOver(IDropInfo dropInfo)
+        {
+            var sourceItem = dropInfo.Data as ScheduleDto;
+            var targetItem = dropInfo.TargetItem as ScheduleDto;
+
+            if (sourceItem == null || targetItem == null)
+            {
+                dropInfo.Effects = DragDropEffects.None;
+                return;
+            }
+
+            // --- VALIDATIONS IN REAL TIME ---
+
+            // 1. You cannot release it on "Pull-out" or "Pull-in".
+            if (targetItem.Name == "Pull-out" || targetItem.Name == "Pull-in")
+            {
+                dropInfo.Effects = DragDropEffects.None;
+                return;
+            }
+
+            // 2. A "Dropoff" cannot go BEFORE its corresponding "Pickup".
+            if (sourceItem.EventType == ScheduleEventType.Dropoff)
+            {
+                // Find the Pickup for this trip
+                var pickupItem = Schedules.FirstOrDefault(s => s.TripId == sourceItem.TripId && s.EventType == ScheduleEventType.Pickup);
+                if (pickupItem != null)
+                {
+                    int pickupIndex = Schedules.IndexOf(pickupItem);
+                    // If the index where you want to drop is less than or equal to that of the pickup, it is not valid.
+                    if (dropInfo.InsertIndex <= pickupIndex)
+                    {
+                        dropInfo.Effects = DragDropEffects.None;
+                        return;
+                    }
+                }
+            }
+
+
+            // 3. A "Pickup" cannot go AFTER its corresponding "Dropoff".
+            if (sourceItem.EventType == ScheduleEventType.Pickup)
+            {
+                // Find the Dropoff for this trip
+                var dropoffItem = Schedules.FirstOrDefault(s => s.TripId == sourceItem.TripId && s.EventType == ScheduleEventType.Dropoff);
+                if (dropoffItem != null)
+                {
+                    int dropoffIndex = Schedules.IndexOf(dropoffItem);
+                    // If the index where you want to drop is greater than or equal to the dropoff, it is not valid.
+                    // dropInfo.InsertIndex gives us the position *before* which it will be inserted.
+                    // If we move an element from a low index to a high index, the dropoff index may change.
+                    // Therefore, the simple condition is the most effective.
+                    if (dropInfo.InsertIndex >= dropoffIndex)
+                    {
+                        dropInfo.Effects = DragDropEffects.None;
+                        return;
+                    }
+                }
+            }
+
+            // If all validations pass, we display the "Move" visual effect.
+            dropInfo.DropTargetAdorner = DropTargetAdorners.Insert;
+            dropInfo.Effects = DragDropEffects.Move;
+        }
+
+        public async void Drop(IDropInfo dropInfo)
+        {
+            var sourceItem = dropInfo.Data as ScheduleDto;
+            if (sourceItem == null) return;
+
+            int oldIndex = Schedules.IndexOf(sourceItem);
+            int newIndex = dropInfo.InsertIndex;
+
+            // Adjust index if item moves down list
+            if (oldIndex < newIndex)
+            {
+                newIndex--;
+            }
+
+            //Move element in observable collection so UI updates
+            Schedules.Move(oldIndex, newIndex);
+
+            // --- RECALCULATION AND PERSISTENCE ---
+            IsBusy = true;
+            BusyMessage = "Recalculating and saving route...";
+            try
+            {
+                // The first element affected is the one in the earliest position
+                int startIndex = Math.Min(oldIndex, newIndex);
+                await RecalculateScheduleAsync(startIndex);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to update the schedule: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                // Optional: Reload data to undo visual changes if save fails
+                await LoadSchedulesAndTripsAsync();
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        private async Task RecalculateScheduleAsync(int startIndex)
+        {
+            
+            GoogleMapsService googleMapsService = new GoogleMapsService();
+
+            // Go from the first affected element to the penultimate one (Pull-in is handled separately)
+            for (int i = startIndex; i < Schedules.Count - 1; i++)
+            {
+                var currentSchedule = Schedules[i];
+                var previousSchedule = Schedules[i - 1];
+
+                // 1. Get coordinates of the previous and current point
+                var prevCoords = new { Lat = previousSchedule.ScheduleLatitude, Lng = previousSchedule.ScheduleLongitude };
+                var currCoords = new { Lat = currentSchedule.ScheduleLatitude, Lng = currentSchedule.ScheduleLongitude };
+
+                // 2. Call Google API to get new route data
+                var routeDetails = await googleMapsService.GetRouteFullDetails(prevCoords.Lat, prevCoords.Lng, currCoords.Lat, currCoords.Lng);
+
+                // 3. Update Sequence, Distance and Travel
+                currentSchedule.Sequence = i;
+                if (routeDetails != null)
+                {
+                    currentSchedule.Distance = routeDetails.DistanceMiles;
+                    currentSchedule.Travel = TimeSpan.FromSeconds(routeDetails.DurationInTrafficSeconds);
+                }
+                else // Handle the case where the Google API fails
+                {
+                    currentSchedule.Distance = 0;
+                    currentSchedule.Travel = TimeSpan.Zero;
+                }
+
+                // 4. Calculate the "raw" ETA based on the previous event.
+                // We use TimeSpan.Zero as the default value to avoid errors with nulls.
+                TimeSpan previousEta = previousSchedule.ETA ?? TimeSpan.Zero;
+                TimeSpan previousServiceTime = TimeSpan.FromMinutes(previousSchedule.On ?? 15); // Asumir 15 min si 'On' es nulo
+                TimeSpan currentTravel = currentSchedule.Travel ?? TimeSpan.Zero;
+                TimeSpan calculatedEta = previousEta + previousServiceTime + currentTravel;
+
+                // 5. Determine the limit to "not arrive too early."
+                TimeSpan? scheduledTime = (currentSchedule.EventType == ScheduleEventType.Pickup)
+                    ? currentSchedule.Pickup
+                    : currentSchedule.Appt;
+
+                TimeSpan? earlyArrivalWindow = null;
+                if (currentSchedule.TripType == "Appointment")
+                {
+                    earlyArrivalWindow = TimeSpan.FromMinutes(15);
+                }
+                else if (currentSchedule.TripType == "Return")
+                {
+                    earlyArrivalWindow = TimeSpan.FromMinutes(5);
+                }
+
+                // 6. Apply the rule and adjust the ETA if necessary.
+                TimeSpan finalEta = calculatedEta; // By default, the final ETA is the calculated one.
+                if (scheduledTime.HasValue && earlyArrivalWindow.HasValue)
+                {
+                    TimeSpan violationLimit = scheduledTime.Value - earlyArrivalWindow.Value;
+                    if (calculatedEta < violationLimit)
+                    {
+                        // If the calculated ETA is earlier than the allowed limit,
+                        // we adjust the ETA to be exactly the limit.
+                        finalEta = violationLimit;
+                    }
+                }
+
+                // 7. Assign the final ETA to the object.
+                currentSchedule.ETA = finalEta;
+
+                // 8. Save changes to the database
+                await _scheduleService.UpdateAsync(currentSchedule.Id, currentSchedule);
+            }
+
+            // Finally, recalculate and update the Pull-in
+            if (Schedules.Count > 1)
+            {
+                var pullIn = Schedules.Last();
+                var lastStop = Schedules[Schedules.Count - 2]; // The last event before the Pull-in
+
+                var lastStopCoords = new { Lat = lastStop.ScheduleLatitude, Lng = lastStop.ScheduleLongitude };
+                var pullInCoords = new { Lat = pullIn.ScheduleLatitude, Lng = pullIn.ScheduleLongitude };
+
+                var finalRouteDetails = await googleMapsService.GetRouteFullDetails(lastStopCoords.Lat, lastStopCoords.Lng, pullInCoords.Lat, pullInCoords.Lng);
+
+                pullIn.Sequence = Schedules.Count - 1;
+                if (finalRouteDetails != null)
+                {
+                    pullIn.Distance = finalRouteDetails.DistanceMiles;
+                    pullIn.Travel = TimeSpan.FromSeconds(finalRouteDetails.DurationInTrafficSeconds);
+                }
+                else
+                {
+                    pullIn.Distance = 0;
+                    pullIn.Travel = TimeSpan.Zero;
+                }
+
+                TimeSpan lastStopServiceTime = TimeSpan.FromMinutes(lastStop.On ?? 15);
+                pullIn.ETA = (lastStop.ETA ?? TimeSpan.Zero) + lastStopServiceTime + (pullIn.Travel ?? TimeSpan.Zero);
+
+                await _scheduleService.UpdateAsync(pullIn.Id, pullIn);
+            }
+        }
+        public void DragDropOperationFinished(DragDropEffects operationResult, IDragInfo dragInfo)
+        {
+            // Called when the entire drag-drop operation has finished.
+            // It is useful for cleaning if necessary.
+            
+        }
+
+        #endregion
 
         #region Translation
 
