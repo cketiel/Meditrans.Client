@@ -1,18 +1,23 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DocumentFormat.OpenXml.Spreadsheet;
+using GMap.NET;
+using GMap.NET.WindowsPresentation;
 using Meditrans.Client.DTOs;
 using Meditrans.Client.Models;
 using Meditrans.Client.Services;
-using System.Collections.ObjectModel;
-using System.Windows;
 using Meditrans.Client.Views.Schedules;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 
 namespace Meditrans.Client.ViewModels
 {
     public partial class SchedulesViewModel : ObservableObject
     {
+        public event EventHandler<ZoomAndCenterEventArgs> ZoomAndCenterRequest;
+
         //private readonly UserConfigService _userConfigService;
         private readonly ScheduleService _scheduleService;
 
@@ -30,7 +35,7 @@ namespace Meditrans.Client.ViewModels
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(CancelRouteCommand))]
-        private ScheduleDto _selectedSchedule;
+        private ScheduleDto _selectedSchedule;        
 
         public ObservableCollection<VehicleRoute> VehicleRoutes { get; } = new();
         public ObservableCollection<VehicleGroup> VehicleGroups { get; } = new();
@@ -44,6 +49,19 @@ namespace Meditrans.Client.ViewModels
         [ObservableProperty]
         private ObservableCollection<ColumnConfig> _columnConfigurations = new();
         // public ObservableCollection<ColumnConfig> ColumnConfigurations { get; set; } = new();
+
+        #region Map Properties      
+
+        [ObservableProperty]
+        private PointLatLng _mapCenter = new PointLatLng(26.616666666667, -81.833333333333); // Fort Myers, Florida
+
+        [ObservableProperty]
+        private int _mapZoom = 12;
+      
+        [ObservableProperty]
+        private ObservableCollection<MapPoint> _selectedUnscheduledTripPoints = new();
+
+        #endregion
 
         public SchedulesViewModel(ScheduleService scheduleService)
         {
@@ -180,12 +198,16 @@ namespace Meditrans.Client.ViewModels
         {
             Schedules.Clear();
             UnscheduledTrips.Clear();
+            SelectedUnscheduledTripPoints.Clear();
 
             var schedules = await _scheduleService.GetSchedulesAsync(SelectedVehicleRoute.Id, SelectedDate);
             foreach (var s in schedules) Schedules.Add(s);
 
             var trips = await _scheduleService.GetUnscheduledTripsAsync(SelectedDate);
             foreach (var t in trips) UnscheduledTrips.Add(t);
+
+            UpdateMapViewForAllPoints();
+
         }
 
         private bool CanLoadSchedulesAndTrips() => SelectedVehicleRoute != null;
@@ -535,6 +557,109 @@ namespace Meditrans.Client.ViewModels
         {
             if (CanLoadSchedulesAndTrips())
                 LoadSchedulesAndTripsCommand.Execute(null);
+        }
+
+        // Logic to execute when the selection in the Schedules grid changes
+        partial void OnSelectedScheduleChanged(ScheduleDto value)
+        {          
+            foreach (var schedule in Schedules)
+            {
+                schedule.IsSelectedForMap = false;
+            }
+           
+            if (value != null)
+            {
+                //SelectedUnscheduledTrip = null; // This will clear the markers for the unscheduled trip
+
+                value.IsSelectedForMap = true;
+                var pairedEvent = Schedules.FirstOrDefault(s => s.TripId == value.TripId && s.Id != value.Id);
+                if (pairedEvent != null)
+                {
+                    pairedEvent.IsSelectedForMap = true;
+                }
+            }
+           
+            UpdateMapViewForAllPoints();
+        }
+
+        partial void OnSelectedUnscheduledTripChanged(UnscheduledTripDto value)
+        {          
+            /*foreach (var schedule in Schedules)
+            {
+                schedule.IsSelectedForMap = false;
+            }*/
+            SelectedUnscheduledTripPoints.Clear();
+           
+            if (value != null)
+            {
+                //SelectedSchedule = null; // This will unhighlight the pair in the schedule grid.
+
+                SelectedUnscheduledTripPoints.Add(new MapPoint
+                {
+                    Latitude = value.PickupLatitude,
+                    Longitude = value.PickupLongitude,
+                    Type = "Pickup"
+                });
+                SelectedUnscheduledTripPoints.Add(new MapPoint
+                {
+                    Latitude = value.DropoffLatitude,
+                    Longitude = value.DropoffLongitude,
+                    Type = "Dropoff"
+                });
+            }
+          
+            UpdateMapViewForAllPoints();
+        }
+
+
+        private void ZoomAndCenterOnPoints(List<PointLatLng> points)
+        {
+            if (points == null || !points.Any()) return;
+
+            if (points.Count == 1)
+            {
+                // If there is only one point, we simply center with a fixed zoom.
+                MapCenter = points.First();
+                MapZoom = 14;
+            }
+            else
+            {
+                // If there are multiple points, we calculate the rectangle and fire the event.
+                double maxLat = points.Max(p => p.Lat);
+                double minLat = points.Min(p => p.Lat);
+                double maxLng = points.Max(p => p.Lng);
+                double minLng = points.Min(p => p.Lng);
+
+                // We create the RectLatLng with the min/max coordinates
+                var rect = new RectLatLng(maxLat, minLng, Math.Abs(maxLng - minLng), Math.Abs(maxLat - minLat));
+
+                // We add a small margin (padding) so that it is not right on the edge.
+                rect.Inflate(0.1, 0.1);
+
+                // We throw the event for the View to handle.
+                ZoomAndCenterRequest?.Invoke(this, new ZoomAndCenterEventArgs(rect));
+            }
+        }
+
+        private void UpdateMapViewForAllPoints()
+        {
+            var allPoints = new List<PointLatLng>();
+
+            // 1. Add all points of the scheduled route (Schedules)
+            if (Schedules != null)
+            {
+                allPoints.AddRange(Schedules.Select(s => new PointLatLng(s.ScheduleLatitude, s.ScheduleLongitude)));
+            }
+
+            // 2. If there is an unscheduled trip selected, also add your points
+            if (SelectedUnscheduledTrip != null)
+            {
+                allPoints.Add(new PointLatLng(SelectedUnscheduledTrip.PickupLatitude, SelectedUnscheduledTrip.PickupLongitude));
+                allPoints.Add(new PointLatLng(SelectedUnscheduledTrip.DropoffLatitude, SelectedUnscheduledTrip.DropoffLongitude));
+            }
+
+            // 3. Call the existing method that calculates the rectangle and raises the event
+            ZoomAndCenterOnPoints(allPoints);
         }
 
         #region Translation

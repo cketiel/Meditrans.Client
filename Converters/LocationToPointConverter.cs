@@ -19,24 +19,38 @@ namespace Meditrans.Client.Converters
                 return DependencyProperty.UnsetValue;
             }
 
-            double elementSize = 0;
-            if (values.Length > 3 && values[3] is double size)
+            if (!map.IsLoaded)
             {
-                elementSize = size;
+                return DependencyProperty.UnsetValue;
             }
 
-            PointLatLng pointLatLng = new PointLatLng(lat, lon);
-            Point screenPoint = map.FromLatLngToLocal(pointLatLng);
+            try
+            {
+                double elementSize = 0;
+                if (values.Length > 3 && values[3] is double size)
+                {
+                    elementSize = size;
+                }
 
-            if (parameter?.ToString() == "Y")
-            {
-                // Para la coordenada Y, resta la mitad de la altura del marcador para centrarlo
-                return screenPoint.Y - (elementSize / 2);
+                PointLatLng pointLatLng = new PointLatLng(lat, lon);
+               
+                GPoint gPoint = map.FromLatLngToLocal(pointLatLng);
+             
+                Point screenPoint = new Point(gPoint.X, gPoint.Y);
+                
+
+                if (parameter?.ToString() == "Y")
+                {
+                    return screenPoint.Y - (elementSize / 2);
+                }
+                else
+                {
+                    return screenPoint.X - (elementSize / 2);
+                }
             }
-            else
+            catch (Exception)
             {
-                // Para la coordenada X, resta la mitad del ancho del marcador para centrarlo
-                return screenPoint.X - (elementSize / 2);
+                return DependencyProperty.UnsetValue;
             }
         }
 

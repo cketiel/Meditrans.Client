@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Meditrans.Client.Models;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Meditrans.Client.DTOs
 {
-    public class ScheduleDto
+    public partial class ScheduleDto : ObservableObject
     {
         public int Id { get; set; }
         public int? TripId { get; set; }
@@ -41,5 +42,8 @@ namespace Meditrans.Client.DTOs
         public bool Performed { get; set; }
         public string? Run { get; set; }
         public string? Vehicle { get; set; }
+
+        [ObservableProperty]
+        private bool _isSelectedForMap;
     }
 }

@@ -8,88 +8,66 @@
              xmlns:converters="clr-namespace:Meditrans.Client.Converters"
              xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"  
              xmlns:models="clr-namespace:Meditrans.Client.Models"
+             xmlns:gmaps="clr-namespace:GMap.NET.WindowsPresentation;assembly=GMap.NET.WindowsPresentation"
              mc:Ignorable="d" 
              xmlns:vm="clr-namespace:Meditrans.Client.ViewModels"
-             d:DataContext="{d:DesignInstance Type=vm:SchedulesViewModel}"
+             
              d:DesignHeight="450" d:DesignWidth="800">
 
     <UserControl.Resources>
+        
+        <converters:LocationToPointConverter x:Key="LocationToPointConverter"/>
         <converters:ColumnVisibilityConverter x:Key="ColumnVisibilityConverter"/>
         <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
     </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <!-- FILAS PRINCIPALES -->
-            <RowDefinition Height="Auto"/>         <!-- 0: Filters -->
-            <RowDefinition Height="*"/>            <!-- 1: Top Panel (Schedules and Map) -->
-            <RowDefinition Height="5"/>            <!-- 2: HORIZONTAL SPLITTER -->
-            <RowDefinition Height="*"/>            <!-- 3: Bottom Panel (Unrouted Trips) -->
+            
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="5"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Top Filter Panel -->
+        
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
             <DatePicker SelectedDate="{Binding SelectedDate}" Margin="5"/>
             <ComboBox ItemsSource="{Binding VehicleRoutes}" SelectedItem="{Binding SelectedVehicleRoute}" DisplayMemberPath="Name" Width="200" Margin="5"/>
             <ComboBox ItemsSource="{Binding VehicleGroups}" DisplayMemberPath="Name" Width="200" Margin="5"/>
-            <!--<Button Content="Route Trip" Command="{Binding RouteTripCommand}" Margin="5"/>
-            <Button Content="Cancel Route" Command="{Binding CancelRouteCommand}" Margin="5"/>-->
         </StackPanel>
 
-        <!-- Top Panel Left (Schedules) and Right (Map) -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <!-- Columna 0: Schedule Grid -->
                 <ColumnDefinition Width="*"/>
-
-                <!-- Columna 1: Vertical Grid Splitter -->
                 <ColumnDefinition Width="5"/>
-
-                <!-- Columna 2: Map Area -->
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
+            
             <DockPanel Grid.Column="0">
-            <!-- Schedule Grid -->
-            <ScrollViewer HorizontalScrollBarVisibility="Visible" >
-            <DataGrid  
-                      ItemsSource="{Binding Schedules}" 
-                      SelectedItem="{Binding SelectedSchedule}" 
-                      AutoGenerateColumns="False" 
-                      CanUserAddRows="False"
-                      SelectionMode="Single"
-                      ScrollViewer.CanContentScroll="True" 
-                      ScrollViewer.HorizontalScrollBarVisibility="Auto" 
-                      ScrollViewer.VerticalScrollBarVisibility="Auto"
-                      FrozenColumnCount="2"               
-                 
-                      IsReadOnly="True"
-                      AlternationCount="2"
-                      AlternatingRowBackground="White"                                    
-                      Style="{StaticResource CustomDataGridStyle}"
-                      ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
-                      RowStyle="{StaticResource CustomRowStyle}"
-                      CellStyle="{StaticResource CustomCellStyle}"
-                      SelectionUnit="FullRow">                
+                <!-- Schedule Grid -->
+                <ScrollViewer HorizontalScrollBarVisibility="Visible" >
+                    <DataGrid ItemsSource="{Binding Schedules}" SelectedItem="{Binding SelectedSchedule, Mode=TwoWay}" AutoGenerateColumns="False" CanUserAddRows="False" SelectionMode="Single" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" FrozenColumnCount="2" IsReadOnly="True" AlternationCount="2" AlternatingRowBackground="White" Style="{StaticResource CustomDataGridStyle}" ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}" RowStyle="{StaticResource CustomRowStyle}" CellStyle="{StaticResource CustomCellStyle}" SelectionUnit="FullRow">
+                        
+                        <DataGrid.Columns>
 
-                <DataGrid.Columns>
+                            <DataGridTemplateColumn Width="Auto">
 
-                    <DataGridTemplateColumn Width="Auto">
-
-                        <DataGridTemplateColumn.HeaderTemplate>
-                            <DataTemplate>
-                                <Button Command="{Binding DataContext.OpenColumnSelectorCommand,
+                                <DataGridTemplateColumn.HeaderTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{Binding DataContext.OpenColumnSelectorCommand,
                                         RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         Style="{StaticResource MaterialDesignToolButton}"
                                         ToolTip="{Binding Data.SelectFieldsToDisplayToolTip, Source={StaticResource vmProxy}}">
-                                    <materialDesign:PackIcon Kind="Cog" Width="20" Height="20"/>
-                                </Button>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.HeaderTemplate>
+                                            <materialDesign:PackIcon Kind="Cog" Width="20" Height="20"/>
+                                        </Button>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.HeaderTemplate>
 
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button Command="{Binding Data.CancelRouteCommand, Source={StaticResource vmProxy}}"
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{Binding Data.CancelRouteCommand, Source={StaticResource vmProxy}}"
                                         
                                         VerticalAlignment="Center"
                                         ToolTip="{Binding Data.UnscheduleToolTip, Source={StaticResource vmProxy}}">
@@ -111,190 +89,413 @@
                                             </Button.Style>
 
                                             <materialDesign:PackIcon Kind="SortClockAscendingOutline" Width="20" Height="20" Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
-                                    <!-- ArrowURightBottomBold -->
-                                </Button>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
+                                            <!-- ArrowURightBottomBold -->
+                                        </Button>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
 
-                    </DataGridTemplateColumn>
+                            </DataGridTemplateColumn>
 
-                    <DataGridTextColumn Binding="{Binding Name}" Width="250" IsReadOnly="True" 
+                            <DataGridTextColumn Binding="{Binding Name}" Width="250" IsReadOnly="True" 
                                         Header="{Binding Data.ColumnHeaderName, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Name}"/>
 
-                    <DataGridTextColumn Binding="{Binding Pickup, StringFormat=\{0:hh\\:mm\}}" Width="80"
+                            <DataGridTextColumn Binding="{Binding Pickup, StringFormat=\{0:hh\\:mm\}}" Width="80"
                                         Header="{Binding Data.ColumnHeaderPickup, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Pickup}"/>
-                    <DataGridTextColumn Binding="{Binding Appt, StringFormat=\{0:hh\\:mm\}}" Width="80"
+                            <DataGridTextColumn Binding="{Binding Appt, StringFormat=\{0:hh\\:mm\}}" Width="80"
                                         Header="{Binding Data.ColumnHeaderAppt, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Appt}"/>
-                    <DataGridTextColumn Binding="{Binding ETA, StringFormat=\{0:hh\\:mm\}}" Width="80" IsReadOnly="True"
+                            <DataGridTextColumn Binding="{Binding ETA, StringFormat=\{0:hh\\:mm\}}" Width="80" IsReadOnly="True"
                                         Header="{Binding Data.ColumnHeaderETA, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=ETA}"/>
 
-                    <DataGridTemplateColumn Width="25" IsReadOnly="True">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <!-- A Grid is used to center and overlap elements -->
-                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <DataGridTemplateColumn Width="25" IsReadOnly="True">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        
+                                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
 
-                                    <!-- The circle that will change color -->
-                                    <Border x:Name="CircleBorder"
-                                        Width="20"
-                                        Height="20"
-                                        CornerRadius="10"
-                                        Background="Gray">
+                                            <!-- The Border that changes from circle to square -->
+                                            <Border Width="20" Height="20" ToolTip="{Binding Name}">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <!-- Default status: Gray circle -->
+                                                        <Setter Property="CornerRadius" Value="10"/>
+                                                        <Setter Property="Background" Value="Gray"/>
+                                                        <Style.Triggers>
+                                                            <!-- Triggers for NOT selected status colors -->
+                                                            <DataTrigger Binding="{Binding Name}" Value="Pull-out">
+                                                                <Setter Property="Background" Value="Green"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Name}" Value="Pull-in">
+                                                                <Setter Property="Background" Value="Red"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Pickup}">
+                                                                <Setter Property="Background" Value="Green"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Dropoff}">
+                                                                <Setter Property="Background" Value="Red"/>
+                                                            </DataTrigger>
 
-                                        <!-- Content inside the circle -->
-                                        <Grid>
-                                            <TextBlock x:Name="SequenceText"
-                                                        Text="{Binding Sequence}"
-                                                        Foreground="White"
-                                                        FontWeight="Bold"
-                                                        HorizontalAlignment="Center"
-                                                        VerticalAlignment="Center"/>
+                                                            <!-- Triggers for the SELECTED state -->
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding IsSelectedForMap}" Value="True"/>
+                                                                    <Condition Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Pickup}"/>
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Background" Value="Black"/>
+                                                                <Setter Property="CornerRadius" Value="2"/>
+                                                                
+                                                            </MultiDataTrigger>
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding IsSelectedForMap}" Value="True"/>
+                                                                    <Condition Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Dropoff}"/>
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Background" Value="Black"/>
+                                                                <Setter Property="CornerRadius" Value="2"/>
+                                                                
+                                                            </MultiDataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
 
-                                            <!-- The car icon, hidden by default -->
-                                            <materialDesign:PackIcon x:Name="CarIcon"
-                                                    Kind="Car"
-                                                    Width="18"
-                                                    Height="18"
-                                                    Foreground="White"
-                                                    HorizontalAlignment="Center"
-                                                    VerticalAlignment="Center"
-                                                    Visibility="Collapsed"/>
+                                                
+                                                <ContentControl Content="{Binding}">
+                                                    <ContentControl.Resources>
+                                                        <!-- Templates for each visual state -->
+                                                        <DataTemplate x:Key="SequenceTemplate">
+                                                            <TextBlock Text="{Binding Sequence}" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </DataTemplate>
+                                                        <DataTemplate x:Key="CarTemplate">
+                                                            <materialDesign:PackIcon Kind="Car" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" Width="18" Height="18"/>
+                                                        </DataTemplate>
+                                                        <DataTemplate x:Key="SelectedPickupTemplate">
+                                                            <materialDesign:PackIcon Kind="ArrowTopRight" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </DataTemplate>
+                                                        <DataTemplate x:Key="SelectedDropoffTemplate">
+                                                            <materialDesign:PackIcon Kind="ArrowBottomRight" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        </DataTemplate>
+                                                    </ContentControl.Resources>
+
+                                                    <ContentControl.Style>
+                                                        <Style TargetType="ContentControl">
+                                                            <!-- By default, it shows the number -->
+                                                            <Setter Property="ContentTemplate" Value="{StaticResource SequenceTemplate}"/>
+                                                            <Style.Triggers>
+                                                                <!-- Triggers to change the template -->
+                                                                <DataTrigger Binding="{Binding Name}" Value="Pull-out">
+                                                                    <Setter Property="ContentTemplate" Value="{StaticResource CarTemplate}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Name}" Value="Pull-in">
+                                                                    <Setter Property="ContentTemplate" Value="{StaticResource CarTemplate}"/>
+                                                                </DataTrigger>
+                                                                <MultiDataTrigger>
+                                                                    <MultiDataTrigger.Conditions>
+                                                                        <Condition Binding="{Binding IsSelectedForMap}" Value="True"/>
+                                                                        <Condition Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Pickup}"/>
+                                                                    </MultiDataTrigger.Conditions>
+                                                                    <Setter Property="ContentTemplate" Value="{StaticResource SelectedPickupTemplate}"/>
+                                                                </MultiDataTrigger>
+                                                                <MultiDataTrigger>
+                                                                    <MultiDataTrigger.Conditions>
+                                                                        <Condition Binding="{Binding IsSelectedForMap}" Value="True"/>
+                                                                        <Condition Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Dropoff}"/>
+                                                                    </MultiDataTrigger.Conditions>
+                                                                    <Setter Property="ContentTemplate" Value="{StaticResource SelectedDropoffTemplate}"/>
+                                                                </MultiDataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </ContentControl.Style>
+                                                </ContentControl>
+                                            </Border>
                                         </Grid>
-                                    </Border>
-                                </Grid>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
 
-                                <!-- Triggers to change appearance based on data -->
-                                <DataTemplate.Triggers>
-                                    <!-- CASE 1: Event is Pickup -->
-                                    <DataTrigger Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Pickup}">
-                                        <Setter TargetName="CircleBorder" Property="Background" Value="Green"/>
-                                    </DataTrigger>
-
-                                    <!-- CASE 2: Event is Dropoff -->
-                                    <DataTrigger Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Dropoff}">
-                                        <Setter TargetName="CircleBorder" Property="Background" Value="Red"/>
-                                    </DataTrigger>
-
-                                    <!-- SPECIAL CASE 3: Name is "Pull-out" -->
-                                    <DataTrigger Binding="{Binding Name}" Value="Pull-out">
-                                        <Setter TargetName="CircleBorder" Property="Background" Value="Green"/>
-                                        <Setter TargetName="SequenceText" Property="Visibility" Value="Collapsed"/>
-                                        <Setter TargetName="CarIcon" Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-
-                                    <!-- SPECIAL CASE 4: Name is "Pull-in" -->
-                                    <DataTrigger Binding="{Binding Name}" Value="Pull-in">
-                                        <Setter TargetName="CircleBorder" Property="Background" Value="Red"/>
-                                        <Setter TargetName="SequenceText" Property="Visibility" Value="Collapsed"/>
-                                        <Setter TargetName="CarIcon" Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </DataTemplate.Triggers>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-
-                    <DataGridTextColumn Binding="{Binding Distance}" Width="80" IsReadOnly="True"
+                            <DataGridTextColumn Binding="{Binding Distance}" Width="80" IsReadOnly="True"
                                         Header="{Binding Data.ColumnHeaderDistance, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Distance}"/>
-                    <DataGridTextColumn Binding="{Binding Travel}" Width="80" IsReadOnly="True"
+                            <DataGridTextColumn Binding="{Binding Travel}" Width="80" IsReadOnly="True"
                                         Header="{Binding Data.ColumnHeaderTravel, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Travel}"/>
-                    <DataGridTextColumn Binding="{Binding On}" Width="50" IsReadOnly="True"
+                            <DataGridTextColumn Binding="{Binding On}" Width="50" IsReadOnly="True"
                                         Header="{Binding Data.ColumnHeaderOn, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=On}"/>
-                    <DataGridTextColumn Binding="{Binding SpaceType}" Width="80"
+                            <DataGridTextColumn Binding="{Binding SpaceType}" Width="80"
                                         Header="{Binding Data.ColumnHeaderSpace, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=SpaceTypeName}"/>
-                    <DataGridTextColumn Binding="{Binding Address}" Width="250"
+                            <DataGridTextColumn Binding="{Binding Address}" Width="250"
                                         Header="{Binding Data.ColumnHeaderAddress, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Address}"/>
 
-                    <DataGridTextColumn Binding="{Binding Comment}" Width="200" IsReadOnly="True"
+                            <DataGridTextColumn Binding="{Binding Comment}" Width="200" IsReadOnly="True"
                                         Header="{Binding Data.ColumnHeaderComment, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Comment}"/>
-                    <DataGridTextColumn Binding="{Binding Phone}" Width="120" IsReadOnly="True"
+                            <DataGridTextColumn Binding="{Binding Phone}" Width="120" IsReadOnly="True"
                                         Header="{Binding Data.ColumnHeaderPhone, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Phone}"/>
-                    <DataGridTextColumn Binding="{Binding Arrive, StringFormat=\{0:hh\\:mm\}}" Width="80" IsReadOnly="True"
+                            <DataGridTextColumn Binding="{Binding Arrive, StringFormat=\{0:hh\\:mm\}}" Width="80" IsReadOnly="True"
                                         Header="{Binding Data.ColumnHeaderArrive, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Arrive}"/>
-                    <DataGridTextColumn Binding="{Binding Perform, StringFormat=\{0:hh\\:mm\}}" Width="80" IsReadOnly="True"
+                            <DataGridTextColumn Binding="{Binding Perform, StringFormat=\{0:hh\\:mm\}}" Width="80" IsReadOnly="True"
                                         Header="{Binding Data.ColumnHeaderPerform, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Perform}"/>
-                    <DataGridTextColumn Binding="{Binding ArriveDist}" Width="80" IsReadOnly="True"
+                            <DataGridTextColumn Binding="{Binding ArriveDist}" Width="80" IsReadOnly="True"
                                         Header="{Binding Data.ColumnHeaderArriveDist, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=ArriveDist}"/>
-                    <DataGridTextColumn Binding="{Binding PerformDist}" Width="80" IsReadOnly="True"
+                            <DataGridTextColumn Binding="{Binding PerformDist}" Width="80" IsReadOnly="True"
                                         Header="{Binding Data.ColumnHeaderPerformDist, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=PerformDist}"/>
-                    <DataGridTextColumn Binding="{Binding Driver}" Width="150" IsReadOnly="True"
+                            <DataGridTextColumn Binding="{Binding Driver}" Width="150" IsReadOnly="True"
                                         Header="{Binding Data.ColumnHeaderDriver, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Driver}"/>
-                    <DataGridTextColumn Binding="{Binding GPSArrive}" Width="120" IsReadOnly="True"
+                            <DataGridTextColumn Binding="{Binding GPSArrive}" Width="120" IsReadOnly="True"
                                         Header="{Binding Data.ColumnHeaderGPSArrive, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=GPSArrive}"/>
-                    <DataGridTextColumn Binding="{Binding Odometer}" Width="100" IsReadOnly="True"
+                            <DataGridTextColumn Binding="{Binding Odometer}" Width="100" IsReadOnly="True"
                                         Header="{Binding Data.ColumnHeaderOdometer, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=Odometer}"/>
-                    <DataGridTextColumn Binding="{Binding AuthNo}" Width="120" IsReadOnly="True"
+                            <DataGridTextColumn Binding="{Binding AuthNo}" Width="120" IsReadOnly="True"
                                         Header="{Binding Data.ColumnHeaderAuthNo, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=AuthNo}"/>
 
-                    <DataGridTextColumn Binding="{Binding FundingSource}"
+                            <DataGridTextColumn Binding="{Binding FundingSource}"
                                         Header="{Binding Data.ColumnHeaderFundingSource, Source={StaticResource vmProxy}}"
                                         Visibility="{Binding Data.ColumnConfigurations, Source={StaticResource vmProxy}, Converter={StaticResource ColumnVisibilityConverter}, ConverterParameter=FundingSource}"/>
-                </DataGrid.Columns>
-                            
-            </DataGrid>
-            </ScrollViewer>
+                        </DataGrid.Columns>
+
+                    </DataGrid>
+                </ScrollViewer>
             </DockPanel>
 
-            <!-- VERTICAL GridSplitter -->
-            <GridSplitter Grid.Column="1" 
-                          Width="5" 
-                          HorizontalAlignment="Stretch" 
-                          VerticalAlignment="Stretch" 
-                          Background="LightGray"
-                          ShowsPreview="True"/>
+            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="LightGray" ShowsPreview="True"/>
 
-            <!-- Placeholder for Map -->
-            <Border Grid.Column="2" BorderBrush="Gray" BorderThickness="1" Margin="5">
-                <TextBlock Text="Map Area" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Border>
+            <!-- Column 2: Map Area -->
+            <Grid Grid.Column="2" Margin="5">
+                
+                <gmaps:GMapControl x:Name="MapView" MinZoom="2" MaxZoom="20"
+                                   Zoom="{Binding MapZoom, Mode=TwoWay}"
+                                   Position="{Binding MapCenter, Mode=TwoWay}"/>
+
+                
+                <ItemsControl ItemsSource="{Binding Schedules}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="Canvas.Left">
+                                <Setter.Value>
+                                    
+                                    <MultiBinding Converter="{StaticResource LocationToPointConverter}">
+                                        <Binding ElementName="MapView"/>
+                                        <Binding Path="ScheduleLatitude"/>
+                                        <Binding Path="ScheduleLongitude"/>
+                                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}"/>
+                                        <Binding Path="Zoom" ElementName="MapView"/>
+                                        <Binding Path="Position" ElementName="MapView"/>
+                                    </MultiBinding>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter Property="Canvas.Top">
+                                <Setter.Value>
+                                    
+                                    <MultiBinding Converter="{StaticResource LocationToPointConverter}" ConverterParameter="Y">
+                                        <Binding ElementName="MapView"/>
+                                        <Binding Path="ScheduleLatitude"/>
+                                        <Binding Path="ScheduleLongitude"/>
+                                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource Self}"/>
+                                        <Binding Path="Zoom" ElementName="MapView"/>
+                                        <Binding Path="Position" ElementName="MapView"/>
+                                    </MultiBinding>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                
+                                <Border Width="20" Height="20" ToolTip="{Binding Name}"
+                                        MouseLeftButtonDown="ScheduleMarker_MouseLeftButtonDown"
+                                        Cursor="Hand">
+                                    
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="CornerRadius" Value="12"/>
+                                            <Setter Property="Background" Value="Gray"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Name}" Value="Pull-out">
+                                                    <Setter Property="Background" Value="Green"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Name}" Value="Pull-in">
+                                                    <Setter Property="Background" Value="Red"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Pickup}">
+                                                    <Setter Property="Background" Value="Green"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Dropoff}">
+                                                    <Setter Property="Background" Value="Red"/>
+                                                </DataTrigger>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding IsSelectedForMap}" Value="True"/>
+                                                        <Condition Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Pickup}"/>
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="Black"/>
+                                                    <Setter Property="CornerRadius" Value="2"/>
+                                                    <Setter Property="Width" Value="18"/>
+                                                    <Setter Property="Height" Value="18"/>
+                                                </MultiDataTrigger>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding IsSelectedForMap}" Value="True"/>
+                                                        <Condition Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Dropoff}"/>
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="Black"/>
+                                                    <Setter Property="CornerRadius" Value="2"/>
+                                                </MultiDataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+
+                                    
+                                    <ContentControl Content="{Binding}">
+                                        <ContentControl.Resources>
+                                            <!-- Template for default state (sequence number)-->
+                                            <DataTemplate x:Key="SequenceTemplate">
+                                                <TextBlock Text="{Binding Sequence}" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </DataTemplate>
+
+                                            <!-- Pull-in/Pull-out template (car icon)-->
+                                            <DataTemplate x:Key="CarTemplate">
+                                                <materialDesign:PackIcon Kind="Car" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </DataTemplate>
+
+                                            <!-- Template for Selected Pickup (upper right arrow) -->
+                                            <DataTemplate x:Key="SelectedPickupTemplate">
+                                                <materialDesign:PackIcon Kind="ArrowTopRight" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </DataTemplate>
+
+                                            <!-- Template for Selected Dropoff (bottom right arrow) -->
+                                            <DataTemplate x:Key="SelectedDropoffTemplate">
+                                                <materialDesign:PackIcon Kind="ArrowBottomRight" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </DataTemplate>
+                                        </ContentControl.Resources>
+
+                                        <ContentControl.Style>
+                                            <Style TargetType="ContentControl">
+                                                <!-- The default state is to show the sequence number -->
+                                                <Setter Property="ContentTemplate" Value="{StaticResource SequenceTemplate}"/>
+                                                <Style.Triggers>
+                                                    <!-- Trigger to show the car -->
+                                                    <DataTrigger Binding="{Binding Name}" Value="Pull-out">
+                                                        <Setter Property="ContentTemplate" Value="{StaticResource CarTemplate}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Name}" Value="Pull-in">
+                                                        <Setter Property="ContentTemplate" Value="{StaticResource CarTemplate}"/>
+                                                    </DataTrigger>
+
+                                                    <!-- Trigger to show Pickup selected arrow -->
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding IsSelectedForMap}" Value="True"/>
+                                                            <Condition Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Pickup}"/>
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter Property="ContentTemplate" Value="{StaticResource SelectedPickupTemplate}"/>
+                                                    </MultiDataTrigger>
+
+                                                    <!-- Trigger to show selected Dropoff arrow -->
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding IsSelectedForMap}" Value="True"/>
+                                                            <Condition Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Dropoff}"/>
+                                                        </MultiDataTrigger.Conditions>
+                                                        <Setter Property="ContentTemplate" Value="{StaticResource SelectedDropoffTemplate}"/>
+                                                    </MultiDataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ContentControl.Style>
+                                    </ContentControl>
+                                    
+
+                                </Border>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                </ItemsControl>
+
+                
+                <ItemsControl ItemsSource="{Binding SelectedUnscheduledTripPoints}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemContainerStyle>
+                        <Style TargetType="ContentPresenter">
+                            <Setter Property="Canvas.Left">
+                                <Setter.Value>
+                                    
+                                    <MultiBinding Converter="{StaticResource LocationToPointConverter}">
+                                        <Binding ElementName="MapView"/>
+                                        <Binding Path="Latitude"/>
+                                        <Binding Path="Longitude"/>
+                                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}"/>
+                                        <Binding Path="Zoom" ElementName="MapView"/>
+                                        <Binding Path="Position" ElementName="MapView"/>
+                                    </MultiBinding>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter Property="Canvas.Top">
+                                <Setter.Value>
+                                    
+                                    <MultiBinding Converter="{StaticResource LocationToPointConverter}" ConverterParameter="Y">
+                                        <Binding ElementName="MapView"/>
+                                        <Binding Path="Latitude"/>
+                                        <Binding Path="Longitude"/>
+                                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource Self}"/>
+                                        <Binding Path="Zoom" ElementName="MapView"/>
+                                        <Binding Path="Position" ElementName="MapView"/>
+                                    </MultiBinding>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ItemsControl.ItemContainerStyle>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Width="18" Height="18" Background="Black" CornerRadius="2">
+                                <materialDesign:PackIcon Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <materialDesign:PackIcon.Style>
+                                        <Style TargetType="materialDesign:PackIcon">
+                                            <Setter Property="Kind" Value="ArrowUp"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Type}" Value="Dropoff">
+                                                    <Setter Property="Kind" Value="ArrowDown"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </materialDesign:PackIcon.Style>
+                                </materialDesign:PackIcon>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
         </Grid>
 
-        <!-- HORIZONTAL GridSplitter  -->
-        <GridSplitter Grid.Row="2" 
-                      Height="5" 
-                      HorizontalAlignment="Stretch" 
-                      VerticalAlignment="Center" 
-                      Background="LightGray"
-                      ShowsPreview="True"/>
+        <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="LightGray" ShowsPreview="True"/>
 
-        <!-- Lower Grid (Unscheduled Trips) -->
-        <DataGrid Grid.Row="3" 
-                  ItemsSource="{Binding UnscheduledTrips}" 
-                  SelectedItem="{Binding SelectedUnscheduledTrip}"                                 
-                  SelectionMode="Single"
-                  ScrollViewer.CanContentScroll="True" 
-                  ScrollViewer.HorizontalScrollBarVisibility="Auto" 
-                  ScrollViewer.VerticalScrollBarVisibility="Auto"
-                  FrozenColumnCount="2"               
-                 
-                  IsReadOnly="True"
-                  AlternationCount="2"
-                  AlternatingRowBackground="White"                                    
-                  Style="{StaticResource CustomDataGridStyle}"
-                  ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
-                  RowStyle="{StaticResource CustomRowStyle}"
-                  CellStyle="{StaticResource CustomCellStyle}"
-                  SelectionUnit="FullRow"
-                  
-                  AutoGenerateColumns="False" CanUserAddRows="False" Cursor="Hand">
+        
+        <DataGrid Grid.Row="3" ItemsSource="{Binding UnscheduledTrips}" SelectedItem="{Binding SelectedUnscheduledTrip}" SelectionMode="Single" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" FrozenColumnCount="2" IsReadOnly="True" AlternationCount="2" AlternatingRowBackground="White" Style="{StaticResource CustomDataGridStyle}" ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}" RowStyle="{StaticResource CustomRowStyle}" CellStyle="{StaticResource CustomCellStyle}" SelectionUnit="FullRow" AutoGenerateColumns="False" CanUserAddRows="False" Cursor="Hand">
+            
             <DataGrid.Columns>
 
                 <DataGridTemplateColumn Width="Auto">
@@ -336,12 +537,12 @@
                                 </Button>
 
                             </StackPanel>
-                            
+
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
 
                 </DataGridTemplateColumn>
-             
+
                 <DataGridTextColumn Binding="{Binding Date}"
                 Header="{Binding Data.ColumnHeaderDate, Source={StaticResource vmProxy}}"/>
 
@@ -408,13 +609,6 @@
                 <DataGridTextColumn Binding="{Binding DropoffCity}"
                 Header="{Binding Data.ColumnHeaderDropoffCity, Source={StaticResource vmProxy}}"/>
 
-                <!--<DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="*"/>
-                <DataGridTextColumn Header="From Time" Binding="{Binding FromTime, StringFormat=\{0:hh\\:mm\}}"/>
-                <DataGridTextColumn Header="To Time" Binding="{Binding ToTime, StringFormat=\{0:hh\\:mm\}}"/>
-                <DataGridTextColumn Header="Pickup Address" Binding="{Binding PickupAddress}" Width="*"/>
-                <DataGridTextColumn Header="Dropoff Address" Binding="{Binding DropoffAddress}" Width="*"/>
-                <DataGridTextColumn Header="Space" Binding="{Binding SpaceType}"/>
-                <DataGridTextColumn Header="Funding Source" Binding="{Binding FundingSource}"/>-->
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
