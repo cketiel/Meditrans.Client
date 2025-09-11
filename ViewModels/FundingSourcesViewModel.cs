@@ -172,6 +172,7 @@ namespace Meditrans.Client.ViewModels
                     var model = new FundingSourceBillingItem
                     {
                         Id = dto.Id,
+                        FundingSourceId = SelectedFundingSource.Id,
                         BillingItemId = dto.BillingItemId, 
                         SpaceTypeId = dto.SpaceTypeId,
                         Rate = dto.Rate,
