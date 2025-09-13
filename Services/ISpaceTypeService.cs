@@ -13,5 +13,6 @@ namespace Meditrans.Client.Services
         Task<SpaceType> CreateSpaceTypeAsync(SpaceType spaceType);
 
         Task<SpaceType> GetSpaceTypeByNameAsync(string name);
+        Task DeleteSpaceTypeAsync(int id);
     }
 }

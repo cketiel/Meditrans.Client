@@ -1,0 +1,62 @@
+﻿<Window x:Class="Meditrans.Client.Views.Data.Scheduling.Vehicles.AddSpaceTypeView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Meditrans.Client.Views.Data.Scheduling.Vehicles"
+        mc:Ignorable="d"
+        Title="Add Space Type" Width="400"
+        WindowStartupLocation="CenterScreen"
+        SizeToContent="Height">
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Fila 0: Label Name -->
+            <RowDefinition Height="Auto"/>
+            <!-- Fila 1: TextBox Name -->
+            <RowDefinition Height="Auto"/>
+            <!-- Fila 2: Label Desc -->
+            <RowDefinition Height="Auto"/>
+            <!-- Fila 3: TextBox Desc -->
+            <RowDefinition Height="Auto"/>
+            <!-- Fila 4: Label Load -->
+            <RowDefinition Height="Auto"/>
+            <!-- Fila 5: TextBox Load -->
+            <RowDefinition Height="Auto"/>
+            <!-- Fila 6: Label Unload -->
+            <RowDefinition Height="Auto"/>
+            <!-- Fila 7: TextBox Unload -->
+            <RowDefinition Height="Auto"/>
+            <!-- Fila 8: Label Capacity -->
+            <RowDefinition Height="Auto"/>
+            <!-- Fila 9: ComboBox Capacity -->
+            <RowDefinition Height="Auto"/>
+            <!-- Fila 10: Botones (ESTA ES LA FILA QUE FALTABA) -->
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Name:" FontWeight="Bold" />
+        <TextBox Grid.Row="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,5,0,10"/>
+
+        <TextBlock Grid.Row="2" Text="Description:" FontWeight="Bold" />
+        <TextBox Grid.Row="3" Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Margin="0,5,0,10"/>
+
+        <TextBlock Grid.Row="4" Text="Load Time (minutes):" FontWeight="Bold" />
+        <TextBox Grid.Row="5" Text="{Binding LoadTime, UpdateSourceTrigger=PropertyChanged}" Margin="0,5,0,10"/>
+
+        <TextBlock Grid.Row="6" Text="Unload Time (minutes):" FontWeight="Bold" />
+        <TextBox Grid.Row="7" Text="{Binding UnloadTime, UpdateSourceTrigger=PropertyChanged}" Margin="0,5,0,10"/>
+
+        <TextBlock Grid.Row="8" Text="Capacity Type:" FontWeight="Bold" />
+        <ComboBox Grid.Row="9" 
+                  ItemsSource="{Binding CapacityTypes}"
+                  SelectedItem="{Binding SelectedCapacityType}"
+                  DisplayMemberPath="Name"
+                  Margin="0,5,0,20"/>
+
+        <!-- Este StackPanel ahora tiene su propia fila y no se superpondrá -->
+        <StackPanel Grid.Row="10" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,10,0,0">
+            <Button Content="Save" Command="{Binding SaveCommand}" IsDefault="True" Margin="0,0,10,0"/>
+            <Button Content="Cancel" Command="{Binding CancelCommand}" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</Window>

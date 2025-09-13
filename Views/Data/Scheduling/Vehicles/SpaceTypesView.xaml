@@ -54,7 +54,7 @@
                                 <Button Command="{Binding Data.AddSpaceTypeCommand, Source={StaticResource vmProxy}}"
                                         Style="{StaticResource MaterialDesignToolButton}"
                                         ToolTip="{Binding Data.AddSpaceTypeToolTip, Source={StaticResource vmProxy}}">
-                                    <materialDesign:PackIcon Kind="PlusCircle" Width="20" Height="20"/>
+                                    <materialDesign:PackIcon Kind="PlusCircle" Width="20" Height="20" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
                                 </Button>
                             </DataTemplate>
                         </DataGridTemplateColumn.HeaderTemplate>
@@ -66,7 +66,7 @@
                                         Style="{StaticResource MaterialDesignToolButton}"
                                         VerticalAlignment="Center"
                                         ToolTip="{Binding Data.DeleteSpaceTypeToolTip, Source={StaticResource vmProxy}}">
-                                    <materialDesign:PackIcon Kind="DeleteForever" Width="20" Height="20" />
+                                    <materialDesign:PackIcon Kind="DeleteForever" Width="20" Height="20" Foreground="Red"/>
                                 </Button>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>

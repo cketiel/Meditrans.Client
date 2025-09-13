@@ -66,6 +66,23 @@ namespace Meditrans.Client.Services
             //return await _httpClient.GetFromJsonAsync<Customer>($"{EndPoint}/{id}");
         }
 
+        public async Task DeleteSpaceTypeAsync(int id)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"{EndPoint}/{id}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw await CreateApiException(response, $"Error deleting SpaceType with ID {id}");
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new ApiException("Server connection error", ex);
+            }
+        }
+
         private async Task<ApiException> CreateApiException(HttpResponseMessage response, string context)
         {
             try
