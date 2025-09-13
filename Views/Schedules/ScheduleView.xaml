@@ -37,7 +37,14 @@
             <DatePicker SelectedDate="{Binding SelectedDate}" Margin="5"/>
             <ComboBox ItemsSource="{Binding VehicleRoutes}" SelectedItem="{Binding SelectedVehicleRoute}" DisplayMemberPath="Name" Width="200" Margin="5"/>
             <ComboBox ItemsSource="{Binding VehicleGroups}" DisplayMemberPath="Name" Width="200" Margin="5"/>
-        </StackPanel>
+            <TextBlock Text="{Binding RouteSummaryText}"
+                       FontSize="16" FontWeight="Bold"
+                       VerticalAlignment="Center" 
+                       Margin="15,0,0,0"
+                       Foreground="Black"
+                       FontStyle="Italic"/>
+            
+            </StackPanel>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>

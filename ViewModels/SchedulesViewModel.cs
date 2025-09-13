@@ -20,6 +20,9 @@ namespace Meditrans.Client.ViewModels
 
     {
         [ObservableProperty]
+        private string _routeSummaryText;
+
+        [ObservableProperty]
         private bool _isBusy;
 
         [ObservableProperty]
@@ -216,6 +219,7 @@ namespace Meditrans.Client.ViewModels
             foreach (var t in trips) UnscheduledTrips.Add(t);
 
             UpdateMapViewForAllPoints();
+            UpdateRouteSummary();
 
         }
 
@@ -800,6 +804,7 @@ namespace Meditrans.Client.ViewModels
                 // The first element affected is the one in the earliest position
                 int startIndex = Math.Min(oldIndex, newIndex);
                 await RecalculateScheduleAsync(startIndex);
+                UpdateRouteSummary();
             }
             catch (Exception ex)
             {
@@ -923,6 +928,28 @@ namespace Meditrans.Client.ViewModels
         }
 
         #endregion
+
+        private void UpdateRouteSummary()
+        {
+            if (Schedules == null || !Schedules.Any())
+            {
+                RouteSummaryText = string.Empty;
+                return;
+            }
+
+            // Calculate the number of unique trips (ignoring Pull-in/out that do not have TripId)
+            int tripCount = Schedules.Where(s => s.TripId.HasValue)
+                                     .Select(s => s.TripId)
+                                     .Distinct()
+                                     .Count();
+
+            // Calculate the total distance (handling possible null values ​​in Distance)
+            double totalDistance = Schedules.Sum(s => s.Distance ?? 0.0);
+
+            // Format the final text, handling the plural of "trip"
+            string tripLabel = (tripCount == 1) ? "trip" : "trips";
+            RouteSummaryText = $"{tripCount} {tripLabel}, estimated distance: {totalDistance:N1} miles"; // N1 formatea a 1 decimal
+        }
 
         #region Translation
 
