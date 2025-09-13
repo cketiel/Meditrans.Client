@@ -118,6 +118,16 @@ namespace Meditrans.Client.ViewModels
 
         #endregion
 
+
+        #region Loading Indicator
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set => SetProperty(ref _isLoading, value);
+        }
+        #endregion
+
         #region Commands
         public ICommand OverviewCommand { get; private set; }
         public ICommand ExportScheduleCommand { get; private set; }
@@ -126,6 +136,7 @@ namespace Meditrans.Client.ViewModels
         public ICommand ShowDispatchMainCommand { get; private set; }
         public ICommand CancelTripCommand { get; private set; }
         public ICommand EditTripCommand { get; private set; }
+        public ICommand UncancelTripCommand { get; private set; }
 
         #endregion
 
@@ -154,6 +165,7 @@ namespace Meditrans.Client.ViewModels
             ShowDispatchMainCommand = new RelayCommandObject(ExecuteShowDispatchMain);
             CancelTripCommand = new AsyncRelayCommand(ExecuteCancelTripAsync);
             EditTripCommand = new AsyncRelayCommand(ExecuteEditTripAsync);
+            UncancelTripCommand = new AsyncRelayCommand(ExecuteUncancelTripAsync);
 
             //CancelTripCommand = new AsyncRelayCommand<TripItemViewModel>(ExecuteCancelTripAsync);
             //EditTripCommand = new AsyncRelayCommand<TripItemViewModel>(ExecuteEditTripAsync);
@@ -164,7 +176,42 @@ namespace Meditrans.Client.ViewModels
             ShowDispatchMainCommand = new RelayCommand(ExecuteShowDispatchMain);*/
 
             // Initial data loading
-            LoadAllDataAsync();
+            //LoadAllDataAsync();
+        }
+
+        private async Task ExecuteUncancelTripAsync(object parameter)
+        {
+            var tripToUncancel = parameter as TripItemViewModel;
+            if (tripToUncancel == null) return;
+
+            // Confirmación del usuario
+            var confirmationText = $"Are you sure you want to restore trip '{tripToUncancel.Id}'?";
+            var confirmationTitle = "Confirm Restoration";
+
+            if (MessageBox.Show(confirmationText, confirmationTitle, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    await _tripService.UncancelTripAsync(tripToUncancel.Id);
+
+                    MessageBox.Show(
+                        "Trip restored successfully.",
+                        "Success",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                   
+                    await LoadUnscheduledTripsAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error restoring trip: {ex.Message}");
+                    MessageBox.Show(
+                        $"Error restoring trip: {ex.Message}",
+                        "Error",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+            }
         }
 
         private async Task ExecuteCancelTripAsync(object parameter)
@@ -181,16 +228,17 @@ namespace Meditrans.Client.ViewModels
                 {
                     await _tripService.CancelTripAsync(tripToCancel.Id);
 
-                    // Si tiene éxito, remover el viaje de la lista para actualizar la UI
-                    UnscheduledTrips.Remove(tripToCancel);
-                    // También remuévelo de la lista maestra
-                    _allUnscheduledTripsFromService.Remove(tripToCancel);
+                    
+                    //UnscheduledTrips.Remove(tripToCancel);                   
+                    //_allUnscheduledTripsFromService.Remove(tripToCancel);
 
                     MessageBox.Show(
                         LocalizationService.Instance["TripCanceledSuccessfully"], // ej: "Viaje cancelado correctamente."
                         SuccessTitle,
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
+
+                    await LoadUnscheduledTripsAsync();
                 }
                 catch (Exception ex)
                 {
@@ -236,18 +284,36 @@ namespace Meditrans.Client.ViewModels
         }
 
         private async Task LoadAllDataAsync()
-        {           
-            _allVehicleRoutes.Clear();            
-            RunService _runService = new RunService();           
-            var routes = await _runService.GetAllAsync();
-            
-            foreach (var route in routes)
+        {
+            IsLoading = true;
+            try
             {
-                _allVehicleRoutes.Add(new VehicleRouteViewModel(route));
-            }
+                _allVehicleRoutes.Clear();
+                RunService _runService = new RunService();
+                var routes = await _runService.GetAllAsync();
 
-            await LoadRunsAndEventsAsync();
-            await LoadUnscheduledTripsAsync();
+                foreach (var route in routes)
+                {
+                    _allVehicleRoutes.Add(new VehicleRouteViewModel(route));
+                }
+
+                // We use Task.WhenAll to run both loads in parallel and improve performance
+                await Task.WhenAll(
+                    LoadRunsAndEventsAsync(),
+                    LoadUnscheduledTripsAsync()
+                );
+            }
+            catch (Exception ex)
+            {
+               
+                MessageBox.Show($"An error occurred while loading data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                
+                IsLoading = false;
+            }
+            
         }
 
         private async Task LoadRunsAndEventsAsync()
@@ -281,6 +347,7 @@ namespace Meditrans.Client.ViewModels
 
         private async Task LoadUnscheduledTripsAsync()
         {
+            IsLoading = true;
             try
             {
                 var unscheduledDtoList = await _scheduleService.GetUnscheduledTripsAsync(CurrentDispatchDate);
@@ -294,6 +361,11 @@ namespace Meditrans.Client.ViewModels
             catch (Exception ex)
             {
                 System.Console.WriteLine($"Error loading unscheduled trips: {ex.Message}");
+            }
+            finally
+            {
+
+                IsLoading = false;
             }
         }
 

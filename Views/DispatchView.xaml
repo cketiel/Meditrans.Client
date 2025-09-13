@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Meditrans.Client.Views"
+             xmlns:models="clr-namespace:Meditrans.Client.Models"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:viewModels="clr-namespace:Meditrans.Client.ViewModels"
              xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
@@ -15,6 +16,7 @@
     <UserControl.Resources>
         <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
         <helpers:BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <converters:StatusToVisibilityConverter x:Key="StatusToVisibilityConverter" />
         
         <!-- Derived from the MaterialDesign style for TabControl -->
         <Style TargetType="TabControl"
@@ -48,6 +50,40 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="UnscheduledTripRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+            <Setter Property="Background" Value="{StaticResource EvenRowBackgroundBrush}"/>
+            <Style.Triggers>
+                <!-- GATILLO 1: Si el viaje está cancelado Y la razón NO es nula, el color será Rojo. -->
+                <!-- Este es el caso por defecto para todos los cancelados. -->
+                <DataTrigger Binding="{Binding TripDto.Status}" Value="Canceled">
+                    <Setter Property="Foreground" Value="Red" />
+                    <Setter Property="ToolTip" Value="Canceled: Driver No-Show reported." />
+                </DataTrigger>
+
+                <!-- GATILLO 2: Si el viaje está cancelado Y la razón SÍ es nula, sobrescribe el color a Gris. -->
+                <!-- Este trigger es más específico, por lo que tiene prioridad sobre el anterior cuando se cumple. -->
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding TripDto.Status}" Value="Canceled" />
+                        <Condition Binding="{Binding TripDto.DriverNoShowReason, TargetNullValue={x:Null}}" Value="{x:Null}" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Foreground" Value="Gray" /> 
+                    <Setter Property="FontStyle" Value="Italic" />
+                    <Setter Property="ToolTip" Value="This trip was canceled by the office." />
+                </MultiDataTrigger>
+
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding TripDto.Status}" Value="Canceled" />
+                        <Condition Binding="{Binding TripDto.DriverNoShowReason}" Value="" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Foreground" Value="Gray" />
+                    <Setter Property="ToolTip" Value="This trip was canceled by the office." />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+
     </UserControl.Resources>
 
     <materialDesign:DialogHost Identifier="RootDialogHost">
@@ -55,7 +91,8 @@
     <Grid>
     <!-- MAIN VIEW OF DISPATCH (Divided into 2 panels) -->
     <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource MainBorderBrush}"
-            Visibility="{Binding IsOverviewVisible, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}">
+            Visibility="{Binding IsOverviewVisible, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}"
+            IsEnabled="{Binding !IsLoading}">
         <Grid Margin="4 0 4 4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -208,7 +245,7 @@
                                     AlternatingRowBackground="White"                                    
                                     Style="{StaticResource CustomDataGridStyle}"
                                     ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
-                                    RowStyle="{StaticResource CustomRowStyle}"
+                                    RowStyle="{StaticResource UnscheduledTripRowStyle}"
                                     CellStyle="{StaticResource CustomCellStyle}"
                                     SelectionUnit="FullRow">
                                     
@@ -231,13 +268,37 @@
                                                 <DataTemplate>
                                                     <StackPanel Orientation="Horizontal">
 
-                                                        <Button Command="{Binding Data.CancelTripCommand, Source={StaticResource vmProxy}}"
+                                                            <!-- Botón Cancelar (Visible por defecto) -->
+                                                            <Button Command="{Binding DataContext.CancelTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource MaterialDesignToolButton}"
+                                                                VerticalAlignment="Center"
+                                                                ToolTip="{Binding DataContext.CancelTripToolTip, RelativeSource={RelativeSource AncestorType=DataGrid}}">
+                                                                <Button.Visibility>
+                                                                    <Binding Path="TripDto.Status" Converter="{StaticResource StatusToVisibilityConverter}" ConverterParameter="NotCanceled" />
+                                                                </Button.Visibility>
+                                                                <materialDesign:PackIcon Kind="CloseThick" Foreground="Red" Width="20" Height="20" />
+                                                            </Button>
+
+                                                            <!-- Botón Restaurar (Oculto por defecto) -->
+                                                            <Button Command="{Binding DataContext.UncancelTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource MaterialDesignToolButton}"
+                                                                VerticalAlignment="Center"
+                                                                ToolTip="Uncancel trip">
+                                                                <Button.Visibility>
+                                                                    <Binding Path="TripDto.Status" Converter="{StaticResource StatusToVisibilityConverter}" ConverterParameter="Canceled" />
+                                                                </Button.Visibility>
+                                                                <materialDesign:PackIcon Kind="Restore" Foreground="Green" Width="20" Height="20" />
+                                                            </Button>
+
+                                                            <!--<Button Command="{Binding Data.CancelTripCommand, Source={StaticResource vmProxy}}"
                                                             CommandParameter="{Binding}"
                                                             Style="{StaticResource MaterialDesignToolButton}"
                                                             VerticalAlignment="Center"
                                                             ToolTip="{Binding Data.CancelTripToolTip, Source={StaticResource vmProxy}}">
                                                             <materialDesign:PackIcon Kind="CloseThick" Foreground="Red" Width="20" Height="20" />
-                                                        </Button>
+                                                        </Button>-->
 
                                                         <Button Command="{Binding DataContext.EditTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                             CommandParameter="{Binding}"
@@ -359,7 +420,8 @@
 
     <!-- OVERVIEW (Full Screen) -->
     <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource MainBorderBrush}"
-            Visibility="{Binding IsOverviewVisible, Converter={StaticResource BoolToVis}}">
+            Visibility="{Binding IsOverviewVisible, Converter={StaticResource BoolToVis}}"
+            IsEnabled="{Binding !IsLoading}">
             <DockPanel Margin="4 0 4 4" >
             <!-- Top Bar -->
             <Border DockPanel.Dock="Top" Padding="0" Margin="0" Background="{DynamicResource PrimaryHueMidBrush}">
@@ -480,7 +542,23 @@
         </DockPanel>
     </Border>
 
-    </Grid>
+
+            <Grid Background="#80FFFFFF"
+                  Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
+
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    
+                    <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" 
+                                 IsIndeterminate="True" 
+                                 Width="50" Height="50" />
+                    <TextBlock Text="Loading data, please wait..." 
+                               Margin="0,15,0,0" 
+                               FontSize="16"
+                               Foreground="{DynamicResource MaterialDesignBody}"/>
+                </StackPanel>
+            </Grid>
+        
+        </Grid>
 
     </materialDesign:DialogHost>
     

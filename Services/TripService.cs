@@ -148,6 +148,12 @@ namespace Meditrans.Client.Services
             response.EnsureSuccessStatusCode();
         }
 
+        public async Task UncancelTripAsync(int tripId)
+        {           
+            var response = await _httpClient.PostAsync($"{EndPoint}/{tripId}/uncancel", null);           
+            response.EnsureSuccessStatusCode();
+        }
+
         public async Task UpdateFromDispatchAsync(int tripId, TripDispatchUpdateDto dto)
         {
             var response = await _httpClient.PatchAsJsonAsync($"{EndPoint}/{tripId}/dispatch-update", dto);
