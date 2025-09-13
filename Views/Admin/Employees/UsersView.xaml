@@ -34,7 +34,13 @@
                       SelectionMode="Single"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
-                      Style="{StaticResource CustomDataGridStyle}">
+                      Style="{StaticResource CustomDataGridStyle}"
+                      AlternationCount="2"
+                      AlternatingRowBackground="White"                                    
+                      ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                      RowStyle="{StaticResource CustomRowStyle}"
+                      CellStyle="{StaticResource CustomCellStyle}"
+                      SelectionUnit="FullRow">
 
                 <DataGrid.Columns>
                     <DataGridTemplateColumn Width="Auto">
