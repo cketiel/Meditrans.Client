@@ -19,7 +19,21 @@ namespace Meditrans.Client.ViewModels
         public bool WasSaved => true;
         public bool WasCancelled => false;
 
-
+        public EditTripDialogViewModel(TripReadDto trip) {
+            Title = "Trip Edit - " + trip.CustomerName;
+            IsAppointmentType = trip.Type == TripType.Appointment;
+            IsReturnType = trip.Type == TripType.Return;
+            
+            if (trip.FromTime.HasValue)
+            {
+                FromTime = DateTime.Today + trip.FromTime.Value;
+            }
+            WillCall = trip.WillCall;
+            PickupPhone = trip.PickupPhone;
+            PickupComment = trip.PickupComment;
+            DropoffPhone = trip.DropoffPhone;
+            DropoffComment = trip.DropoffComment;
+        }
         public EditTripDialogViewModel(UnscheduledTripDto trip)
         {
             Title = "Trip Edit - " + trip.CustomerName;

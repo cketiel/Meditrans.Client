@@ -10,6 +10,7 @@
              xmlns:domain="clr-namespace:Meditrans.Client.Validations"
              xmlns:vm="clr-namespace:Meditrans.Client.ViewModels"
              xmlns:helpers="clr-namespace:Meditrans.Client.Helpers" 
+             xmlns:converters="clr-namespace:Meditrans.Client.Converters"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
@@ -20,8 +21,42 @@
         <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
         <helpers:MinutesToTimeStringConverter x:Key="MinutesConverter" />
+        <converters:StatusToVisibilityConverter x:Key="StatusToVisibilityConverter" />
+
+        <Style x:Key="HomeTripRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+            <Setter Property="Background" Value="{StaticResource EvenRowBackgroundBrush}"/>
+            <Style.Triggers>
+
+                <DataTrigger Binding="{Binding Status}" Value="Canceled">
+                    <Setter Property="Foreground" Value="Red" />
+                    <Setter Property="ToolTip" Value="Canceled: Driver No-Show reported." />
+                </DataTrigger>
+
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding Status}" Value="Canceled" />
+                        <Condition Binding="{Binding DriverNoShowReason, TargetNullValue={x:Null}}" Value="{x:Null}" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Foreground" Value="Gray" />
+                    <Setter Property="FontStyle" Value="Italic" />
+                    <Setter Property="ToolTip" Value="This trip was canceled by the office." />
+                </MultiDataTrigger>
+
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding Status}" Value="Canceled" />
+                        <Condition Binding="{Binding DriverNoShowReason}" Value="" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Foreground" Value="Gray" />
+                    <Setter Property="ToolTip" Value="This trip was canceled by the office." />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+        
     </UserControl.Resources>
 
+    <materialDesign:DialogHost Identifier="RootDialogHost">
+        
     <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource MainBorderBrush}">
 
             <Grid Margin="5" Background="Transparent">
@@ -1018,40 +1053,62 @@
                                    
                     Style="{StaticResource CustomDataGridStyle}"
                     ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
-                    RowStyle="{StaticResource CustomRowStyle}"
+                    
+                    RowStyle="{StaticResource HomeTripRowStyle}"
                     CellStyle="{StaticResource CustomCellStyle}"
                     SelectionUnit="FullRow">
 
                     <DataGrid.Columns>
 
                         <DataGridTemplateColumn Width="Auto">
+                            <DataGridTemplateColumn.HeaderTemplate>
+                                <DataTemplate>
+                                    <Button Command="{Binding DataContext.FilterSettingsCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            Style="{StaticResource MaterialDesignToolButton}">
+                                        <materialDesign:PackIcon Kind="FilterSettings" Width="20" Height="20"/>
+                                    </Button>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.HeaderTemplate>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
 
-                        <!-- Header with filter icon -->
-                        <DataGridTemplateColumn.HeaderTemplate>
-                            <DataTemplate>
-                                <Button Command="{Binding DataContext.FilterSettingsCommand,
-                                                RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                Style="{StaticResource MaterialDesignToolButton}"
-                                                ToolTip="{Binding DataContext.AddSpaceTypeToolTip, RelativeSource={RelativeSource AncestorType=local:HomeView}}">
-                                    <materialDesign:PackIcon Kind="FilterSettings" Width="20" Height="20"/>
-                                </Button>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.HeaderTemplate>
+                                        
 
-                        <!-- Cells with edit icon -->
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button Command="{Binding DataContext.EditTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                CommandParameter="{Binding}"
-                                                Style="{StaticResource MaterialDesignToolButton}"
-                                                VerticalAlignment="Center"
-                                                ToolTip="{Binding DataContext.DeleteSpaceTypeToolTip, RelativeSource={RelativeSource AncestorType=local:HomeView}}">
-                                    <materialDesign:PackIcon Kind="FileEdit" Width="20" Height="20" />
-                                </Button>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
+                                        <!-- Cancel Button (Visible if not canceled) -->
+                                        <Button Command="{Binding DataContext.CancelTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignToolButton}"
+                                            ToolTip="Cancel Trip">
+                                            <Button.Visibility>
+                                                <Binding Path="Status" Converter="{StaticResource StatusToVisibilityConverter}" ConverterParameter="NotCanceled" />
+                                            </Button.Visibility>
+                                            <materialDesign:PackIcon Kind="CloseThick" Foreground="Red" Width="20" Height="20" />
+                                        </Button>
 
-                    </DataGridTemplateColumn>
+                                        <!-- Restore Button (Visible if YES is cancelled) -->
+                                        <Button Command="{Binding DataContext.UncancelTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignToolButton}"
+                                            ToolTip="Uncancel trip">
+                                            <Button.Visibility>
+                                                <Binding Path="Status" Converter="{StaticResource StatusToVisibilityConverter}" ConverterParameter="Canceled" />
+                                            </Button.Visibility>
+                                            <materialDesign:PackIcon Kind="Restore" Foreground="Green" Width="20" Height="20" />
+                                        </Button>
+
+                                        <!-- Edit button -->
+                                        <Button Command="{Binding DataContext.EditTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignToolButton}"
+                                            ToolTip="Edit Trip">
+                                            <materialDesign:PackIcon Kind="FileEdit" Foreground="Orange"/>
+                                        </Button>
+
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
 
 
                         <DataGridTextColumn Binding="{Binding Day}"
@@ -1211,6 +1268,6 @@
 
         </Border>
 
-    
+    </materialDesign:DialogHost>
     
 </UserControl>

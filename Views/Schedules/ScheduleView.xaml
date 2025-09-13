@@ -624,7 +624,7 @@
                                 <Button Command="{Binding DataContext.UncancelTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                         CommandParameter="{Binding}"
                                         Style="{StaticResource MaterialDesignToolButton}"
-                                        ToolTip="Restore this trip">
+                                        ToolTip="Uncancel trip">
                                     
                                         <Button.Visibility>
                                             <Binding Path="Status" Converter="{StaticResource StatusToVisibilityConverter}" ConverterParameter="Canceled" />

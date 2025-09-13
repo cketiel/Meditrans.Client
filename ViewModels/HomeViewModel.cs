@@ -1,4 +1,13 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Meditrans.Client.DTOs;
+using Meditrans.Client.Exceptions;
+using Meditrans.Client.Helpers;
+using Meditrans.Client.Models;
+using Meditrans.Client.Services;
+using Meditrans.Client.Views.Dispatch;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -11,19 +20,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Xml.Linq;
-
-using Meditrans.Client.DTOs;
-using Meditrans.Client.Exceptions;
-using Meditrans.Client.Helpers;
-using Meditrans.Client.Models;
-using Meditrans.Client.Services;
-using Newtonsoft.Json.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Meditrans.Client.ViewModels
 {
     public class HomeViewModel : BaseViewModel
     {
+        private readonly TripService _tripService;
+
         private bool _isLoadingTrips;
         public bool IsLoadingTrips
         {
@@ -615,19 +619,29 @@ namespace Meditrans.Client.ViewModels
 
         public ICommand SaveTripCommand { get; }
 
+        public IAsyncRelayCommand EditTripCommand { get; }
+        public IAsyncRelayCommand CancelTripCommand { get; }
+        public IAsyncRelayCommand UncancelTripCommand { get; }
+
         private readonly GoogleMapsService _googleMapsService;
         public HomeViewModel() {
 
             _googleMapsService = new GoogleMapsService();
+            _tripService = new TripService();
+
             _allFundingSourceBillingItem = new ObservableCollection<FundingSourceBillingItem>();
             Trips = new ObservableCollection<TripReadDto>();
             TripsByDate = new ObservableCollection<TripReadDto>();          
             
             //SaveCustomerCommand = new RelayCommand(SaveCustomer);
-            NewCustomerCommand = new RelayCommand(NewCustomer);
-            ImportCommand = new RelayCommand(ImportTrips);
-            ExportCommand = new RelayCommand(ExportTrips);
-            SaveTripCommand = new RelayCommand(SaveTrip);
+            NewCustomerCommand = new Helpers.RelayCommand(NewCustomer);
+            ImportCommand = new Helpers.RelayCommand(ImportTrips);
+            ExportCommand = new Helpers.RelayCommand(ExportTrips);
+            SaveTripCommand = new Helpers.RelayCommand(SaveTrip);
+
+            EditTripCommand = new AsyncRelayCommand<object>(ExecuteEditTripAsync);
+            CancelTripCommand = new AsyncRelayCommand<object>(ExecuteCancelTripAsync);
+            UncancelTripCommand = new AsyncRelayCommand<object>(ExecuteUncancelTripAsync);
 
             LoadData();
             InitializeData();
@@ -920,6 +934,82 @@ namespace Meditrans.Client.ViewModels
                     "Error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
+            }
+        }
+
+        private async Task ExecuteEditTripAsync(object parameter)
+        {
+            // The parameter comes as TripReadDto
+            var tripToEdit = parameter as TripReadDto;
+            if (tripToEdit == null) return;
+           
+            var dialogViewModel = new EditTripDialogViewModel(tripToEdit);
+            var dialog = new EditTripDialog { DataContext = dialogViewModel };
+
+            var result = await MaterialDesignThemes.Wpf.DialogHost.Show(dialog, "RootDialogHost");
+
+            if (result is bool wasSaved && wasSaved)
+            {
+                try
+                {
+                    var updatedDto = dialogViewModel.GetUpdatedDto();
+                    await _tripService.UpdateFromDispatchAsync(tripToEdit.Id, updatedDto);
+
+                    // We reload the trips from the current date to see the changes
+                    await LoadTripsByDateAsync(this.FilterDate);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error updating trip: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private async Task ExecuteCancelTripAsync(object parameter)
+        {
+            var tripToCancel = parameter as TripReadDto;
+            if (tripToCancel == null) return;
+
+            var confirmationText = $"Are you sure you want to cancel trip '{tripToCancel.Id}'?";
+            var confirmationTitle = "Confirm Cancellation";
+
+            if (MessageBox.Show(confirmationText, confirmationTitle, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    await _tripService.CancelTripAsync(tripToCancel.Id);
+                    MessageBox.Show("Trip canceled successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                  
+                    await LoadTripsByDateAsync(this.FilterDate);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error canceling trip: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private async Task ExecuteUncancelTripAsync(object parameter)
+        {
+            var tripToUncancel = parameter as TripReadDto;
+            if (tripToUncancel == null) return;
+
+            var confirmationText = $"Are you sure you want to restore trip '{tripToUncancel.Id}'?";
+            var confirmationTitle = "Confirm Restoration";
+
+            if (MessageBox.Show(confirmationText, confirmationTitle, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    await _tripService.UncancelTripAsync(tripToUncancel.Id);
+                    MessageBox.Show("Trip restored successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                  
+                    await LoadTripsByDateAsync(this.FilterDate);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error restoring trip: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
