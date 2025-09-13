@@ -54,15 +54,12 @@
         <Style x:Key="UnscheduledTripRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
             <Setter Property="Background" Value="{StaticResource EvenRowBackgroundBrush}"/>
             <Style.Triggers>
-                <!-- GATILLO 1: Si el viaje está cancelado Y la razón NO es nula, el color será Rojo. -->
-                <!-- Este es el caso por defecto para todos los cancelados. -->
+                
                 <DataTrigger Binding="{Binding TripDto.Status}" Value="Canceled">
                     <Setter Property="Foreground" Value="Red" />
                     <Setter Property="ToolTip" Value="Canceled: Driver No-Show reported." />
                 </DataTrigger>
-
-                <!-- GATILLO 2: Si el viaje está cancelado Y la razón SÍ es nula, sobrescribe el color a Gris. -->
-                <!-- Este trigger es más específico, por lo que tiene prioridad sobre el anterior cuando se cumple. -->
+                
                 <MultiDataTrigger>
                     <MultiDataTrigger.Conditions>
                         <Condition Binding="{Binding TripDto.Status}" Value="Canceled" />

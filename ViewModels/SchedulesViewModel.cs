@@ -3,15 +3,16 @@ using CommunityToolkit.Mvvm.Input;
 using DocumentFormat.OpenXml.Spreadsheet;
 using GMap.NET;
 using GMap.NET.WindowsPresentation;
+using GongSolutions.Wpf.DragDrop;
 using Meditrans.Client.DTOs;
 using Meditrans.Client.Models;
 using Meditrans.Client.Services;
+using Meditrans.Client.Views.Dispatch;
 using Meditrans.Client.Views.Schedules;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-using GongSolutions.Wpf.DragDrop;
 
 
 namespace Meditrans.Client.ViewModels
@@ -19,6 +20,9 @@ namespace Meditrans.Client.ViewModels
     public partial class SchedulesViewModel : ObservableObject, IDragSource, IDropTarget
 
     {
+        [ObservableProperty]
+        private bool _isLoading;
+
         [ObservableProperty]
         private string _routeSummaryText;
 
@@ -32,6 +36,7 @@ namespace Meditrans.Client.ViewModels
 
         //private readonly UserConfigService _userConfigService;
         private readonly ScheduleService _scheduleService;
+        private readonly TripService _tripService;
 
         [ObservableProperty]
         private DateTime _selectedDate = DateTime.Today;
@@ -79,11 +84,16 @@ namespace Meditrans.Client.ViewModels
         {
             //UserConfigService _userConfigService = new UserConfigService();
             _scheduleService = scheduleService;
+            _tripService = new TripService();
             LoadInitialDataCommand = new AsyncRelayCommand(LoadInitialDataAsync);
             LoadSchedulesAndTripsCommand = new AsyncRelayCommand(LoadSchedulesAndTripsAsync, CanLoadSchedulesAndTrips);
             RouteTripCommand = new AsyncRelayCommand(RouteSelectedTripAsync, CanRouteSelectedTrip);
             CancelRouteCommand = new AsyncRelayCommand(CancelSelectedRouteAsync, CanCancelSelectedRoute);
             OpenColumnSelectorCommand = new RelayCommand(OpenColumnSelector);
+
+            CancelTripCommand = new AsyncRelayCommand<object>(ExecuteCancelTripAsync);
+            UncancelTripCommand = new AsyncRelayCommand<object>(ExecuteUncancelTripAsync);
+            EditTripCommand = new AsyncRelayCommand<object>(ExecuteEditTripAsync);
 
             InitializeColumns();
             _ = InitializeAsync();
@@ -94,6 +104,9 @@ namespace Meditrans.Client.ViewModels
         public IAsyncRelayCommand RouteTripCommand { get; }
         public IAsyncRelayCommand CancelRouteCommand { get; }
         public ICommand OpenColumnSelectorCommand { get; }
+        public IAsyncRelayCommand CancelTripCommand { get; }
+        public IAsyncRelayCommand UncancelTripCommand { get; }
+        public IAsyncRelayCommand EditTripCommand { get; }
 
         private void OpenColumnSelector()
         {
@@ -193,8 +206,19 @@ namespace Meditrans.Client.ViewModels
         private async Task LoadInitialDataAsync()
         {
             RunService _runService = new RunService();
-            var routes = await _runService.GetAllAsync();         
-            foreach (var route in routes) VehicleRoutes.Add(route);
+            var routes = await _runService.GetAllAsync();
+            foreach (var route in routes)
+            {
+                var now = DateTime.UtcNow;
+                bool inDateRange = now >= route.FromDate && (route.ToDate == null || now <= route.ToDate);
+                bool isSuspended = route.Suspensions.Any(s => now >= s.SuspensionStart && now <= s.SuspensionEnd);
+                bool isActive = inDateRange && !isSuspended;
+                if (isActive == true)
+                    VehicleRoutes.Add(route);
+            }
+
+            if (VehicleRoutes.Count > 0)
+                SelectedVehicleRoute = VehicleRoutes[0];
 
             VehicleGroupService _vehicleGroupService = new VehicleGroupService();
             var groups = await _vehicleGroupService.GetGroupsAsync();
@@ -208,18 +232,31 @@ namespace Meditrans.Client.ViewModels
         // Load the main grids
         private async Task LoadSchedulesAndTripsAsync()
         {
-            Schedules.Clear();
-            UnscheduledTrips.Clear();
-            SelectedUnscheduledTripPoints.Clear();
+            IsLoading = true;
 
-            var schedules = await _scheduleService.GetSchedulesAsync(SelectedVehicleRoute.Id, SelectedDate);
-            foreach (var s in schedules) Schedules.Add(s);
+            try
+            {
+                Schedules.Clear();
+                UnscheduledTrips.Clear();
+                SelectedUnscheduledTripPoints.Clear();
 
-            var trips = await _scheduleService.GetUnscheduledTripsAsync(SelectedDate);
-            foreach (var t in trips) UnscheduledTrips.Add(t);
+                var schedules = await _scheduleService.GetSchedulesAsync(SelectedVehicleRoute.Id, SelectedDate);
+                foreach (var s in schedules) Schedules.Add(s);
 
-            UpdateMapViewForAllPoints();
-            UpdateRouteSummary();
+                var trips = await _scheduleService.GetUnscheduledTripsAsync(SelectedDate);
+                foreach (var t in trips) UnscheduledTrips.Add(t);
+
+                UpdateMapViewForAllPoints();
+                UpdateRouteSummary();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading schedule data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {              
+                IsLoading = false;
+            }
 
         }
 
@@ -949,6 +986,87 @@ namespace Meditrans.Client.ViewModels
             // Format the final text, handling the plural of "trip"
             string tripLabel = (tripCount == 1) ? "trip" : "trips";
             RouteSummaryText = $"{tripCount} {tripLabel}, estimated distance: {totalDistance:N1} miles"; // N1 formatea a 1 decimal
+        }
+
+        private async Task ExecuteCancelTripAsync(object parameter)
+        {
+            // Aquí el parámetro es directamente el DTO
+            var tripToCancel = parameter as UnscheduledTripDto;
+            if (tripToCancel == null) return;
+
+            var confirmationText = $"Are you sure you want to cancel trip '{tripToCancel.Id}'?";
+            var confirmationTitle = "Confirm Cancellation";
+
+            if (MessageBox.Show(confirmationText, confirmationTitle, MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    await _tripService.CancelTripAsync(tripToCancel.Id);
+                    MessageBox.Show("Trip canceled successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    // Recargar la lista para que el grid se actualice con el nuevo estado
+                    await LoadSchedulesAndTripsAsync();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error canceling trip: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private async Task ExecuteUncancelTripAsync(object parameter)
+        {
+            var tripToUncancel = parameter as UnscheduledTripDto;
+            if (tripToUncancel == null) return;
+
+            var confirmationText = $"Are you sure you want to restore trip '{tripToUncancel.Id}'?";
+            var confirmationTitle = "Confirm Restoration";
+
+            if (MessageBox.Show(confirmationText, confirmationTitle, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    await _tripService.UncancelTripAsync(tripToUncancel.Id);
+                    MessageBox.Show("Trip restored successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    // Recargar la lista para reflejar el cambio
+                    await LoadSchedulesAndTripsAsync();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error restoring trip: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private async Task ExecuteEditTripAsync(object parameter)
+        {
+            var tripToEdit = parameter as UnscheduledTripDto;
+            if (tripToEdit == null) return;
+
+            // Necesitarás una vista/viewmodel para el diálogo de edición.
+            // Asumimos que tienes algo similar a Dispatch
+            var dialogViewModel = new EditTripDialogViewModel(tripToEdit);
+            var dialog = new EditTripDialog { DataContext = dialogViewModel };
+
+            // Asumiendo que tienes un DialogHost en tu ventana principal o vista
+            var result = await MaterialDesignThemes.Wpf.DialogHost.Show(dialog, "RootDialogHost");
+
+            if (result is bool wasSaved && wasSaved)
+            {
+                try
+                {
+                    var updatedDto = dialogViewModel.GetUpdatedDto();
+                    await _tripService.UpdateFromDispatchAsync(tripToEdit.Id, updatedDto);
+
+                    // Recargar para ver los cambios
+                    await LoadSchedulesAndTripsAsync();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error updating trip: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
 
         #region Translation
