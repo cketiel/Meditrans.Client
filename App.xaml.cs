@@ -38,7 +38,7 @@ namespace Meditrans.Client
             Configuration = builder.Build();
 
             // Para saber pq se crashea la app
-            AppDomain.CurrentDomain.UnhandledException += (s, ex) =>
+            /* AppDomain.CurrentDomain.UnhandledException += (s, ex) =>
             {
                 MessageBox.Show(((Exception)ex.ExceptionObject).Message, "Unhandled Exception");
             };
@@ -53,7 +53,7 @@ namespace Meditrans.Client
             {
                 MessageBox.Show(ex.Exception.Message, "Task Exception");
                 ex.SetObserved();
-            };
+            };*/   
 
             //SetThemeBasedOnTime();
 

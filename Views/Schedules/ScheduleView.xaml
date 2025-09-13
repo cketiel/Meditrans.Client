@@ -22,16 +22,17 @@
         <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
     </UserControl.Resources>
 
-    <Grid>
+    <Border BorderThickness="1,1,1,1" BorderBrush="{StaticResource MainBorderBrush}">
+        <Grid Margin="4 0 4 4">
         <Grid.RowDefinitions>
-            
+
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="5"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        
+
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
             <DatePicker SelectedDate="{Binding SelectedDate}" Margin="5"/>
             <ComboBox ItemsSource="{Binding VehicleRoutes}" SelectedItem="{Binding SelectedVehicleRoute}" DisplayMemberPath="Name" Width="200" Margin="5"/>
@@ -45,7 +46,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            
+
             <DockPanel Grid.Column="0">
                 <!-- Schedule Grid -->
                 <ScrollViewer HorizontalScrollBarVisibility="Visible" >
@@ -88,7 +89,7 @@
                                 </Style.Triggers>
                             </Style>
                         </DataGrid.RowStyle>
-                        
+
                         <DataGrid.Columns>
 
                             <DataGridTemplateColumn Width="Auto">
@@ -152,7 +153,7 @@
                             <DataGridTemplateColumn Width="25" IsReadOnly="True">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        
+
                                         <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
 
                                             <!-- The Border that changes from circle to square -->
@@ -185,7 +186,7 @@
                                                                 </MultiDataTrigger.Conditions>
                                                                 <Setter Property="Background" Value="Black"/>
                                                                 <Setter Property="CornerRadius" Value="2"/>
-                                                                
+
                                                             </MultiDataTrigger>
                                                             <MultiDataTrigger>
                                                                 <MultiDataTrigger.Conditions>
@@ -194,13 +195,13 @@
                                                                 </MultiDataTrigger.Conditions>
                                                                 <Setter Property="Background" Value="Black"/>
                                                                 <Setter Property="CornerRadius" Value="2"/>
-                                                                
+
                                                             </MultiDataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </Border.Style>
 
-                                                
+
                                                 <ContentControl Content="{Binding}">
                                                     <ContentControl.Resources>
                                                         <!-- Templates for each visual state -->
@@ -314,12 +315,12 @@
 
             <!-- Column 2: Map Area -->
             <Grid Grid.Column="2" Margin="5">
-                
+
                 <gmaps:GMapControl x:Name="MapView" MinZoom="2" MaxZoom="20"
                                    Zoom="{Binding MapZoom, Mode=TwoWay}"
                                    Position="{Binding MapCenter, Mode=TwoWay}"/>
 
-                
+
                 <ItemsControl ItemsSource="{Binding Schedules}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -330,7 +331,7 @@
                         <Style TargetType="ContentPresenter">
                             <Setter Property="Canvas.Left">
                                 <Setter.Value>
-                                    
+
                                     <MultiBinding Converter="{StaticResource LocationToPointConverter}">
                                         <Binding ElementName="MapView"/>
                                         <Binding Path="ScheduleLatitude"/>
@@ -343,7 +344,7 @@
                             </Setter>
                             <Setter Property="Canvas.Top">
                                 <Setter.Value>
-                                    
+
                                     <MultiBinding Converter="{StaticResource LocationToPointConverter}" ConverterParameter="Y">
                                         <Binding ElementName="MapView"/>
                                         <Binding Path="ScheduleLatitude"/>
@@ -360,11 +361,11 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Grid>
-                                
+
                                 <Border Width="20" Height="20" ToolTip="{Binding Name}"
                                         MouseLeftButtonDown="ScheduleMarker_MouseLeftButtonDown"
                                         Cursor="Hand">
-                                    
+
                                     <Border.Style>
                                         <Style TargetType="Border">
                                             <Setter Property="CornerRadius" Value="12"/>
@@ -404,7 +405,7 @@
                                         </Style>
                                     </Border.Style>
 
-                                    
+
                                     <ContentControl Content="{Binding}">
                                         <ContentControl.Resources>
                                             <!-- Template for default state (sequence number)-->
@@ -462,7 +463,7 @@
                                             </Style>
                                         </ContentControl.Style>
                                     </ContentControl>
-                                    
+
 
                                 </Border>
                             </Grid>
@@ -471,7 +472,7 @@
 
                 </ItemsControl>
 
-                
+
                 <ItemsControl ItemsSource="{Binding SelectedUnscheduledTripPoints}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -482,7 +483,7 @@
                         <Style TargetType="ContentPresenter">
                             <Setter Property="Canvas.Left">
                                 <Setter.Value>
-                                    
+
                                     <MultiBinding Converter="{StaticResource LocationToPointConverter}">
                                         <Binding ElementName="MapView"/>
                                         <Binding Path="Latitude"/>
@@ -495,7 +496,7 @@
                             </Setter>
                             <Setter Property="Canvas.Top">
                                 <Setter.Value>
-                                    
+
                                     <MultiBinding Converter="{StaticResource LocationToPointConverter}" ConverterParameter="Y">
                                         <Binding ElementName="MapView"/>
                                         <Binding Path="Latitude"/>
@@ -532,9 +533,9 @@
 
         <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="LightGray" ShowsPreview="True"/>
 
-        
+
         <DataGrid Grid.Row="3" ItemsSource="{Binding UnscheduledTrips}" SelectedItem="{Binding SelectedUnscheduledTrip}" SelectionMode="Single" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" FrozenColumnCount="2" IsReadOnly="True" AlternationCount="2" AlternatingRowBackground="White" Style="{StaticResource CustomDataGridStyle}" ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}" RowStyle="{StaticResource CustomRowStyle}" CellStyle="{StaticResource CustomCellStyle}" SelectionUnit="FullRow" AutoGenerateColumns="False" CanUserAddRows="False" Cursor="Hand">
-            
+
             <DataGrid.Columns>
 
                 <DataGridTemplateColumn Width="Auto">
@@ -651,6 +652,6 @@
             </DataGrid.Columns>
         </DataGrid>
     </Grid>
-
+    </Border>
 
 </UserControl>

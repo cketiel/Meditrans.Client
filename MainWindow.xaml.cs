@@ -117,7 +117,7 @@ namespace Meditrans.Client
 
             var text = new TextBlock
             {
-                Text = $"{title} {tabCounter++}",
+                Text = $"{title}", // {tabCounter++}",
                 VerticalAlignment = VerticalAlignment.Center
             };
 
