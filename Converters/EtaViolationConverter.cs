@@ -9,42 +9,43 @@ namespace Meditrans.Client.Converters
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            // We expect 4 values: EventType, ETA, Pickup, Appt
-            if (values.Length < 4)
-            {
-                return false;
-            }
+            // We define the tolerance margin.
+            var lateMargin = TimeSpan.FromMinutes(15);
 
-            
-            if (!(values[0] is ScheduleEventType eventType))
-            {
-                return false;
-            }
-            if (!(values[1] is TimeSpan eta))
+            // We expect 4 values: EventType, ETA, Pickup, Appt
+            if (values.Length < 4) return false;
+
+            // Safely extract values
+            var eventType = values[0] as ScheduleEventType?;
+            var eta = values[1] as TimeSpan?;
+            var pickup = values[2] as TimeSpan?;
+            var appt = values[3] as TimeSpan?;
+
+            // If the key values ​​(EventType or ETA) are null, there is no violation.
+            if (!eventType.HasValue || !eta.HasValue)
             {
                 return false;
             }
 
             // Check violation based on event type
-            if (eventType == ScheduleEventType.Pickup)
+            if (eventType.Value == ScheduleEventType.Pickup)
             {
-                
-                if (values[2] is TimeSpan pickup)
-                {
-                    return eta > pickup;
+                // There is only a violation if we have a Pickup time to compare.
+                if (pickup.HasValue)
+                {                                    
+                    return eta.Value > (pickup.Value + lateMargin);
                 }
             }
-            else if (eventType == ScheduleEventType.Dropoff)
+            else if (eventType.Value == ScheduleEventType.Dropoff)
             {
-                
-                if (values[3] is TimeSpan appt)
+                // There is only a violation if we have an Appointment (Appt) time to compare.
+                if (appt.HasValue)
                 {
-                    return eta > appt;
+                    return eta.Value > (appt.Value + lateMargin);
                 }
             }
 
-            // If the time values ​​(Pickup/Appt) are null or the EventType does not match,
-            // the code will arrive here and return false, indicating that there is no violation.
+            // If none of the violation conditions are met, we return false.
             return false;
         }
 

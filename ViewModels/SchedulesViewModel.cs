@@ -283,310 +283,117 @@ namespace Meditrans.Client.ViewModels
 
         // Routing logic
         private async Task RouteSelectedTripAsync()
-        {           
-            var TripToSchedule = SelectedUnscheduledTrip;
-            var run = SelectedVehicleRoute;
-            GoogleMapsService _googleMapsService = new GoogleMapsService();
+        {
+            var tripToSchedule = SelectedUnscheduledTrip;
+            var vehicleRoute = SelectedVehicleRoute;
 
-            // Check if the trip and vehicle route are selected
-            if (TripToSchedule == null || run == null)
+            if (tripToSchedule == null || vehicleRoute == null)
             {
                 MessageBox.Show("Please select a trip and a vehicle route before routing.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
-            double? pDistance = 0;
-            TimeSpan? pTravelTime = TimeSpan.Zero;
-            TimeSpan? pETA = TimeSpan.Zero;
+            IsBusy = true;
+            BusyMessage = "Calculating optimal route...";
 
-            double? dDistance = 0;
-            TimeSpan? dTravelTime = TimeSpan.Zero;
-            TimeSpan? dETA = TimeSpan.Zero;
-
-            bool isFirstEvent = Schedules.Count == 0;
-            bool editEvent = false; // Flag to indicate if we need to edit an event
-
-            double PullInPreviousLatitude = 0.0;
-            double PullInPreviousLongitude = 0.0;
-            TimeSpan? PullInPreviousETA = TimeSpan.Zero;
-
-            TimeSpan? violationSetLimit = TimeSpan.Zero;
-
-            if (isFirstEvent)
-            {
-                var pickupFullDetails = await _googleMapsService.GetRouteFullDetails(
-                    run.GarageLatitude, 
-                    run.GarageLongitude, 
-                    TripToSchedule.PickupLatitude, 
-                    TripToSchedule.PickupLongitude);
-                var dropoffFullDetails = await _googleMapsService.GetRouteFullDetails(
-                    TripToSchedule.PickupLatitude, 
-                    TripToSchedule.PickupLongitude, 
-                    TripToSchedule.DropoffLatitude,
-                    TripToSchedule.DropoffLongitude);
-                
-                if (pickupFullDetails != null && dropoffFullDetails != null)
-                {
-                    pDistance = pickupFullDetails.DistanceMiles;
-                    pTravelTime = TimeSpan.FromSeconds(pickupFullDetails.DurationInTrafficSeconds);
-                    pETA = TripToSchedule.FromTime - TimeSpan.FromMinutes(15);
-
-                    dDistance = dropoffFullDetails.DistanceMiles; // TripToSchedule.Distance;
-                    dTravelTime = TimeSpan.FromSeconds(dropoffFullDetails.DurationInTrafficSeconds);
-                    dETA = TripToSchedule.FromTime + dTravelTime + TimeSpan.FromMinutes(15);
-                }
-                
-            }
-            else 
-            {
-                TimeSpan? pickupTime = TripToSchedule.FromTime; // pickup time of the trip to be routed             
-                var pickupEvent = Schedules[0];
-                var dropoffEvent = Schedules[1];
-                var EventToEdit = Schedules[^1];
-                var PullInEvent = Schedules[^1];
-                var PreviousPullInEvent = Schedules[Schedules.Count - 2];
-               
-                // Get the last scheduled trip
-                var lastScheduledTrip = Schedules[^1]; // Get the last item in the list
-               
-
-                int start = Schedules.Count - 3;
-                int end = 1;
-                for (int i = start; i >= end; i-=2)
-                {
-                    // Lo mas temprano que se puede llegar antes en Appt es 15 min. , en un Return 5 min
-                    if (Schedules[i].TripType == TripType.Appointment)
-                    {
-                        violationSetLimit = TripToSchedule.FromTime - TimeSpan.FromMinutes(15);
-                    }
-                    else // TripType.Return
-                    {
-                        violationSetLimit = TripToSchedule.FromTime - TimeSpan.FromMinutes(5);
-                    }
-
-                    TimeSpan? referenceTime = TimeSpan.Zero;
-                    TimeSpan? referenceTimeD = TimeSpan.Zero;
-
-                    pickupEvent = Schedules[i]; 
-                    dropoffEvent = Schedules[i + 1]; 
-                    if (pickupTime > pickupEvent.Pickup) // If the pickup time of the trip to be routed is later than the pickup time of the last event
-                    {
-                        double olat = dropoffEvent.ScheduleLatitude;
-                        double olng = dropoffEvent.ScheduleLongitude;
-                        //Porque si es  TripType.Return el dropoff no tiene appt
-                        if (Schedules[i].TripType == TripType.Appointment && (pickupTime > dropoffEvent.Appt || pickupTime == dropoffEvent.Appt))
-                        {
-                            referenceTime = dropoffEvent.ETA;
-                            olat = dropoffEvent.ScheduleLatitude;
-                            olng = dropoffEvent.ScheduleLongitude;
-                        }
-                        else if (Schedules[i].TripType == TripType.Appointment && pickupTime < dropoffEvent.Appt)
-                        {
-                            olat = pickupEvent.ScheduleLatitude;
-                            olng = pickupEvent.ScheduleLongitude;
-                            referenceTime = pickupEvent.ETA;
-                        }
-                        
-                        var pickupFullDetails = await _googleMapsService.GetRouteFullDetails(
-                            olat,
-                            olng,
-                            TripToSchedule.PickupLatitude,
-                            TripToSchedule.PickupLongitude);
-
-                        double olatD = TripToSchedule.PickupLatitude;
-                        double olngD = TripToSchedule.PickupLongitude;
-                        bool flag = false;
-
-                        TimeSpan? pickupAppt = TripToSchedule.ToTime;
-                        if (Schedules[i].TripType == TripType.Appointment)
-                        {
-                            if (pickupAppt < dropoffEvent.Appt) // trip to schedule order
-                            {
-                                flag = false;//referenceTimeD = dropoffEvent.ETA;
-                                olatD = TripToSchedule.PickupLatitude;
-                                olngD = TripToSchedule.PickupLongitude;
-                            }
-                            else // se alterna
-                            {                               
-                                flag = true;
-                                olatD = dropoffEvent.ScheduleLatitude;
-                                olngD = dropoffEvent.ScheduleLongitude;
-                            }
-                        }
-
-                        var dropoffFullDetails = await _googleMapsService.GetRouteFullDetails(
-                            olatD,
-                            olngD,
-                            TripToSchedule.DropoffLatitude,
-                            TripToSchedule.DropoffLongitude);
-
-                        
-
-
-                        if (pickupFullDetails != null && dropoffFullDetails != null)
-                        {
-                            pDistance = pickupFullDetails.DistanceMiles;
-                            pTravelTime = TimeSpan.FromSeconds(pickupFullDetails.DurationInTrafficSeconds);
-                            // Lo mas temprano que se puede llegar antes en Appt es 15 min. , en un Return 5 min
-                            TimeSpan? realETA = referenceTime + pTravelTime;                            
-                            pETA = (realETA < violationSetLimit) ? violationSetLimit : realETA;
-
-                            dDistance = dropoffFullDetails.DistanceMiles;
-                            dTravelTime = TimeSpan.FromSeconds(dropoffFullDetails.DurationInTrafficSeconds);
-                            referenceTimeD = flag ? pETA : dropoffEvent.ETA;
-                            dETA = referenceTimeD + dTravelTime + TimeSpan.FromMinutes(15);
-                        }
-
-                        if (editEvent) 
-                        {
-                            if (EventToEdit.TripType == TripType.Appointment)
-                            {
-                                violationSetLimit = EventToEdit.Pickup - TimeSpan.FromMinutes(15);
-                            }
-                            else // TripType.Return
-                            {
-                                violationSetLimit = EventToEdit.Pickup - TimeSpan.FromMinutes(5);
-                            }
-
-                            var editEventFullDetails = await _googleMapsService.GetRouteFullDetails(
-                            TripToSchedule.DropoffLatitude,
-                            TripToSchedule.DropoffLongitude,
-                            EventToEdit.ScheduleLatitude,
-                            EventToEdit.ScheduleLongitude);
-
-                            EventToEdit.Distance = editEventFullDetails.DistanceMiles;
-                            EventToEdit.Travel = TimeSpan.FromSeconds(editEventFullDetails.DurationInTrafficSeconds);
-                            //EventToEdit.ETA = EventToEdit.Pickup - TimeSpan.FromMinutes(15);
-                            TimeSpan? realETA = dETA + EventToEdit.Travel;
-                            EventToEdit.ETA = (realETA < violationSetLimit) ? violationSetLimit : realETA;
-
-                            await _scheduleService.UpdateAsync(EventToEdit.Id, EventToEdit);
-                            editEvent = false; // Reset the flag after editing the event
-
-                            PullInPreviousLatitude = PreviousPullInEvent.ScheduleLatitude;
-                            PullInPreviousLongitude = PreviousPullInEvent.ScheduleLongitude;
-                            PullInPreviousETA = PreviousPullInEvent.ETA;
-                        }
-                        else 
-                        {
-                            PullInPreviousLatitude = TripToSchedule.DropoffLatitude;
-                            PullInPreviousLongitude = TripToSchedule.DropoffLongitude;
-                            PullInPreviousETA = dETA;
-                        }
-                        break;
-                    }
-                    else 
-                    {
-                        editEvent = true;
-                        EventToEdit = pickupEvent; // If the pickup time of the trip to be routed is earlier than the pickup time of the last event, edit the last event
-                    }
-                }
-                // It means that the pick-up time is the first of all the schedules, following of course the Pull-out
-                if (editEvent)
-                {                  
-
-                    if (TripToSchedule.Type == TripType.Appointment)
-                    {
-                        violationSetLimit = TripToSchedule.FromTime - TimeSpan.FromMinutes(15);
-                    }
-                    else // TripType.Return
-                    {
-                        violationSetLimit = TripToSchedule.FromTime - TimeSpan.FromMinutes(5);
-                    }
-
-                    var pickupFullDetails = await _googleMapsService.GetRouteFullDetails(
-                        run.GarageLatitude,
-                        run.GarageLongitude,
-                        TripToSchedule.PickupLatitude,
-                        TripToSchedule.PickupLongitude);
-                    var dropoffFullDetails = await _googleMapsService.GetRouteFullDetails(
-                        TripToSchedule.PickupLatitude,
-                        TripToSchedule.PickupLongitude,
-                        TripToSchedule.DropoffLatitude,
-                        TripToSchedule.DropoffLongitude);
-
-                    if (pickupFullDetails != null && dropoffFullDetails != null)
-                    {
-                        pDistance = pickupFullDetails.DistanceMiles;
-                        pTravelTime = TimeSpan.FromSeconds(pickupFullDetails.DurationInTrafficSeconds);
-                        pETA = TripToSchedule.FromTime - TimeSpan.FromMinutes(15);
-                        
-                        dDistance = dropoffFullDetails.DistanceMiles; // TripToSchedule.Distance;
-                        dTravelTime = TimeSpan.FromSeconds(dropoffFullDetails.DurationInTrafficSeconds);
-                        dETA = TripToSchedule.FromTime + dTravelTime + TimeSpan.FromMinutes(15);
-                    }
-
-                    // Edit the ETA of the Pull-out event
-                    var PullOutEvent = Schedules[0];
-                    PullOutEvent.ETA = TripToSchedule.FromTime - (TimeSpan.FromMinutes(20) + pTravelTime);
-                    await _scheduleService.UpdateAsync(PullOutEvent.Id, PullOutEvent);
-
-                    var editEventFullDetails = await _googleMapsService.GetRouteFullDetails(
-                        TripToSchedule.DropoffLatitude,
-                        TripToSchedule.DropoffLongitude,
-                        EventToEdit.ScheduleLatitude,
-                        EventToEdit.ScheduleLongitude);
-
-                    EventToEdit.Distance = editEventFullDetails.DistanceMiles;
-                    EventToEdit.Travel = TimeSpan.FromSeconds(editEventFullDetails.DurationInTrafficSeconds);
-                    //EventToEdit.ETA = EventToEdit.Pickup - TimeSpan.FromMinutes(15);                   
-                    TimeSpan? realETA = dETA + EventToEdit.Travel;
-                    EventToEdit.ETA = (realETA < violationSetLimit) ? violationSetLimit : realETA;
-
-                    await _scheduleService.UpdateAsync(EventToEdit.Id, EventToEdit);
-                    editEvent = false; // Reset the flag after editing the event
-
-                    PullInPreviousLatitude = PreviousPullInEvent.ScheduleLatitude;
-                    PullInPreviousLongitude = PreviousPullInEvent.ScheduleLongitude;
-                    PullInPreviousETA = PreviousPullInEvent.ETA;
-
-                }
-
-                // Always edit the Pull-in event
-                var editPullInEventFullDetails = await _googleMapsService.GetRouteFullDetails(
-                        PullInPreviousLatitude, //PreviousPullInEvent.ScheduleLatitude,
-                        PullInPreviousLongitude, //PreviousPullInEvent.ScheduleLongitude,
-                        PullInEvent.ScheduleLatitude,
-                        PullInEvent.ScheduleLongitude);
-
-                PullInEvent.Distance = editPullInEventFullDetails.DistanceMiles;
-                PullInEvent.Travel = TimeSpan.FromSeconds(editPullInEventFullDetails.DurationInTrafficSeconds);
-                PullInEvent.ETA = PullInPreviousETA + PullInEvent.Travel; //PreviousPullInEvent.ETA + PullInEvent.Travel;
-
-                await _scheduleService.UpdateAsync(PullInEvent.Id, PullInEvent);
-
-            }
-
-            var request = new RouteTripRequest
-            {
-                VehicleRouteId = SelectedVehicleRoute.Id,
-                TripId = SelectedUnscheduledTrip.Id,
-                PickupDistance = pDistance.Value,
-                PickupTravelTime = pTravelTime.Value,
-                PickupETA = pETA.Value,
-                DropoffDistance = dDistance.Value,
-                DropoffTravelTime = dTravelTime.Value,
-                DropoffETA = dETA.Value
-
-            };
             try
             {
-                await _scheduleService.RouteTripsAsync(request);
-                //await _scheduleService.RouteTripsAsync(SelectedVehicleRoute.Id, new List<int> { SelectedUnscheduledTrip.Id });
+                
+                var previousSchedule = Schedules.LastOrDefault(s => s.ETA < tripToSchedule.FromTime && s.Name != "Pull-in");
+                double originLat, originLng;
+                TimeSpan previousEta, previousServiceTime;
 
-                // Refresh data
+                if (previousSchedule == null || previousSchedule.Name == "Pull-out")
+                {
+                    originLat = vehicleRoute.GarageLatitude;
+                    originLng = vehicleRoute.GarageLongitude;
+                    previousEta = Schedules.FirstOrDefault(s => s.Name == "Pull-out")?.ETA ?? (tripToSchedule.FromTime ?? TimeSpan.Zero) - TimeSpan.FromMinutes(30);
+                    previousServiceTime = TimeSpan.Zero;
+                }
+                else
+                {
+                    originLat = previousSchedule.ScheduleLatitude;
+                    originLng = previousSchedule.ScheduleLongitude;
+                    previousEta = previousSchedule.ETA ?? TimeSpan.Zero;
+                    previousServiceTime = TimeSpan.FromMinutes(previousSchedule.On ?? 15);
+                }
+
+                var pickupDetails = await _googleMapsService.GetRouteFullDetails(originLat, originLng, tripToSchedule.PickupLatitude, tripToSchedule.PickupLongitude);
+                if (pickupDetails == null) throw new Exception("Could not calculate the route to the pickup point.");
+
+                double pDistance = pickupDetails.DistanceMiles;
+                TimeSpan pTravelTime = TimeSpan.FromSeconds(pickupDetails.DurationInTrafficSeconds);
+                TimeSpan pCalculatedEta = previousEta + previousServiceTime + pTravelTime;
+                TimeSpan pFinalEta = pCalculatedEta;
+                if (previousSchedule == null || previousSchedule.EventType != ScheduleEventType.Pickup)
+                {
+                    TimeSpan pViolationLimit = (tripToSchedule.FromTime ?? TimeSpan.Zero) - TimeSpan.FromMinutes(15);
+                    if (pCalculatedEta < pViolationLimit) pFinalEta = pViolationLimit;
+                }
+
+                var dropoffDetails = await _googleMapsService.GetRouteFullDetails(tripToSchedule.PickupLatitude, tripToSchedule.PickupLongitude, tripToSchedule.DropoffLatitude, tripToSchedule.DropoffLongitude);
+                if (dropoffDetails == null) throw new Exception("Could not calculate the route to the dropoff point.");
+
+                double dDistance = dropoffDetails.DistanceMiles;
+                TimeSpan dTravelTime = TimeSpan.FromSeconds(dropoffDetails.DurationInTrafficSeconds);
+                TimeSpan pickupServiceTime = TimeSpan.FromMinutes(15);
+                TimeSpan dFinalEta = pFinalEta + pickupServiceTime + dTravelTime;
+
+                var request = new RouteTripRequest
+                {
+                    VehicleRouteId = vehicleRoute.Id,
+                    TripId = tripToSchedule.Id,
+                    PickupDistance = pDistance,
+                    PickupTravelTime = pTravelTime,
+                    PickupETA = pFinalEta,
+                    DropoffDistance = dDistance,
+                    DropoffTravelTime = dTravelTime,
+                    DropoffETA = dFinalEta
+                };
+
+                await _scheduleService.RouteTripsAsync(request);
+              
+
+                BusyMessage = "Route updated. Finalizing calculations...";
+
+                // We load the list, which may come with the wrong order from the backend.
+                await LoadSchedulesAndTripsAsync();
+
+                // Before recalculating, we make sure that the "Pull-in" is at the end of the in-memory collection.
+                var pullInEvent = Schedules.FirstOrDefault(s => s.Name == "Pull-in");
+                if (pullInEvent != null)
+                {
+                    int pullInIndex = Schedules.IndexOf(pullInEvent);
+                    if (pullInIndex != Schedules.Count - 1)
+                    {
+                        // If the Pull-in is not in the last position, we move it there.
+                        // This fixes the backend sort error in our local view.
+                        Schedules.Move(pullInIndex, Schedules.Count - 1);
+                    }
+                }
+
+                // Now that the collection is in the correct order, we proceed with the recalculation.
+                var newPickupEvent = Schedules.FirstOrDefault(s => s.TripId == tripToSchedule.Id && s.EventType == ScheduleEventType.Pickup);
+                if (newPickupEvent != null)
+                {
+                    int startIndex = Schedules.IndexOf(newPickupEvent);
+                    // We pass the already corrected list to the recalculation method.
+                    await RecalculateScheduleAsync(startIndex);
+                }
+
+                // We reload to ensure that the UI reflects the final state saved in the DB.
                 await LoadSchedulesAndTripsAsync();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                        string.Format(TripRoutingError, ex.Message),
-                        ErrorTitle,
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
-                //MessageBox.Show($"Trip routing error: {ex.Message}", "Error");
+                MessageBox.Show($"Trip routing error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                
+                await LoadSchedulesAndTripsAsync();
             }
-
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         private bool CanRouteSelectedTrip() => SelectedVehicleRoute != null && SelectedUnscheduledTrip != null;
@@ -876,104 +683,87 @@ namespace Meditrans.Client.ViewModels
 
         private async Task RecalculateScheduleAsync(int startIndex)
         {
-            
-            GoogleMapsService googleMapsService = new GoogleMapsService();
-
-            // Go from the first affected element to the penultimate one (Pull-in is handled separately)
+            // If the collection is empty or only has the Pull-out, there is nothing to do.
+            if (Schedules.Count <= 1) return;
+          
             for (int i = startIndex; i < Schedules.Count - 1; i++)
             {
                 var currentSchedule = Schedules[i];
                 var previousSchedule = Schedules[i - 1];
-
-                // 1. Get coordinates of the previous and current point
-                var prevCoords = new { Lat = previousSchedule.ScheduleLatitude, Lng = previousSchedule.ScheduleLongitude };
-                var currCoords = new { Lat = currentSchedule.ScheduleLatitude, Lng = currentSchedule.ScheduleLongitude };
-
-                // 2. Call Google API to get new route data
-                var routeDetails = await googleMapsService.GetRouteFullDetails(prevCoords.Lat, prevCoords.Lng, currCoords.Lat, currCoords.Lng);
-
-                // 3. Update Sequence, Distance and Travel
+               
                 currentSchedule.Sequence = i;
+              
+                var routeDetails = await _googleMapsService.GetRouteFullDetails(
+                    previousSchedule.ScheduleLatitude,
+                    previousSchedule.ScheduleLongitude,
+                    currentSchedule.ScheduleLatitude,
+                    currentSchedule.ScheduleLongitude);
+
                 if (routeDetails != null)
                 {
                     currentSchedule.Distance = routeDetails.DistanceMiles;
                     currentSchedule.Travel = TimeSpan.FromSeconds(routeDetails.DurationInTrafficSeconds);
                 }
-                else // Handle the case where the Google API fails
+                else
                 {
                     currentSchedule.Distance = 0;
                     currentSchedule.Travel = TimeSpan.Zero;
                 }
-
-                // 4. Calculate the "raw" ETA based on the previous event.
-                // We use TimeSpan.Zero as the default value to avoid errors with nulls.
+              
                 TimeSpan previousEta = previousSchedule.ETA ?? TimeSpan.Zero;
-                TimeSpan previousServiceTime = TimeSpan.FromMinutes(previousSchedule.On ?? 15); // Asumir 15 min si 'On' es nulo
-                TimeSpan currentTravel = currentSchedule.Travel ?? TimeSpan.Zero;
-                TimeSpan calculatedEta = previousEta + previousServiceTime + currentTravel;
-
-                // 5. Determine the limit to "not arrive too early."
-                TimeSpan? scheduledTime = (currentSchedule.EventType == ScheduleEventType.Pickup)
-                    ? currentSchedule.Pickup
-                    : currentSchedule.Appt;
-
-                TimeSpan? earlyArrivalWindow = null;
-                if (currentSchedule.TripType == "Appointment")
+                TimeSpan previousServiceTime = TimeSpan.FromMinutes(previousSchedule.On ?? 15);
+                TimeSpan travelToCurrent = currentSchedule.Travel ?? TimeSpan.Zero;
+                TimeSpan calculatedEta = previousEta + previousServiceTime + travelToCurrent;
+              
+                TimeSpan finalEta = calculatedEta;
+                if (currentSchedule.EventType == ScheduleEventType.Pickup && previousSchedule.EventType != ScheduleEventType.Pickup)
                 {
-                    earlyArrivalWindow = TimeSpan.FromMinutes(15);
-                }
-                else if (currentSchedule.TripType == "Return")
-                {
-                    earlyArrivalWindow = TimeSpan.FromMinutes(5);
-                }
-
-                // 6. Apply the rule and adjust the ETA if necessary.
-                TimeSpan finalEta = calculatedEta; // By default, the final ETA is the calculated one.
-                if (scheduledTime.HasValue && earlyArrivalWindow.HasValue)
-                {
-                    TimeSpan violationLimit = scheduledTime.Value - earlyArrivalWindow.Value;
-                    if (calculatedEta < violationLimit)
+                    TimeSpan? scheduledTime = currentSchedule.Pickup;
+                    if (scheduledTime.HasValue)
                     {
-                        // If the calculated ETA is earlier than the allowed limit,
-                        // we adjust the ETA to be exactly the limit.
-                        finalEta = violationLimit;
+                        TimeSpan earlyArrivalWindow = (currentSchedule.TripType == "Return")
+                            ? TimeSpan.FromMinutes(5)
+                            : TimeSpan.FromMinutes(15);
+                        TimeSpan violationLimit = scheduledTime.Value - earlyArrivalWindow;
+                        if (calculatedEta < violationLimit)
+                        {
+                            finalEta = violationLimit;
+                        }
                     }
                 }
-
-                // 7. Assign the final ETA to the object.
+               
                 currentSchedule.ETA = finalEta;
-
-                // 8. Save changes to the database
                 await _scheduleService.UpdateAsync(currentSchedule.Id, currentSchedule);
             }
-
-            // Finally, recalculate and update the Pull-in
+           
             if (Schedules.Count > 1)
             {
-                var pullIn = Schedules.Last();
-                var lastStop = Schedules[Schedules.Count - 2]; // The last event before the Pull-in
+                var pullInEvent = Schedules.Last();
+                var lastRealStop = Schedules[Schedules.Count - 2]; // The last event BEFORE the Pull-in
+              
+                pullInEvent.Sequence = Schedules.Count - 1;
+              
+                var finalRouteDetails = await _googleMapsService.GetRouteFullDetails(
+                    lastRealStop.ScheduleLatitude, lastRealStop.ScheduleLongitude,
+                    pullInEvent.ScheduleLatitude, pullInEvent.ScheduleLongitude);
 
-                var lastStopCoords = new { Lat = lastStop.ScheduleLatitude, Lng = lastStop.ScheduleLongitude };
-                var pullInCoords = new { Lat = pullIn.ScheduleLatitude, Lng = pullIn.ScheduleLongitude };
-
-                var finalRouteDetails = await googleMapsService.GetRouteFullDetails(lastStopCoords.Lat, lastStopCoords.Lng, pullInCoords.Lat, pullInCoords.Lng);
-
-                pullIn.Sequence = Schedules.Count - 1;
                 if (finalRouteDetails != null)
                 {
-                    pullIn.Distance = finalRouteDetails.DistanceMiles;
-                    pullIn.Travel = TimeSpan.FromSeconds(finalRouteDetails.DurationInTrafficSeconds);
+                    pullInEvent.Distance = finalRouteDetails.DistanceMiles;
+                    pullInEvent.Travel = TimeSpan.FromSeconds(finalRouteDetails.DurationInTrafficSeconds);
                 }
                 else
                 {
-                    pullIn.Distance = 0;
-                    pullIn.Travel = TimeSpan.Zero;
+                    pullInEvent.Distance = 0;
+                    pullInEvent.Travel = TimeSpan.Zero;
                 }
-
-                TimeSpan lastStopServiceTime = TimeSpan.FromMinutes(lastStop.On ?? 15);
-                pullIn.ETA = (lastStop.ETA ?? TimeSpan.Zero) + lastStopServiceTime + (pullIn.Travel ?? TimeSpan.Zero);
-
-                await _scheduleService.UpdateAsync(pullIn.Id, pullIn);
+               
+                TimeSpan lastStopEta = lastRealStop.ETA ?? TimeSpan.Zero;
+                TimeSpan lastStopServiceTime = TimeSpan.FromMinutes(lastRealStop.On ?? 15);
+                TimeSpan travelToPullIn = pullInEvent.Travel ?? TimeSpan.Zero;
+                pullInEvent.ETA = lastStopEta + lastStopServiceTime + travelToPullIn;
+              
+                await _scheduleService.UpdateAsync(pullInEvent.Id, pullInEvent);
             }
         }
         public void DragDropOperationFinished(DragDropEffects operationResult, IDragInfo dragInfo)
@@ -1009,7 +799,7 @@ namespace Meditrans.Client.ViewModels
 
         private async Task ExecuteCancelTripAsync(object parameter)
         {
-            // Aquí el parámetro es directamente el DTO
+            
             var tripToCancel = parameter as UnscheduledTripDto;
             if (tripToCancel == null) return;
 
@@ -1023,7 +813,7 @@ namespace Meditrans.Client.ViewModels
                     await _tripService.CancelTripAsync(tripToCancel.Id);
                     MessageBox.Show("Trip canceled successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                    // Recargar la lista para que el grid se actualice con el nuevo estado
+                    // Reload the list so that the grid is updated with the new state
                     await LoadSchedulesAndTripsAsync();
                 }
                 catch (Exception ex)
@@ -1047,8 +837,7 @@ namespace Meditrans.Client.ViewModels
                 {
                     await _tripService.UncancelTripAsync(tripToUncancel.Id);
                     MessageBox.Show("Trip restored successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                    // Recargar la lista para reflejar el cambio
+                   
                     await LoadSchedulesAndTripsAsync();
                 }
                 catch (Exception ex)
@@ -1062,13 +851,10 @@ namespace Meditrans.Client.ViewModels
         {
             var tripToEdit = parameter as UnscheduledTripDto;
             if (tripToEdit == null) return;
-
-            // Necesitarás una vista/viewmodel para el diálogo de edición.
-            // Asumimos que tienes algo similar a Dispatch
+           
             var dialogViewModel = new EditTripDialogViewModel(tripToEdit);
             var dialog = new EditTripDialog { DataContext = dialogViewModel };
-
-            // Asumiendo que tienes un DialogHost en tu ventana principal o vista
+           
             var result = await MaterialDesignThemes.Wpf.DialogHost.Show(dialog, "RootDialogHost");
 
             if (result is bool wasSaved && wasSaved)
@@ -1078,7 +864,7 @@ namespace Meditrans.Client.ViewModels
                     var updatedDto = dialogViewModel.GetUpdatedDto();
                     await _tripService.UpdateFromDispatchAsync(tripToEdit.Id, updatedDto);
 
-                    // Recargar para ver los cambios
+                    // Reload to see changes
                     await LoadSchedulesAndTripsAsync();
                 }
                 catch (Exception ex)
