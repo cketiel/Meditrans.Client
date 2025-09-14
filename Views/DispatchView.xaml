@@ -372,7 +372,7 @@
                                                                                     <DataGridTextColumn Binding="{Binding Authorization}"
                                             Header="{Binding Data.ColumnHeaderAuthorization, Source={StaticResource vmProxy}}"/>
 
-                                                                                    <DataGridTextColumn Binding="{Binding FundingSource}"
+                                                                                    <DataGridTextColumn Binding="{Binding FundingSourceName}"
                                             Header="{Binding Data.ColumnHeaderFundingSource, Source={StaticResource vmProxy}}"/>
 
                                                                                     <DataGridTextColumn Binding="{Binding Distance}"

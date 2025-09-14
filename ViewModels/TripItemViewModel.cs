@@ -35,7 +35,7 @@ namespace Meditrans.Client.ViewModels
         public string Authorization => _tripDto.Authorization;
         public string FundingSourceName => _tripDto.FundingSource;
         public double? Distance => _tripDto.Distance;
-        public string PickupCity { get; set; } = "N/A"; // Tu DTO no tiene PickupCity. Puedes derivarlo de PickupAddress si es necesario, o pedir que la API lo devuelva.
-        public string DropoffCity { get; set; } = "N/A"; // Tu DTO no tiene DropoffCity. Puedes derivarlo de DropoffAddress si es necesario, o pedir que la API lo devuelva.
+        public string? PickupCity => _tripDto.PickupCity;
+        public string? DropoffCity => _tripDto.DropoffCity;
     }
 }

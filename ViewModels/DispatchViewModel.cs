@@ -1,14 +1,15 @@
-﻿using Meditrans.Client.Models;
-using Meditrans.Client.DTOs;
-using Meditrans.Client.Services;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Spreadsheet;
+using MaterialDesignThemes.Wpf;
 using Meditrans.Client.Commands;
+using Meditrans.Client.DTOs;
+using Meditrans.Client.Models;
+using Meditrans.Client.Services;
+using Meditrans.Client.Views.Dispatch;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Windows.Input;
-using MaterialDesignThemes.Wpf;
-using Meditrans.Client.Views.Dispatch;
-using DocumentFormat.OpenXml.Spreadsheet;
 using System.Windows;
+using System.Windows.Input;
 //using CommunityToolkit.Mvvm.Input;
 //using CommunityToolkit.Mvvm.ComponentModel;
 //using CommunityToolkit.Mvvm.Input;
@@ -19,6 +20,7 @@ namespace Meditrans.Client.ViewModels
     {
         private readonly ScheduleService _scheduleService;
         private readonly TripService _tripService;
+        private readonly GoogleMapsService _googleMapsService;
 
         private ObservableCollection<VehicleRouteViewModel> _allVehicleRoutes;
 
@@ -143,7 +145,9 @@ namespace Meditrans.Client.ViewModels
         public DispatchViewModel()
         {
             _scheduleService = new ScheduleService();
+            _googleMapsService = new GoogleMapsService();
             _tripService = new TripService();
+
             _allVehicleRoutes = new ObservableCollection<VehicleRouteViewModel>();// new ObservableCollection<VehicleRoute>(); 
 
             // Dispatch Principal
@@ -351,6 +355,10 @@ namespace Meditrans.Client.ViewModels
             try
             {
                 var unscheduledDtoList = await _scheduleService.GetUnscheduledTripsAsync(CurrentDispatchDate);
+
+                var geocodingTasks = unscheduledDtoList.Select(trip => PopulateCitiesForTravel(trip)).ToList();
+                await Task.WhenAll(geocodingTasks);
+
                 _allUnscheduledTripsFromService.Clear();
                 foreach (var dto in unscheduledDtoList)
                 {
@@ -367,6 +375,19 @@ namespace Meditrans.Client.ViewModels
 
                 IsLoading = false;
             }
+        }
+
+        private async Task PopulateCitiesForTravel(UnscheduledTripDto trip)
+        {
+            // Get the city of origin (Pickup)
+            trip.PickupCity = await _googleMapsService.GetCityFromCoordinates(
+                trip.PickupLatitude,
+                trip.PickupLongitude) ?? "N/A"; // "N/A" = Not Available
+
+            // Get the destination city (Dropoff)
+            trip.DropoffCity = await _googleMapsService.GetCityFromCoordinates(
+                trip.DropoffLatitude,
+                trip.DropoffLongitude) ?? "N/A";
         }
 
         /*private void FilterUnscheduledTrips()
@@ -485,7 +506,9 @@ namespace Meditrans.Client.ViewModels
         public string ColumnHeaderDropoff => LocalizationService.Instance["Dropoff"];
         public string ColumnHeaderPickupPhone => LocalizationService.Instance["PickupPhone"];
         public string ColumnHeaderDropoffPhone => LocalizationService.Instance["DropoffPhone"];
-        public string ColumnHeaderAuthorization => LocalizationService.Instance["Authorization"];       
+        public string ColumnHeaderAuthorization => LocalizationService.Instance["Authorization"];
+        public string ColumnHeaderFundingSource => LocalizationService.Instance["FundingSource"];
+        public string ColumnHeaderDistance => LocalizationService.Instance["Distance"];
         public string ColumnHeaderPickupCity => LocalizationService.Instance["PickupCity"];
         public string ColumnHeaderDropoffCity => LocalizationService.Instance["DropoffCity"];
 
