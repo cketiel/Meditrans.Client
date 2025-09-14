@@ -37,6 +37,7 @@ namespace Meditrans.Client.ViewModels
         //private readonly UserConfigService _userConfigService;
         private readonly ScheduleService _scheduleService;
         private readonly TripService _tripService;
+        private readonly GoogleMapsService _googleMapsService;
 
         [ObservableProperty]
         private DateTime _selectedDate = DateTime.Today;
@@ -85,6 +86,8 @@ namespace Meditrans.Client.ViewModels
             //UserConfigService _userConfigService = new UserConfigService();
             _scheduleService = scheduleService;
             _tripService = new TripService();
+            _googleMapsService = new GoogleMapsService();
+
             LoadInitialDataCommand = new AsyncRelayCommand(LoadInitialDataAsync);
             LoadSchedulesAndTripsCommand = new AsyncRelayCommand(LoadSchedulesAndTripsAsync, CanLoadSchedulesAndTrips);
             RouteTripCommand = new AsyncRelayCommand(RouteSelectedTripAsync, CanRouteSelectedTrip);
@@ -244,6 +247,9 @@ namespace Meditrans.Client.ViewModels
                 foreach (var s in schedules) Schedules.Add(s);
 
                 var trips = await _scheduleService.GetUnscheduledTripsAsync(SelectedDate);
+                var geocodingTasks = trips.Select(trip => PopulateCitiesForTravel(trip)).ToList();
+                await Task.WhenAll(geocodingTasks);
+
                 foreach (var t in trips) UnscheduledTrips.Add(t);
 
                 UpdateMapViewForAllPoints();
@@ -258,6 +264,19 @@ namespace Meditrans.Client.ViewModels
                 IsLoading = false;
             }
 
+        }
+
+        private async Task PopulateCitiesForTravel(UnscheduledTripDto trip)
+        {
+            // Get the city of origin (Pickup)
+            trip.PickupCity = await _googleMapsService.GetCityFromCoordinates(
+                trip.PickupLatitude,
+                trip.PickupLongitude) ?? "N/A"; // "N/A" = Not Available
+
+            // Get the destination city (Dropoff)
+            trip.DropoffCity = await _googleMapsService.GetCityFromCoordinates(
+                trip.DropoffLatitude,
+                trip.DropoffLongitude) ?? "N/A";
         }
 
         private bool CanLoadSchedulesAndTrips() => SelectedVehicleRoute != null;
