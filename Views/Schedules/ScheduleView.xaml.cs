@@ -27,12 +27,16 @@ namespace Meditrans.Client.Views.Schedules
         public ScheduleView()
         {
             InitializeComponent();
-            this.DataContextChanged += ScheduleView_DataContextChanged;
-          
-            this.Unloaded += ScheduleView_Unloaded;
 
+            // ELIMINAMOS CUALQUIER LÍNEA COMO: this.DataContext = new SchedulesViewModel(...)
+
+            this.DataContextChanged += ScheduleView_DataContextChanged;
+            this.Unloaded += ScheduleView_Unloaded;
+            this.Loaded += ScheduleView_Loaded;
+
+            // Configuración del mapa (esto está bien)
             try
-            {              
+            {
                 MapView.MapProvider = GMap.NET.MapProviders.GoogleMapProvider.Instance;
                 GMap.NET.GMaps.Instance.Mode = GMap.NET.AccessMode.ServerAndCache;
                 MapView.DragButton = MouseButton.Left;
@@ -41,12 +45,19 @@ namespace Meditrans.Client.Views.Schedules
             {
                 System.Diagnostics.Debug.WriteLine("Error initializing GMap.NET: " + ex.Message);
             }
+        }
 
-            var viewModel = new SchedulesViewModel(new ScheduleService());
-            SubscribeToViewModelEvents(viewModel); // Subscribe
-            DataContext = viewModel;
-
-           // DataContext = new SchedulesViewModel(new ScheduleService());
+        private async void ScheduleView_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Este código ahora es SEGURO.
+            // Se ejecutará sobre el DataContext que le haya asignado su "padre"
+            // (ya sea DispatchViewModel o el menú principal).
+            if (DataContext is SchedulesViewModel viewModel && !viewModel.IsInitialized)
+            {
+                // Solo inicializa si no lo ha hecho ya.
+                // Esto permite que el menú principal siga funcionando.
+                await viewModel.InitializeAsync();
+            }
         }
 
         private void ScheduleView_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)

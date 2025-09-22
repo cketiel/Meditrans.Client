@@ -12,6 +12,9 @@
              Height="Auto" Width="Auto">
 
     <UserControl.Resources>
+        <DataTemplate DataType="{x:Type vm:SchedulesViewModel}">
+            <views:ScheduleView />
+        </DataTemplate>
         <!-- Derived from the MaterialDesign style for TabControl -->
         <Style TargetType="TabControl"
         BasedOn="{StaticResource MaterialDesignTabControl}">
@@ -57,9 +60,7 @@
                  HorizontalContentAlignment="Stretch"
                  VerticalContentAlignment="Stretch">
 
-                <TabItem Header="{Binding Schedule}">
-                    <views:ScheduleView />
-                </TabItem>
+                <TabItem Header="{Binding Schedule}" Content="{Binding ScheduleContentViewModel}"/>
 
 
                 <TabItem Header="{Binding Trips}">

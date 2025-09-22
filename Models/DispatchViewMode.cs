@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Meditrans.Client.Models
+{
+    public enum DispatchViewMode
+    {
+        Main,       // The main view with two panels
+        Overview,   // The full screen summary view
+        ScheduleDetail // The Schedule Detail View
+    }
+}

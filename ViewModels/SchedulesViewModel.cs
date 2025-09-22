@@ -18,8 +18,9 @@ using System.Windows.Input;
 namespace Meditrans.Client.ViewModels
 {
     public partial class SchedulesViewModel : ObservableObject, IDragSource, IDropTarget
-
     {
+        public bool IsInitialized { get; private set; } = false;
+
         [ObservableProperty]
         private bool _isLoading;
 
@@ -99,7 +100,7 @@ namespace Meditrans.Client.ViewModels
             EditTripCommand = new AsyncRelayCommand<object>(ExecuteEditTripAsync);
 
             InitializeColumns();
-            _ = InitializeAsync();
+            //_ = InitializeAsync();
         }
 
         public IAsyncRelayCommand LoadInitialDataCommand { get; }
@@ -193,7 +194,53 @@ namespace Meditrans.Client.ViewModels
                 ColumnConfigurations.Add(new ColumnConfig { PropertyName = "FundingSource", Header = "Funding Source", IsVisible = true });
             }
         }
-        private async Task InitializeAsync()
+
+        public async Task InitializeAsync(DateTime? date = null, VehicleRoute route = null)
+        {
+            if (IsInitialized) return;
+
+            IsLoading = true;
+            try
+            {
+                await LoadInitialDataListsAsync();
+
+                if (date.HasValue)
+                {
+                    //SelectedDate = date.Value;
+                    _selectedDate = date.Value; // Asignación directa al campo para evitar que se dispare OnSelectedDateChanged
+                    OnPropertyChanged(nameof(SelectedDate)); // Notificar a la UI manualmente
+                }
+
+                if (route != null)
+                {
+                    // Asignación directa al campo para evitar OnSelectedVehicleRouteChanged
+                    _selectedVehicleRoute = VehicleRoutes.FirstOrDefault(r => r.Id == route.Id) ?? VehicleRoutes.FirstOrDefault();
+                    OnPropertyChanged(nameof(SelectedVehicleRoute)); // Notificar a la UI manualmente
+                }
+                else if (VehicleRoutes.Any() && SelectedVehicleRoute == null)
+                {
+                    _selectedVehicleRoute = VehicleRoutes.FirstOrDefault();
+                    OnPropertyChanged(nameof(SelectedVehicleRoute));
+                }
+
+                if (CanLoadSchedulesAndTrips())
+                {
+                    await LoadSchedulesAndTripsAsync();
+                }
+
+                IsInitialized = true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error fatal durante la inicialización: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        /*private async Task InitializeAsync()
         {
             try
             {
@@ -204,12 +251,39 @@ namespace Meditrans.Client.ViewModels
                 MessageBox.Show($"Error loading initial data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Console.WriteLine($"Error loading initial data: {ex.Message}");
             }
-        }
+        }*/
         // Load initial data (route and group lists)
+
+        private async Task LoadInitialDataListsAsync()
+        {
+            // Este método solo carga las listas de ComboBox, sin seleccionar nada.
+            RunService _runService = new RunService();
+            var routes = await _runService.GetAllAsync();
+            VehicleRoutes.Clear();
+            foreach (var r in routes)
+            {
+                var now = DateTime.UtcNow;
+                bool inDateRange = now >= r.FromDate && (r.ToDate == null || now <= r.ToDate);
+                bool isSuspended = r.Suspensions.Any(s => now >= s.SuspensionStart && now <= s.SuspensionEnd);
+                if (inDateRange && !isSuspended)
+                    VehicleRoutes.Add(r);
+            }
+
+            VehicleGroupService _vehicleGroupService = new VehicleGroupService();
+            var groups = await _vehicleGroupService.GetGroupsAsync();
+            VehicleGroups.Clear();
+            foreach (var g in groups)
+            {
+                VehicleGroups.Add(g);
+            }
+        }
+
         private async Task LoadInitialDataAsync()
         {
             RunService _runService = new RunService();
             var routes = await _runService.GetAllAsync();
+
+            VehicleRoutes.Clear();
             foreach (var route in routes)
             {
                 var now = DateTime.UtcNow;
@@ -220,8 +294,10 @@ namespace Meditrans.Client.ViewModels
                     VehicleRoutes.Add(route);
             }
 
-            if (VehicleRoutes.Count > 0)
+            if (VehicleRoutes.Any() && this.SelectedVehicleRoute == null)
+            {
                 SelectedVehicleRoute = VehicleRoutes[0];
+            }
 
             VehicleGroupService _vehicleGroupService = new VehicleGroupService();
             var groups = await _vehicleGroupService.GetGroupsAsync();
@@ -229,6 +305,16 @@ namespace Meditrans.Client.ViewModels
             foreach (var group in groups)
             {
                 VehicleGroups.Add(group);
+            }
+        }
+
+        public async Task LoadDataAsync()
+        {
+            // Si ya hay una ruta seleccionada, podemos llamar directamente al comando
+            // que carga las grillas principales.
+            if (LoadSchedulesAndTripsCommand.CanExecute(null))
+            {
+                await LoadSchedulesAndTripsCommand.ExecuteAsync(null);
             }
         }
 
@@ -432,14 +518,23 @@ namespace Meditrans.Client.ViewModels
         // Observe changes to automatically refresh data
         partial void OnSelectedDateChanged(DateTime value)
         {
-            if (CanLoadSchedulesAndTrips())
-                LoadSchedulesAndTripsCommand.Execute(null);
+            // Solo recargar si el VM ya fue inicializado por completo.
+            if (IsInitialized && CanLoadSchedulesAndTrips())
+                _ = LoadSchedulesAndTripsAsync();
+
+            /*if (CanLoadSchedulesAndTrips())
+                LoadSchedulesAndTripsCommand.Execute(null);*/
         }
 
         partial void OnSelectedVehicleRouteChanged(VehicleRoute value)
         {
-            if (CanLoadSchedulesAndTrips())
-                LoadSchedulesAndTripsCommand.Execute(null);
+            // Solo recargar si el VM ya fue inicializado por completo.
+            if (IsInitialized && CanLoadSchedulesAndTrips())
+                _ = LoadSchedulesAndTripsAsync();
+
+
+            /*if (CanLoadSchedulesAndTrips())
+                LoadSchedulesAndTripsCommand.Execute(null);*/
         }
 
         // Logic to execute when the selection in the Schedules grid changes

@@ -9,6 +9,7 @@
              xmlns:viewModels="clr-namespace:Meditrans.Client.ViewModels"
              xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
              xmlns:converters="clr-namespace:Meditrans.Client.Converters"
+             xmlns:schedules="clr-namespace:Meditrans.Client.Views.Schedules"
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1200">
 
@@ -17,6 +18,10 @@
         <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
         <helpers:BooleanToVisibilityConverter x:Key="BoolToVis" />
         <converters:StatusToVisibilityConverter x:Key="StatusToVisibilityConverter" />
+
+        <DataTemplate DataType="{x:Type viewModels:SchedulesViewModel}">
+            <schedules:ScheduleView />
+        </DataTemplate>
         
         <!-- Derived from the MaterialDesign style for TabControl -->
         <Style TargetType="TabControl"
@@ -87,10 +92,20 @@
         
     <Grid>
     <!-- MAIN VIEW OF DISPATCH (Divided into 2 panels) -->
-    <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource MainBorderBrush}"
-            Visibility="{Binding IsOverviewVisible, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}"
-            IsEnabled="{Binding !IsLoading}">
-        <Grid Margin="4 0 4 4">
+    <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource MainBorderBrush}" IsEnabled="{Binding !IsLoading}">
+        
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentViewMode}" Value="Main">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+        
+         <Grid Margin="4 0 4 4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -131,7 +146,8 @@
                             <DataGrid Margin="0,4,0,0"
                                 AutoGenerateColumns="False" 
                                 IsReadOnly="True" 
-                                ItemsSource="{Binding Runs}"                          
+                                ItemsSource="{Binding Runs}"  
+                                SelectedItem="{Binding SelectedRun}" 
                                 CanUserAddRows="False"
                                 SelectionMode="Single"
                                 ScrollViewer.CanContentScroll="True" 
@@ -145,8 +161,14 @@
                                 RowStyle="{StaticResource CustomRowStyle}"
                                 CellStyle="{StaticResource CustomCellStyle}"
                                 SelectionUnit="FullRow">
-                            
-                                <DataGrid.Columns>
+
+                            <DataGrid.InputBindings>
+                                <MouseBinding MouseAction="LeftDoubleClick"
+                                    Command="{Binding ShowScheduleViewCommand}"
+                                    CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                            </DataGrid.InputBindings>
+                                
+                                    <DataGrid.Columns>
 
                                     <DataGridTemplateColumn Width="Auto">
 
@@ -415,130 +437,176 @@
         </Grid>
     </Border>
 
-    <!-- OVERVIEW (Full Screen) -->
-    <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource MainBorderBrush}"
-            Visibility="{Binding IsOverviewVisible, Converter={StaticResource BoolToVis}}"
-            IsEnabled="{Binding !IsLoading}">
-            <DockPanel Margin="4 0 4 4" >
-            <!-- Top Bar -->
-            <Border DockPanel.Dock="Top" Padding="0" Margin="0" Background="{DynamicResource PrimaryHueMidBrush}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
 
-                    <!-- Button to return to Dispatch Main -->
-                    <Button Grid.Column="0" Style="{StaticResource MaterialDesignFlatButton}"
-                                Command="{Binding ShowDispatchMainCommand}" >
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="ViewDashboard" VerticalAlignment="Center" Margin="0,0,8,0" />
-                            <TextBlock Text="Dispatch main" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
 
-                    <CheckBox Grid.Column="1" Content="Show Will Calls" 
-                                  VerticalAlignment="Center" Margin="20,0,0,0" />
 
-                        <!-- Refresh button -->
-                        <Button Grid.Column="2" Style="{StaticResource MaterialDesignIconButton}" Margin="60,0,0,0"
-                            ToolTip="Refresh" Command="{Binding RefreshCommand}" >
-                            <materialDesign:PackIcon Kind="Refresh" Width="24" Height="24" />
-                     </Button>
-                    
-                    <!-- Information Headband -->
-                    <TextBlock Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,0" Background="{DynamicResource MaterialDesign.Brush.Primary}" Foreground="White" TextWrapping="Wrap" FontSize="26">
-                            <Run Text="Vehicles: "/><Run Text="{Binding TotalVehicles}" FontWeight="Bold"/>
-                            <Run Text="  Clear: "/><Run Text="{Binding ClearVehicles}" FontWeight="Bold"/>
-                            <Run Text="  Loaded: "/><Run Text="{Binding LoadedVehicles}" FontWeight="Bold"/>
-                            <Run Text="  En Route: "/><Run Text="{Binding EnRouteVehicles}" FontWeight="Bold"/>
-                            <Run Text="  On Break: "/><Run Text="{Binding OnBreakVehicles}" FontWeight="Bold"/>
-                            <Run Text="  Off Line: "/><Run Text="{Binding OfflineVehicles}" FontWeight="Bold"/>
-                    </TextBlock>
+            <!-- OVERVIEW (Full Screen) -->
+            <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource MainBorderBrush}" IsEnabled="{Binding !IsLoading}">
 
-                    
-                </Grid>
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentViewMode}" Value="Overview">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+
+                <DockPanel Margin="4 0 4 4" >
+                    <!-- Top Bar -->
+                    <Border DockPanel.Dock="Top" Padding="0" Margin="0" Background="{DynamicResource PrimaryHueMidBrush}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Button to return to Dispatch Main -->
+                            <Button Grid.Column="0" Style="{StaticResource MaterialDesignFlatButton}"
+                            Command="{Binding ShowDispatchMainCommand}" >
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="ViewDashboard" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                    <TextBlock Text="Dispatch main" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <CheckBox Grid.Column="1" Content="Show Will Calls" 
+                              VerticalAlignment="Center" Margin="20,0,0,0" />
+
+                            <!-- Refresh button -->
+                            <Button Grid.Column="2" Style="{StaticResource MaterialDesignIconButton}" Margin="60,0,0,0"
+                        ToolTip="Refresh" Command="{Binding RefreshCommand}" >
+                                <materialDesign:PackIcon Kind="Refresh" Width="24" Height="24" />
+                            </Button>
+
+                            <!-- Information Headband -->
+                            <TextBlock Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,0" Background="{DynamicResource MaterialDesign.Brush.Primary}" Foreground="White" TextWrapping="Wrap" FontSize="26">
+                        <Run Text="Vehicles: "/><Run Text="{Binding TotalVehicles}" FontWeight="Bold"/>
+                        <Run Text="  Clear: "/><Run Text="{Binding ClearVehicles}" FontWeight="Bold"/>
+                        <Run Text="  Loaded: "/><Run Text="{Binding LoadedVehicles}" FontWeight="Bold"/>
+                        <Run Text="  En Route: "/><Run Text="{Binding EnRouteVehicles}" FontWeight="Bold"/>
+                        <Run Text="  On Break: "/><Run Text="{Binding OnBreakVehicles}" FontWeight="Bold"/>
+                        <Run Text="  Off Line: "/><Run Text="{Binding OfflineVehicles}" FontWeight="Bold"/>
+                            </TextBlock>
+
+
+                        </Grid>
+                    </Border>
+
+                    <!-- Tab Control for Map and Events -->
+                    <TabControl Margin="0 -15 0 0">
+                        <TabItem Header="Map Overview">
+                            <TextBlock Text="El contenido del mapa se implementará más adelante." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" />
+                        </TabItem>
+                        <TabItem Header="All Events">
+                            <Border BorderThickness="1,1,1,1" BorderBrush="{StaticResource MainBorderBrush}">
+                                <DockPanel Margin="4">
+                                    <!-- Superior Grid Controls -->
+                                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,5,0,10">
+                                        <TextBlock Text="{Binding EventsSummaryText}" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                        <CheckBox Content="Show Performed" IsChecked="{Binding ShowPerformedEvents}" Margin="20,0,0,0" VerticalAlignment="Center" />
+                                        <CheckBox Content="Show Pull-Out/Pull-In" IsChecked="{Binding ShowPullEvents}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                                        <CheckBox Content="Show Unperformed Late Pickups" IsChecked="{Binding ShowLatePickups}" Margin="10,0,0,0" VerticalAlignment="Center" />
+                                    </StackPanel>
+
+                                    <!-- Event DataGrid -->
+                                    <DataGrid ItemsSource="{Binding AllEvents}"
+                                  AutoGenerateColumns="False" 
+                                  CanUserAddRows="False"
+                                  SelectionMode="Single"
+                                  ScrollViewer.CanContentScroll="True" 
+                                  ScrollViewer.HorizontalScrollBarVisibility="Auto" 
+                                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                  FrozenColumnCount="2"                               
+                                
+                                AlternationCount="2"
+                                AlternatingRowBackground="White"                                    
+                                Style="{StaticResource CustomDataGridStyle}"
+                                ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                                RowStyle="{StaticResource CustomRowStyle}"
+                                CellStyle="{StaticResource CustomCellStyle}"
+                                SelectionUnit="FullRow">
+
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Run" Binding="{Binding Run}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Event Name" Binding="{Binding Name}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Pickup" Binding="{Binding Pickup, StringFormat='{}{0:hh\\:mm}'}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Appt" Binding="{Binding Appt, StringFormat='{}{0:hh\\:mm}'}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="ETA" Binding="{Binding ETA}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Distance" Binding="{Binding Distance}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Travel" Binding="{Binding Travel}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="On" Binding="{Binding On}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Space" Binding="{Binding SpaceType}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="*" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Comment" Binding="{Binding Comment}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Arrive" Binding="{Binding Arrive, StringFormat='{}{0:hh\\:mm}'}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Perform" Binding="{Binding Perform, StringFormat='{}{0:hh\\:mm}'}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Arrive Dist" Binding="{Binding ArriveDist}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Perform Dist" Binding="{Binding PerformDist}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Driver" Binding="{Binding Driver}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="GPS Arrive" Binding="{Binding GPSArrive}" IsReadOnly="True"/>
+                                            <DataGridTemplateColumn Header="Odometer" IsReadOnly="False">
+                                                <DataGridTemplateColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Odometer}" Padding="4,2"/>
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellTemplate>
+                                                <DataGridTemplateColumn.CellEditingTemplate>
+                                                    <DataTemplate>
+                                                        <TextBox Text="{Binding Odometer, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+                                                    </DataTemplate>
+                                                </DataGridTemplateColumn.CellEditingTemplate>
+                                            </DataGridTemplateColumn>
+                                            <DataGridTextColumn Header="AuthNo" Binding="{Binding AuthNo}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Funding Source" Binding="{Binding FundingSource}" IsReadOnly="True"/>
+                                            <DataGridTextColumn Header="Vehicle" Binding="{Binding Vehicle}" IsReadOnly="True"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </DockPanel>
+                            </Border>
+                        </TabItem>
+                    </TabControl>
+                </DockPanel>
             </Border>
 
-            <!-- Tab Control for Map and Events -->
-            <TabControl Margin="0 -15 0 0">
-                <TabItem Header="Map Overview">
-                    <TextBlock Text="El contenido del mapa se implementará más adelante." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" />
-                </TabItem>
-                <TabItem Header="All Events">
-                    <Border BorderThickness="1,1,1,1" BorderBrush="{StaticResource MainBorderBrush}">
-                    <DockPanel Margin="4">
-                        <!-- Superior Grid Controls -->
-                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,5,0,10">
-                            <TextBlock Text="{Binding EventsSummaryText}" VerticalAlignment="Center" FontWeight="Bold" FontSize="16" Foreground="{DynamicResource MaterialDesign.Brush.Primary}"/>
-                            <CheckBox Content="Show Performed" IsChecked="{Binding ShowPerformedEvents}" Margin="20,0,0,0" VerticalAlignment="Center" />
-                            <CheckBox Content="Show Pull-Out/Pull-In" IsChecked="{Binding ShowPullEvents}" Margin="10,0,0,0" VerticalAlignment="Center" />
-                            <CheckBox Content="Show Unperformed Late Pickups" IsChecked="{Binding ShowLatePickups}" Margin="10,0,0,0" VerticalAlignment="Center" />
-                        </StackPanel>
 
-                        <!-- Event DataGrid -->
-                        <DataGrid ItemsSource="{Binding AllEvents}"
-                                      AutoGenerateColumns="False" 
-                                      CanUserAddRows="False"
-                                      SelectionMode="Single"
-                                      ScrollViewer.CanContentScroll="True" 
-                                      ScrollViewer.HorizontalScrollBarVisibility="Auto" 
-                                      ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                      FrozenColumnCount="2"                               
-                                    
-                                    AlternationCount="2"
-                                    AlternatingRowBackground="White"                                    
-                                    Style="{StaticResource CustomDataGridStyle}"
-                                    ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
-                                    RowStyle="{StaticResource CustomRowStyle}"
-                                    CellStyle="{StaticResource CustomCellStyle}"
-                                    SelectionUnit="FullRow">
-                            
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Run" Binding="{Binding Run}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Event Name" Binding="{Binding Name}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Pickup" Binding="{Binding Pickup, StringFormat='{}{0:hh\\:mm}'}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Appt" Binding="{Binding Appt, StringFormat='{}{0:hh\\:mm}'}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="ETA" Binding="{Binding ETA}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Distance" Binding="{Binding Distance}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Travel" Binding="{Binding Travel}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="On" Binding="{Binding On}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Space" Binding="{Binding SpaceType}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Address" Binding="{Binding Address}" Width="*" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Comment" Binding="{Binding Comment}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Arrive" Binding="{Binding Arrive, StringFormat='{}{0:hh\\:mm}'}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Perform" Binding="{Binding Perform, StringFormat='{}{0:hh\\:mm}'}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Arrive Dist" Binding="{Binding ArriveDist}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Perform Dist" Binding="{Binding PerformDist}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Driver" Binding="{Binding Driver}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="GPS Arrive" Binding="{Binding GPSArrive}" IsReadOnly="True"/>
-                                <DataGridTemplateColumn Header="Odometer" IsReadOnly="False">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Odometer}" Padding="4,2"/>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                    <DataGridTemplateColumn.CellEditingTemplate>
-                                        <DataTemplate>
-                                            <TextBox Text="{Binding Odometer, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellEditingTemplate>
-                                </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="AuthNo" Binding="{Binding AuthNo}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Funding Source" Binding="{Binding FundingSource}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="Vehicle" Binding="{Binding Vehicle}" IsReadOnly="True"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </DockPanel>
+
+
+            <!-- SCHEDULE VIEW  -->
+            <Border BorderThickness="0,1,0,0" BorderBrush="{StaticResource MainBorderBrush}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding CurrentViewMode}" Value="ScheduleDetail">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                
+                <DockPanel>
+                    
+                    <Border DockPanel.Dock="Top" Padding="5" Background="{DynamicResource PrimaryHueMidBrush}">
+                        <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                Foreground="Black"
+                                Command="{Binding ShowMainViewCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="ArrowLeft" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                <TextBlock Text="Back to Dispatch" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </Border>
-                </TabItem>
-            </TabControl>
-        </DockPanel>
-    </Border>
 
+                    <!-- Container for Schedule View -->
+                    <ContentControl Content="{Binding CurrentScheduleViewModel}" />
+                </DockPanel>
+            </Border>
 
             <Grid Background="#80FFFFFF"
                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">

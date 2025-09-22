@@ -9,6 +9,15 @@ namespace Meditrans.Client.ViewModels
 {
     public class SchedulesTabControlViewModel : BaseViewModel
     {
+        public SchedulesViewModel ScheduleContentViewModel { get; }
+
+        public SchedulesTabControlViewModel()
+        {            
+            var scheduleService = new ScheduleService();
+            ScheduleContentViewModel = new SchedulesViewModel(scheduleService);
+   
+        }
+
         #region Translation
 
         public string Schedule => LocalizationService.Instance["Schedule"];

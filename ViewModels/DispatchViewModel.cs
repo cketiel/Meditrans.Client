@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using Meditrans.Client.Views.Schedules;
 //using CommunityToolkit.Mvvm.Input;
 //using CommunityToolkit.Mvvm.ComponentModel;
 //using CommunityToolkit.Mvvm.Input;
@@ -33,7 +34,7 @@ namespace Meditrans.Client.ViewModels
             set => SetProperty(ref _runs, value);
         }
 
-        private ObservableCollection<TripItemViewModel> _allUnscheduledTripsFromService; // Todos los viajes no programados del servicio
+        private ObservableCollection<TripItemViewModel> _allUnscheduledTripsFromService; // All unscheduled service trips
         private ObservableCollection<TripItemViewModel> _unscheduledTrips;
         private UnscheduledTripDto _selectedUnscheduledTrip;
         public ObservableCollection<TripItemViewModel> UnscheduledTrips
@@ -64,12 +65,20 @@ namespace Meditrans.Client.ViewModels
         #endregion
 
         #region Visibility and State Properties
-        private bool _isOverviewVisible;
+
+        private DispatchViewMode _currentViewMode;
+        public DispatchViewMode CurrentViewMode
+        {
+            get => _currentViewMode;
+            set => SetProperty(ref _currentViewMode, value);
+        }
+
+        /*private bool _isOverviewVisible;
         public bool IsOverviewVisible
         {
             get => _isOverviewVisible;
             set => SetProperty(ref _isOverviewVisible, value);
-        }
+        }*/
 
         private DateTime _currentDispatchDate;
         public DateTime CurrentDispatchDate
@@ -120,6 +129,35 @@ namespace Meditrans.Client.ViewModels
 
         #endregion
 
+        #region Navigation Properties
+
+        private SchedulesViewModel _currentScheduleViewModel;
+        public SchedulesViewModel CurrentScheduleViewModel
+        {
+            get => _currentScheduleViewModel;
+            set => SetProperty(ref _currentScheduleViewModel, value);
+        }
+
+        // La propiedad IsOverviewVisible ya existe, la reutilizaremos para ocultar la vista principal
+        // y en su lugar mostraremos la vista de Schedule. 
+        // Para que el nombre tenga más sentido, podrías renombrarla a "IsDetailViewVisible".
+        // Por ahora, la usaremos tal cual.
+
+        // Propiedad para el item seleccionado en el grid de Runs
+        private RunItemViewModel _selectedRun;
+        public RunItemViewModel SelectedRun
+        {
+            get => _selectedRun;
+            set => SetProperty(ref _selectedRun, value);
+        }
+
+        #endregion
+
+        #region Navigation Commands
+        public ICommand ShowScheduleViewCommand { get; private set; }
+        public ICommand ShowMainViewCommand { get; private set; }
+        //public ICommand HideScheduleViewCommand { get; private set; }
+        #endregion
 
         #region Loading Indicator
         private bool _isLoading;
@@ -159,17 +197,20 @@ namespace Meditrans.Client.ViewModels
             _masterAllEvents = new List<ScheduleDto>();
             AllEvents = new ObservableCollection<ScheduleDto>();
 
-            CurrentDispatchDate = DateTime.Today;
-            IsOverviewVisible = false;
+            CurrentDispatchDate = DateTime.Today;          
 
             // Initialize commands
-            OverviewCommand = new RelayCommandObject(ExecuteOverview);
+            
             ExportScheduleCommand = new AsyncRelayCommand(ExecuteExportScheduleAsync);
-            RefreshCommand = new AsyncRelayCommand(ExecuteRefreshAsync);
-            ShowDispatchMainCommand = new RelayCommandObject(ExecuteShowDispatchMain);
+            RefreshCommand = new AsyncRelayCommand(ExecuteRefreshAsync);          
             CancelTripCommand = new AsyncRelayCommand(ExecuteCancelTripAsync);
             EditTripCommand = new AsyncRelayCommand(ExecuteEditTripAsync);
             UncancelTripCommand = new AsyncRelayCommand(ExecuteUncancelTripAsync);
+
+            OverviewCommand = new RelayCommandObject(ExecuteShowOverview);
+            ShowDispatchMainCommand = new RelayCommandObject(ExecuteShowDispatchMain); 
+            ShowScheduleViewCommand = new RelayCommandObject(ExecuteShowScheduleView, CanExecuteShowScheduleView);
+            ShowMainViewCommand = new RelayCommandObject(ExecuteShowMainView);
 
             //CancelTripCommand = new AsyncRelayCommand<TripItemViewModel>(ExecuteCancelTripAsync);
             //EditTripCommand = new AsyncRelayCommand<TripItemViewModel>(ExecuteEditTripAsync);
@@ -182,6 +223,52 @@ namespace Meditrans.Client.ViewModels
             // Initial data loading
             //LoadAllDataAsync();
         }
+        private void ExecuteShowOverview(object parameter)
+        {
+            CurrentViewMode = DispatchViewMode.Overview;
+        }
+
+        private void ExecuteShowDispatchMain(object parameter)
+        {
+            CurrentViewMode = DispatchViewMode.Main;
+        }
+
+        private void ExecuteShowMainView(object parameter)
+        {         
+            CurrentViewMode = DispatchViewMode.Main;
+            CurrentScheduleViewModel = null; 
+        }
+
+        private bool CanExecuteShowScheduleView(object parameter)
+        {
+            return parameter is RunItemViewModel;
+        }
+
+        private async void ExecuteShowScheduleView(object parameter)
+        {
+            if (parameter is RunItemViewModel selectedRun && selectedRun.VehicleRoute?.Model != null)
+            {
+                IsLoading = true;
+                try
+                {
+                    var scheduleService = new ScheduleService();
+                    var scheduleVM = new SchedulesViewModel(scheduleService);
+
+                    await scheduleVM.InitializeAsync(this.CurrentDispatchDate, selectedRun.VehicleRoute.Model);
+
+                    CurrentScheduleViewModel = scheduleVM;
+                    CurrentViewMode = DispatchViewMode.ScheduleDetail; 
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Could not open Schedule view: {ex.Message}", "Error");
+                }
+                finally
+                {
+                    IsLoading = false;
+                }
+            }
+        }               
 
         private async Task ExecuteUncancelTripAsync(object parameter)
         {
@@ -447,16 +534,7 @@ namespace Meditrans.Client.ViewModels
             EventsSummaryText = $"{total} total events, {unperformed} unperformed";
         }
 
-        #region Command Execution Methods
-        private void ExecuteOverview(object parameter)
-        {
-            IsOverviewVisible = true;
-        }
-
-        private void ExecuteShowDispatchMain(object parameter)
-        {
-            IsOverviewVisible = false;
-        }
+        #region Command Execution Methods      
 
         private async Task ExecuteExportScheduleAsync(object parameter)
         {
