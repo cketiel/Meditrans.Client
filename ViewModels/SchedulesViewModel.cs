@@ -244,8 +244,15 @@ namespace Meditrans.Client.ViewModels
                 SelectedUnscheduledTripPoints.Clear();
 
                 var schedules = await _scheduleService.GetSchedulesAsync(SelectedVehicleRoute.Id, SelectedDate);
-                foreach (var s in schedules) Schedules.Add(s);
-
+                // To display the sequence correctly taking into account canceled trips since only the Pickup event is displayed
+                for (int i = 0; i < schedules.Count; i++)
+                {
+                    schedules[i].Sequence = i;
+                    Schedules.Add(schedules[i]);
+                }
+                
+                //foreach (var s in schedules) Schedules.Add(s);
+                
                 var trips = await _scheduleService.GetUnscheduledTripsAsync(SelectedDate);
                 var geocodingTasks = trips.Select(trip => PopulateCitiesForTravel(trip)).ToList();
                 await Task.WhenAll(geocodingTasks);

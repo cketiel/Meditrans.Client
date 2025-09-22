@@ -65,5 +65,7 @@ namespace Meditrans.Client.DTOs
 
         [ObservableProperty]
         private bool _isSelectedForMap;
+        public string? Status { get; set; }
+
     }
 }

@@ -131,7 +131,14 @@
                                         <!-- Un rojo claro -->
                                         <Setter Property="Foreground" Value="Black" />
                                     </DataTrigger>
+
+                                    <DataTrigger Binding="{Binding Status}" Value="Canceled">
+                                        <Setter Property="Foreground" Value="Red" />
+                                        
+                                    </DataTrigger>
+                                    
                                 </Style.Triggers>
+                                
                             </Style>
                         </DataGrid.RowStyle>
 
