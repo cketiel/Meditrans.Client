@@ -26,15 +26,12 @@ namespace Meditrans.Client.Views.Schedules
     {
         public ScheduleView()
         {
-            InitializeComponent();
-
-            // ELIMINAMOS CUALQUIER LÍNEA COMO: this.DataContext = new SchedulesViewModel(...)
+            InitializeComponent();          
 
             this.DataContextChanged += ScheduleView_DataContextChanged;
             this.Unloaded += ScheduleView_Unloaded;
             this.Loaded += ScheduleView_Loaded;
-
-            // Configuración del mapa (esto está bien)
+          
             try
             {
                 MapView.MapProvider = GMap.NET.MapProviders.GoogleMapProvider.Instance;
@@ -48,16 +45,16 @@ namespace Meditrans.Client.Views.Schedules
         }
 
         private async void ScheduleView_Loaded(object sender, RoutedEventArgs e)
-        {
-            // Este código ahora es SEGURO.
-            // Se ejecutará sobre el DataContext que le haya asignado su "padre"
-            // (ya sea DispatchViewModel o el menú principal).
-            if (DataContext is SchedulesViewModel viewModel && !viewModel.IsInitialized)
+        {            
+            if (DataContext is SchedulesViewModel viewModel)
             {
-                // Solo inicializa si no lo ha hecho ya.
-                // Esto permite que el menú principal siga funcionando.
-                await viewModel.InitializeAsync();
+                if (!viewModel.IsInitialized)
+                {
+                    await viewModel.InitializeAsync();
+                }
+                //viewModel.TriggerZoomToFit();
             }
+            
         }
 
         private void ScheduleView_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -99,9 +96,11 @@ namespace Meditrans.Client.Views.Schedules
             if (this.DataContext is SchedulesViewModel vm)
             {
                 vm.ZoomAndCenterRequest -= OnZoomAndCenterRequest;
+                vm.Cleanup();
             }
             this.DataContextChanged -= ScheduleView_DataContextChanged;
             this.Unloaded -= ScheduleView_Unloaded;
+            
         }
 
         private void ScheduleMarker_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

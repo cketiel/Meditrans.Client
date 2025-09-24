@@ -13,12 +13,34 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 
 namespace Meditrans.Client.ViewModels
 {
     public partial class SchedulesViewModel : ObservableObject, IDragSource, IDropTarget
     {
+        private readonly GpsService _gpsService; 
+        private DispatcherTimer _liveUpdateTimer;
+        private List<ScheduleDto> _masterSchedules = new List<ScheduleDto>();
+
+        [ObservableProperty]
+        private bool _showFilterControls = false; // Por defecto, los controles extra están ocultos.
+
+        [ObservableProperty]
+        private bool _displayPerformedEvents = true; // Por defecto, el checkbox estará marcado.
+
+        [ObservableProperty]
+        private GpsDataDto _driverLastKnownLocation;
+
+        [ObservableProperty]
+        private bool _isLiveTrackingMode = false;
+
+       
+
+        [ObservableProperty]
+        private GpsDataDto _liveGpsData;
+
         public bool IsInitialized { get; private set; } = false;
 
         [ObservableProperty]
@@ -88,6 +110,7 @@ namespace Meditrans.Client.ViewModels
             _scheduleService = scheduleService;
             _tripService = new TripService();
             _googleMapsService = new GoogleMapsService();
+            _gpsService = new GpsService();
 
             LoadInitialDataCommand = new AsyncRelayCommand(LoadInitialDataAsync);
             LoadSchedulesAndTripsCommand = new AsyncRelayCommand(LoadSchedulesAndTripsAsync, CanLoadSchedulesAndTrips);
@@ -195,7 +218,7 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
-        public async Task InitializeAsync(DateTime? date = null, VehicleRoute route = null)
+        public async Task InitializeAsync(DateTime? date = null, VehicleRoute route = null, bool isLiveTracking = false)
         {
             if (IsInitialized) return;
 
@@ -228,6 +251,23 @@ namespace Meditrans.Client.ViewModels
                     await LoadSchedulesAndTripsAsync();
                 }
 
+                if (isLiveTracking)
+                {
+                    IsLiveTrackingMode = true;
+
+                    try
+                    {
+                        // Se llama al servicio una única vez para obtener la última ubicación
+                        DriverLastKnownLocation = await _gpsService.GetLatestGpsDataAsync(_selectedVehicleRoute.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error al obtener la ubicación inicial del conductor: {ex.Message}");
+                        // No es un error fatal, la vista puede continuar sin el punto del conductor
+                    }
+                    //StartLiveTracking();
+                }
+
                 IsInitialized = true;
             }
             catch (Exception ex)
@@ -238,6 +278,96 @@ namespace Meditrans.Client.ViewModels
             {
                 IsLoading = false;
             }
+        }
+
+        partial void OnDisplayPerformedEventsChanged(bool value)
+        {
+            FilterSchedules();
+        }
+
+        /*private void FilterSchedules()
+        {
+            Schedules.Clear();
+            IEnumerable<ScheduleDto> filteredEvents = _masterSchedules;
+
+            // Si el checkbox NO está marcado, filtramos los eventos que ya fueron realizados (Performed = true)
+            if (!DisplayPerformedEvents)
+            {
+                filteredEvents = filteredEvents.Where(s => !s.Performed);
+            }
+
+            foreach (var schedule in filteredEvents)
+            {
+                Schedules.Add(schedule);
+            }
+
+            // Opcional: Si quieres re-calcular la secuencia visual después de filtrar
+            for (int i = 0; i < Schedules.Count; i++)
+            {
+                Schedules[i].Sequence = i;
+            }
+        }*/
+      
+        private void FilterSchedules()
+        {
+            Schedules.Clear();
+            IEnumerable<ScheduleDto> filteredEvents = _masterSchedules;
+
+            // To display the sequence correctly taking into account canceled trips since only the Pickup event is displayed
+            for (int i = 0; i < _masterSchedules.Count; i++)
+            {
+                _masterSchedules[i].Sequence = i;
+                
+            }
+
+            if (!DisplayPerformedEvents)
+            {
+                filteredEvents = filteredEvents.Where(s => !s.Performed);
+            }
+
+            foreach (var schedule in filteredEvents)
+            {
+                Schedules.Add(schedule);
+            }
+        }
+
+        private void StartLiveTracking()
+        {
+            _liveUpdateTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(60) // Actualizar cada 60 segundos
+            };
+            _liveUpdateTimer.Tick += async (s, e) => await UpdateLiveLocationAsync();
+            _liveUpdateTimer.Start();
+
+            // Hacemos una primera llamada inmediata para no esperar 60 segundos
+            _ = UpdateLiveLocationAsync();
+        }
+
+        private async Task UpdateLiveLocationAsync()
+        {
+            if (SelectedVehicleRoute == null) return;
+
+            try
+            {
+                var gpsData = await _gpsService.GetLatestGpsDataAsync(SelectedVehicleRoute.Id);
+                if (gpsData != null)
+                {
+                    LiveGpsData = gpsData;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching live GPS data: {ex.Message}");
+                
+            }
+        }
+
+        public void Cleanup()
+        {
+            // Método para detener el temporizador y evitar fugas de memoria
+            _liveUpdateTimer?.Stop();
+            _liveUpdateTimer = null;
         }
 
         /*private async Task InitializeAsync()
@@ -325,20 +455,24 @@ namespace Meditrans.Client.ViewModels
 
             try
             {
-                Schedules.Clear();
+                _masterSchedules.Clear();
+                //Schedules.Clear();
                 UnscheduledTrips.Clear();
                 SelectedUnscheduledTripPoints.Clear();
 
                 var schedules = await _scheduleService.GetSchedulesAsync(SelectedVehicleRoute.Id, SelectedDate);
+                _masterSchedules.AddRange(schedules);
                 // To display the sequence correctly taking into account canceled trips since only the Pickup event is displayed
-                for (int i = 0; i < schedules.Count; i++)
+                /*for (int i = 0; i < schedules.Count; i++)
                 {
                     schedules[i].Sequence = i;
                     Schedules.Add(schedules[i]);
-                }
-                
+                }*/
+
+                FilterSchedules();
+
                 //foreach (var s in schedules) Schedules.Add(s);
-                
+
                 var trips = await _scheduleService.GetUnscheduledTripsAsync(SelectedDate);
                 var geocodingTasks = trips.Select(trip => PopulateCitiesForTravel(trip)).ToList();
                 await Task.WhenAll(geocodingTasks);
@@ -358,6 +492,27 @@ namespace Meditrans.Client.ViewModels
             }
 
         }
+        public void TriggerZoomToFit()
+        {
+            var allPoints = new List<PointLatLng>();
+
+            if (Schedules != null)
+            {
+                allPoints.AddRange(Schedules.Select(s => new PointLatLng(s.ScheduleLatitude, s.ScheduleLongitude)));
+            }
+
+          
+            // if (DriverLastKnownLocation != null)
+            // {
+            //     allPoints.Add(new PointLatLng(DriverLastKnownLocation.Latitude, DriverLastKnownLocation.Longitude));
+            // }
+
+            if (allPoints.Any())
+            {
+                ZoomAndCenterOnPoints(allPoints);
+            }
+        }
+
 
         private async Task PopulateCitiesForTravel(UnscheduledTripDto trip)
         {
