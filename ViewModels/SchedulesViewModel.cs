@@ -791,7 +791,13 @@ namespace Meditrans.Client.ViewModels
                 allPoints.Add(new PointLatLng(SelectedUnscheduledTrip.DropoffLatitude, SelectedUnscheduledTrip.DropoffLongitude));
             }
 
-            // 3. Call the existing method that calculates the rectangle and raises the event
+            // 3. If we have the driver's location, we add it to the list for the zoom calculation.
+            if (DriverLastKnownLocation != null)
+            {
+                allPoints.Add(new PointLatLng(DriverLastKnownLocation.Latitude, DriverLastKnownLocation.Longitude));
+            }
+
+            // 4. Call the existing method that calculates the rectangle and raises the event
             ZoomAndCenterOnPoints(allPoints);
         }
 

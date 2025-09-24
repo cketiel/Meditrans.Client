@@ -22,6 +22,7 @@
         <helpers:BooleanToVisibilityConverter x:Key="BoolToVis" />
         <converters:StatusToVisibilityConverter x:Key="StatusToVisibilityConverter" />
         <converters:DirectionToAngleConverter x:Key="DirectionToAngleConverter"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVis"/>
 
         <Style x:Key="UnscheduledTripRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
             <Setter Property="Background" Value="{StaticResource EvenRowBackgroundBrush}"/>
@@ -438,6 +439,82 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
+
+
+                            <Canvas>
+                                <!-- En Meditrans.Client.Views.Schedules/ScheduleView.xaml, dentro del Canvas -->
+
+                                <!-- Este es el Grid de posicionamiento principal. Lo dejamos sin cambios. -->
+                                <Grid Visibility="{Binding DriverLastKnownLocation, Converter={StaticResource NullToVis}}">
+                                    <Canvas.Left>
+                                        <MultiBinding Converter="{StaticResource LocationToPointConverter}">
+                                            <Binding ElementName="MapView"/>
+                                            <Binding Path="DriverLastKnownLocation.Latitude"/>
+                                            <Binding Path="DriverLastKnownLocation.Longitude"/>
+                                            <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}"/>
+                                            <Binding Path="Zoom" ElementName="MapView"/>
+                                            <Binding Path="Position" ElementName="MapView"/>
+                                        </MultiBinding>
+                                    </Canvas.Left>
+                                    <Canvas.Top>
+                                        <MultiBinding Converter="{StaticResource LocationToPointConverter}" ConverterParameter="Y">
+                                            <Binding ElementName="MapView"/>
+                                            <Binding Path="DriverLastKnownLocation.Latitude"/>
+                                            <Binding Path="DriverLastKnownLocation.Longitude"/>
+                                            <Binding Path="ActualHeight" RelativeSource="{RelativeSource Self}"/>
+                                            <Binding Path="Zoom" ElementName="MapView"/>
+                                            <Binding Path="Position" ElementName="MapView"/>
+                                        </MultiBinding>
+                                    </Canvas.Top>
+
+                                    
+                                    <Grid>
+                                        <Grid.RenderTransform>
+                                            <!-- El centro de rotación es la mitad del tamaño de nuestro nuevo marcador (32/2 = 16) -->
+                                            <RotateTransform Angle="{Binding DriverLastKnownLocation.Direction, Converter={StaticResource DirectionToAngleConverter}}" CenterX="16" CenterY="16" />
+                                        </Grid.RenderTransform>
+
+                                        <!-- Este es el nuevo marcador visual. Le añadimos una sombra para que destaque. -->
+                                        <Grid Width="32" Height="32">
+                                            <Grid.Effect>
+                                                <DropShadowEffect ShadowDepth="2" BlurRadius="4" Opacity="0.5"/>
+                                            </Grid.Effect>
+
+                                            <!-- ToolTip va en el contenedor principal del marcador -->
+                                            <Grid.ToolTip>
+                                                <ToolTip>
+                                                    <StackPanel>
+                                                        <TextBlock FontWeight="Bold" Text="{Binding DataContext.SelectedVehicleRoute.Name, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                                        <TextBlock>
+                        <Run Text="Last update:"/>
+                        <Run Text="{Binding DataContext.DriverLastKnownLocation.DateTime, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat='{}{0:hh:mm:ss tt}'}"/>
+                                                        </TextBlock>
+                                                        <TextBlock>
+                        <Run Text="Speed:"/>
+                        <Run Text="{Binding DataContext.DriverLastKnownLocation.Speed, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat='{}{0:N1} mph'}"/>
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </ToolTip>
+                                            </Grid.ToolTip>
+
+                                            <!-- 1. El fondo circular -->
+                                            <Ellipse Fill="DodgerBlue" Stroke="White" StrokeThickness="2"/>
+
+                                            <!-- 2. La flecha superpuesta. Kind="ArrowUp" es nuestra base de 0 grados (Norte) -->
+                                            <materialDesign:PackIcon 
+            Kind="ArrowUp" 
+            Foreground="White"
+            Width="20" 
+            Height="20"
+            HorizontalAlignment="Center" 
+            VerticalAlignment="Center" />
+                                        </Grid>
+                                        
+                                    </Grid>
+                                    
+                                </Grid>
+                            </Canvas>
+
                         </Grid>
                     </Grid>
 

@@ -1,5 +1,7 @@
-﻿using System;
+﻿using DocumentFormat.OpenXml.Math;
+using System;
 using System.Globalization;
+using System.Reflection.Metadata;
 using System.Windows.Data;
 
 namespace Meditrans.Client.Converters
@@ -11,6 +13,7 @@ namespace Meditrans.Client.Converters
             string direction = value as string;
             if (string.IsNullOrEmpty(direction)) return 0.0;
 
+            // Converts the cardinal direction(N, NE, E, SE, S, SW, W, NW) to an angle in degrees.
             switch (direction.ToUpper())
             {
                 case "N": return 0.0;
