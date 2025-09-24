@@ -235,10 +235,10 @@
                                 </DataGrid.Columns>
                             </DataGrid>
                         </TabItem>
-                        <TabItem Header="{Binding HeaderSelect}">
-                            <!-- Contenido para la pestaña Select -->
+                        <!--<TabItem Header="{Binding HeaderSelect}">
+                            
                             <TextBlock Text="Contenido de la pestaña Select (a definir)" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                        </TabItem>
+                        </TabItem>-->
                     </TabControl>
                 </DockPanel>
             <!--</Border>-->

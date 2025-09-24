@@ -66,7 +66,7 @@ namespace Meditrans.Client.ViewModels
         private readonly GoogleMapsService _googleMapsService;
 
         [ObservableProperty]
-        private DateTime _selectedDate = DateTime.Today;
+        private DateTime _selectedDate = DateTime.Today.AddDays(1);
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(LoadSchedulesAndTripsCommand))] 
@@ -131,6 +131,7 @@ namespace Meditrans.Client.ViewModels
 
             InitializeColumns();
             //_ = InitializeAsync();
+         
         }
 
         private async Task ExecuteUnperformEventAsync(ScheduleDto schedule)
