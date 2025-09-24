@@ -252,6 +252,7 @@ namespace Meditrans.Client.ViewModels
                     var scheduleVM = new SchedulesViewModel(scheduleService);
 
                     scheduleVM.ShowFilterControls = true;
+                    scheduleVM.AllowUnperformAction = true;
 
                     await scheduleVM.InitializeAsync(this.CurrentDispatchDate, selectedRun.VehicleRoute.Model, isLiveTracking: true);
 

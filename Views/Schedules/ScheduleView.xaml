@@ -20,9 +20,11 @@
         <converters:ColumnVisibilityConverter x:Key="ColumnVisibilityConverter"/>
         <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
         <helpers:BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <converters:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis" />
         <converters:StatusToVisibilityConverter x:Key="StatusToVisibilityConverter" />
         <converters:DirectionToAngleConverter x:Key="DirectionToAngleConverter"/>
         <converters:NullToVisibilityConverter x:Key="NullToVis"/>
+        <converters:NullToBooleanConverter x:Key="NullToBoolConverter"/>
         
         <SolidColorBrush x:Key="StoppedBlueBrush" Color="#A9D0F5"/>
         <SolidColorBrush x:Key="NormalSpeedBlueBrush" Color="#0078D7"/>
@@ -166,21 +168,95 @@
                                             </DataGridTemplateColumn.HeaderTemplate>
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
-                                                    <Button Command="{Binding Data.CancelRouteCommand, Source={StaticResource vmProxy}}" VerticalAlignment="Center" ToolTip="{Binding Data.UnscheduleToolTip, Source={StaticResource vmProxy}}">
-                                                        <Button.Style>
-                                                            <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignToolButton}">
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding Name}" Value="Pull-out">
-                                                                        <Setter Property="IsEnabled" Value="False" />
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding Name}" Value="Pull-in">
-                                                                        <Setter Property="IsEnabled" Value="False" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </Button.Style>
-                                                        <materialDesign:PackIcon Kind="SortClockAscendingOutline" Width="20" Height="20" Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
-                                                    </Button>
+                                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                                                        <!-- CONTAINER FOR STATE FLAG -->
+                                                        <!-- This StackPanel will only be visible if we are in the Dispatch context -->
+                                                        <StackPanel Orientation="Horizontal"
+                                                                    Visibility="{Binding DataContext.AllowUnperformAction, 
+                                                                    RelativeSource={RelativeSource AncestorType=DataGrid}, 
+                                                                    Converter={StaticResource BoolToVis}}">
+
+                                                            <!-- Green Flag (Arrive) -->
+                                                            <!-- Visible only if the 'Arrive' property has a value (not null) -->
+                                                            <materialDesign:PackIcon Kind="Flag" 
+                                                                 Foreground="Green"
+                                                                 ToolTip="Arrive"
+                                                                 Margin="2,6"
+                                                                 Visibility="{Binding Arrive, Converter={StaticResource NullToVis}}"/>
+
+                                                            <!-- Purple Flag (Perform) -->
+                                                            <!-- Visible only if the 'Perform' property has a value (not null) -->
+                                                            <materialDesign:PackIcon Kind="Flag" 
+                                                                 Foreground="Purple"
+                                                                 ToolTip="Perform"
+                                                                 Margin="2,6"
+                                                                 Visibility="{Binding Perform, Converter={StaticResource NullToVis}}"/>
+                                                        </StackPanel>
+
+
+                                                        <!-- We use a Grid as a container so that the buttons overlap in the same space -->
+                                                        <Grid Margin="5,0,0,0">
+                                                            <!-- BUTTON 1: "Unschedule" (Visible if the event is NOT done) -->
+                                                            <Button Command="{Binding Data.CancelRouteCommand, Source={StaticResource vmProxy}}" 
+                                                                    VerticalAlignment="Center" 
+                                                                    ToolTip="{Binding Data.UnscheduleToolTip, Source={StaticResource vmProxy}}"
+                                                                    Visibility="{Binding Performed, Converter={StaticResource InverseBoolToVis}}">
+                                                                <Button.Style>
+                                                                    <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignToolButton}">
+                                                                        <Style.Triggers>
+
+                                                                            <DataTrigger Binding="{Binding Name}" Value="Pull-out">
+                                                                                <Setter Property="IsEnabled" Value="False" />
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding Name}" Value="Pull-in">
+                                                                                <Setter Property="IsEnabled" Value="False" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Button.Style>
+                                                                <materialDesign:PackIcon Kind="SortClockAscendingOutline" Width="20" Height="20" Foreground="{DynamicResource MaterialDesign.Brush.Primary}" />
+                                                            </Button>
+
+                                                            <!-- BUTTON 2: "Un-perform" (Visible if the event IS performed) -->
+                                                            <Button Command="{Binding Data.UnperformEventCommand, Source={StaticResource vmProxy}}"
+                                                                CommandParameter="{Binding}"
+                                                                VerticalAlignment="Center" 
+                                                                ToolTip="Un-arrive/perform">
+                                                                <Button.Style>
+                                                                    <!-- We combine the base style with our visibility and state logic -->
+                                                                    <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignToolButton}">
+                                                                        <!-- By default the button is hidden -->
+                                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                                        <Style.Triggers>
+                                                                            <!-- Logic to disable it in Pull-in/out -->
+                                                                            <DataTrigger Binding="{Binding Name}" Value="Pull-out">
+                                                                                <Setter Property="IsEnabled" Value="False" />
+                                                                            </DataTrigger>
+                                                                            <DataTrigger Binding="{Binding Name}" Value="Pull-in">
+                                                                                <Setter Property="IsEnabled" Value="False" />
+                                                                            </DataTrigger>
+
+                                                                            <!-- CONDITIONAL VISIBILITY LOGIC -->
+                                                                            <!-- The button will only be visible if ALL of the following conditions are true -->
+                                                                            <MultiDataTrigger>
+                                                                                <MultiDataTrigger.Conditions>
+                                                                                    <!-- Condition 1: The event must be perform -->
+                                                                                    <Condition Binding="{Binding Performed}" Value="True" />
+                                                                                    <!-- Condition 2: The action must be allowed by the ViewModel -->                                                                                   
+                                                                                    <Condition Binding="{Binding DataContext.AllowUnperformAction, RelativeSource={RelativeSource AncestorType=DataGrid}}" Value="True" />
+                                                                                </MultiDataTrigger.Conditions>
+                                                                                <!-- If both conditions are met, we make the button visible -->
+                                                                                <Setter Property="Visibility" Value="Visible" />
+                                                                            </MultiDataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Button.Style>
+                                                                <materialDesign:PackIcon Kind="UndoVariant" Width="20" Height="20" Foreground="OrangeRed" />
+                                                            </Button>
+                                                        </Grid>
+
+                                                    </StackPanel>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
@@ -210,6 +286,11 @@
                                                                         <DataTrigger Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Dropoff}">
                                                                             <Setter Property="Background" Value="Red"/>
                                                                         </DataTrigger>
+
+                                                                        <DataTrigger Binding="{Binding Arrive, Converter={StaticResource NullToBoolConverter}}" Value="True">
+                                                                            <Setter Property="Background" Value="Purple" />
+                                                                        </DataTrigger>
+                                                                        
                                                                         <MultiDataTrigger>
                                                                             <MultiDataTrigger.Conditions>
                                                                                 <Condition Binding="{Binding IsSelectedForMap}" Value="True"/>
@@ -362,6 +443,9 @@
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding EventType}" Value="{x:Static models:ScheduleEventType.Dropoff}">
                                                                 <Setter Property="Background" Value="Red"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Arrive, Converter={StaticResource NullToBoolConverter}}" Value="True">
+                                                                <Setter Property="Background" Value="Purple" />
                                                             </DataTrigger>
                                                             <MultiDataTrigger>
                                                                 <MultiDataTrigger.Conditions>

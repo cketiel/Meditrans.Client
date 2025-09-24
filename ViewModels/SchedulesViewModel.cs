@@ -25,6 +25,9 @@ namespace Meditrans.Client.ViewModels
         private List<ScheduleDto> _masterSchedules = new List<ScheduleDto>();
 
         [ObservableProperty]
+        private bool _allowUnperformAction = false;
+
+        [ObservableProperty]
         private bool _showFilterControls = false; 
 
         [ObservableProperty]
@@ -104,6 +107,8 @@ namespace Meditrans.Client.ViewModels
 
         #endregion
 
+        public IAsyncRelayCommand UnperformEventCommand { get; }
+
         public SchedulesViewModel(ScheduleService scheduleService)
         {
             //UserConfigService _userConfigService = new UserConfigService();
@@ -122,8 +127,48 @@ namespace Meditrans.Client.ViewModels
             UncancelTripCommand = new AsyncRelayCommand<object>(ExecuteUncancelTripAsync);
             EditTripCommand = new AsyncRelayCommand<object>(ExecuteEditTripAsync);
 
+            UnperformEventCommand = new AsyncRelayCommand<ScheduleDto>(ExecuteUnperformEventAsync);
+
             InitializeColumns();
             //_ = InitializeAsync();
+        }
+
+        private async Task ExecuteUnperformEventAsync(ScheduleDto schedule)
+        {
+            if (schedule == null) return;
+
+            // Show a confirmation dialog
+            var result = MessageBox.Show(
+                "Are you sure you want to undo the performed status for this event?",
+                "Confirm Un-perform",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.No) return;
+
+            try
+            {
+                // Apply undo logic
+                schedule.Arrive = null;
+                schedule.ArriveDist = null;
+                schedule.GPSArrive = null;
+                schedule.Perform = null;
+                schedule.PerformDist = null;
+                schedule.Performed = false;
+              
+                await _scheduleService.UpdateAsync(schedule.Id, schedule);
+               
+                int eventIndex = Schedules.IndexOf(schedule);
+                if (eventIndex >= 0)
+                {
+                    
+                    await LoadSchedulesAndTripsAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error undoing the event status: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         public IAsyncRelayCommand LoadInitialDataCommand { get; }
