@@ -67,5 +67,12 @@ namespace Meditrans.Client.DTOs
         private bool _isSelectedForMap;
         public string? Status { get; set; }
 
+        /// <summary>
+        /// Index for visual scrolling of markers on the map that overlap.
+        /// 0 = no scroll, 1 = first scroll, 2 = second, etc.
+        /// </summary>
+        [ObservableProperty]
+        private int _visualOffsetIndex = 0;
+
     }
 }

@@ -374,6 +374,8 @@ namespace Meditrans.Client.ViewModels
             {
                 Schedules.Add(schedule);
             }
+
+            CalculateVisualOffsets();
         }
 
         private void StartLiveTracking()
@@ -836,6 +838,32 @@ namespace Meditrans.Client.ViewModels
             }
           
             FilterSchedules();
+        }
+
+        private void CalculateVisualOffsets()
+        {         
+            foreach (var schedule in Schedules)
+            {
+                schedule.VisualOffsetIndex = 0;
+            }
+
+
+            // We group events by their coordinates and filter out only groups with more than one member (overlaps).
+            var overlappingGroups = Schedules
+                .GroupBy(s => (s.ScheduleLatitude, s.ScheduleLongitude))
+                .Where(g => g.Count() > 1);
+
+            foreach (var group in overlappingGroups)
+            {
+                int index = 0;
+                // We assign an incremental index to each event within the group.
+                // Sorting by sequence ensures that scrolling is consistent.
+                foreach (var scheduleInGroup in group.OrderBy(s => s.Sequence))
+                {
+                    scheduleInGroup.VisualOffsetIndex = index;
+                    index++;
+                }
+            }
         }
 
         #region Drag and Drop Implementation

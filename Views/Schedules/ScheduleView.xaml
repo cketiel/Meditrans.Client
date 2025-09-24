@@ -10,6 +10,7 @@
              xmlns:models="clr-namespace:Meditrans.Client.Models"
              xmlns:gmaps="clr-namespace:GMap.NET.WindowsPresentation;assembly=GMap.NET.WindowsPresentation"
              xmlns:gong="clr-namespace:GongSolutions.Wpf.DragDrop;assembly=GongSolutions.Wpf.DragDrop"
+             
              mc:Ignorable="d" 
              xmlns:vm="clr-namespace:Meditrans.Client.ViewModels"
              d:DesignHeight="450" d:DesignWidth="800">
@@ -406,6 +407,7 @@
                                                     <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}"/>
                                                     <Binding Path="Zoom" ElementName="MapView"/>
                                                     <Binding Path="Position" ElementName="MapView"/>
+                                                    <Binding Path="VisualOffsetIndex" />
                                                 </MultiBinding>
                                             </Setter.Value>
                                         </Setter>
@@ -418,6 +420,7 @@
                                                     <Binding Path="ActualHeight" RelativeSource="{RelativeSource Self}"/>
                                                     <Binding Path="Zoom" ElementName="MapView"/>
                                                     <Binding Path="Position" ElementName="MapView"/>
+                                                    <Binding Path="VisualOffsetIndex" />
                                                 </MultiBinding>
                                             </Setter.Value>
                                         </Setter>
@@ -534,6 +537,7 @@
                                                     <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}"/>
                                                     <Binding Path="Zoom" ElementName="MapView"/>
                                                     <Binding Path="Position" ElementName="MapView"/>
+                                                    <Binding Path="VisualOffsetIndex" />
                                                 </MultiBinding>
                                             </Setter.Value>
                                         </Setter>
@@ -546,6 +550,7 @@
                                                     <Binding Path="ActualHeight" RelativeSource="{RelativeSource Self}"/>
                                                     <Binding Path="Zoom" ElementName="MapView"/>
                                                     <Binding Path="Position" ElementName="MapView"/>
+                                                    <Binding Path="VisualOffsetIndex" />
                                                 </MultiBinding>
                                             </Setter.Value>
                                         </Setter>
@@ -583,6 +588,7 @@
                                             <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}"/>
                                             <Binding Path="Zoom" ElementName="MapView"/>
                                             <Binding Path="Position" ElementName="MapView"/>
+                                            
                                         </MultiBinding>
                                     </Canvas.Left>
                                     <Canvas.Top>
@@ -593,6 +599,7 @@
                                             <Binding Path="ActualHeight" RelativeSource="{RelativeSource Self}"/>
                                             <Binding Path="Zoom" ElementName="MapView"/>
                                             <Binding Path="Position" ElementName="MapView"/>
+                                            
                                         </MultiBinding>
                                     </Canvas.Top>
 
