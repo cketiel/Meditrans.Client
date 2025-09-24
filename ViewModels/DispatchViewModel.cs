@@ -11,9 +11,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using Meditrans.Client.Views.Schedules;
-//using CommunityToolkit.Mvvm.Input;
-//using CommunityToolkit.Mvvm.ComponentModel;
-//using CommunityToolkit.Mvvm.Input;
 
 namespace Meditrans.Client.ViewModels
 {
@@ -517,7 +514,7 @@ namespace Meditrans.Client.ViewModels
             {
                 filtered = filtered.Where(e => !e.Performed);
             }
-            // Aquí puedes añadir la lógica para los otros checkboxes cuando sea necesario
+            // Aquí se puede añadir la lógica para los otros checkboxes cuando sea necesario
             // if (!ShowPullEvents) { ... }
             // if (ShowLatePickups) { ... }
 

@@ -25,10 +25,10 @@ namespace Meditrans.Client.ViewModels
         private List<ScheduleDto> _masterSchedules = new List<ScheduleDto>();
 
         [ObservableProperty]
-        private bool _showFilterControls = false; // Por defecto, los controles extra están ocultos.
+        private bool _showFilterControls = false; 
 
         [ObservableProperty]
-        private bool _displayPerformedEvents = true; // Por defecto, el checkbox estará marcado.
+        private bool _displayPerformedEvents = true; //By default, the checkbox will be checked.
 
         [ObservableProperty]
         private GpsDataDto _driverLastKnownLocation;
@@ -230,15 +230,14 @@ namespace Meditrans.Client.ViewModels
                 if (date.HasValue)
                 {
                     //SelectedDate = date.Value;
-                    _selectedDate = date.Value; // Asignación directa al campo para evitar que se dispare OnSelectedDateChanged
-                    OnPropertyChanged(nameof(SelectedDate)); // Notificar a la UI manualmente
+                    _selectedDate = date.Value; 
+                    OnPropertyChanged(nameof(SelectedDate)); 
                 }
 
                 if (route != null)
-                {
-                    // Asignación directa al campo para evitar OnSelectedVehicleRouteChanged
+                {                   
                     _selectedVehicleRoute = VehicleRoutes.FirstOrDefault(r => r.Id == route.Id) ?? VehicleRoutes.FirstOrDefault();
-                    OnPropertyChanged(nameof(SelectedVehicleRoute)); // Notificar a la UI manualmente
+                    OnPropertyChanged(nameof(SelectedVehicleRoute)); 
                 }
                 else if (VehicleRoutes.Any() && SelectedVehicleRoute == null)
                 {
@@ -255,17 +254,18 @@ namespace Meditrans.Client.ViewModels
                 {
                     IsLiveTrackingMode = true;
 
-                    try
+                    StartLiveTracking();
+
+                    /*try
                     {
-                        // Se llama al servicio una única vez para obtener la última ubicación
+                        
                         DriverLastKnownLocation = await _gpsService.GetLatestGpsDataAsync(_selectedVehicleRoute.Id);
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Error al obtener la ubicación inicial del conductor: {ex.Message}");
-                        // No es un error fatal, la vista puede continuar sin el punto del conductor
-                    }
-                    //StartLiveTracking();
+                        
+                    }*/                   
                 }
 
                 IsInitialized = true;
@@ -335,12 +335,15 @@ namespace Meditrans.Client.ViewModels
         {
             _liveUpdateTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromSeconds(60) // Actualizar cada 60 segundos
+                // Defines the update interval.
+                Interval = TimeSpan.FromSeconds(15) // Update every 15 seconds
             };
+            // Subscribe the Tick event to our update method.
             _liveUpdateTimer.Tick += async (s, e) => await UpdateLiveLocationAsync();
+            // Start the timer.
             _liveUpdateTimer.Start();
 
-            // Hacemos una primera llamada inmediata para no esperar 60 segundos
+            // Make an immediate first call so as not to wait 15 seconds
             _ = UpdateLiveLocationAsync();
         }
 
@@ -353,7 +356,8 @@ namespace Meditrans.Client.ViewModels
                 var gpsData = await _gpsService.GetLatestGpsDataAsync(SelectedVehicleRoute.Id);
                 if (gpsData != null)
                 {
-                    LiveGpsData = gpsData;
+                    // CommunityToolkit notifies the UI, and the marker moves.
+                    DriverLastKnownLocation = gpsData;
                 }
             }
             catch (Exception ex)
@@ -365,23 +369,15 @@ namespace Meditrans.Client.ViewModels
 
         public void Cleanup()
         {
-            // Método para detener el temporizador y evitar fugas de memoria
+            // Stops the timer and frees resources to prevent memory leaks.
             _liveUpdateTimer?.Stop();
+            if (_liveUpdateTimer != null)
+            {
+                _liveUpdateTimer.Tick -= async (s, e) => await UpdateLiveLocationAsync();
+            }
             _liveUpdateTimer = null;
         }
-
-        /*private async Task InitializeAsync()
-        {
-            try
-            {
-                await LoadInitialDataAsync();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error loading initial data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                Console.WriteLine($"Error loading initial data: {ex.Message}");
-            }
-        }*/
+        
         // Load initial data (route and group lists)
 
         private async Task LoadInitialDataListsAsync()
@@ -439,9 +435,7 @@ namespace Meditrans.Client.ViewModels
         }
 
         public async Task LoadDataAsync()
-        {
-            // Si ya hay una ruta seleccionada, podemos llamar directamente al comando
-            // que carga las grillas principales.
+        {          
             if (LoadSchedulesAndTripsCommand.CanExecute(null))
             {
                 await LoadSchedulesAndTripsCommand.ExecuteAsync(null);
@@ -673,7 +667,7 @@ namespace Meditrans.Client.ViewModels
         // Observe changes to automatically refresh data
         partial void OnSelectedDateChanged(DateTime value)
         {
-            // Solo recargar si el VM ya fue inicializado por completo.
+            // Only reload if the VM has already been fully initialized.
             if (IsInitialized && CanLoadSchedulesAndTrips())
                 _ = LoadSchedulesAndTripsAsync();
 
@@ -683,7 +677,7 @@ namespace Meditrans.Client.ViewModels
 
         partial void OnSelectedVehicleRouteChanged(VehicleRoute value)
         {
-            // Solo recargar si el VM ya fue inicializado por completo.
+            // Only reload if the VM has already been fully initialized.
             if (IsInitialized && CanLoadSchedulesAndTrips())
                 _ = LoadSchedulesAndTripsAsync();
 

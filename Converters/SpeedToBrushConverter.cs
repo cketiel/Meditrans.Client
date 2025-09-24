@@ -4,33 +4,50 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
 
 namespace Meditrans.Client.Converters
 {
-    public class SpeedToBrushConverter : IValueConverter
+    // We inherit from Freezable so we can instantiate it and configure it in the XAML resources.
+    public class SpeedToBrushConverter : Freezable, IValueConverter
     {
+        // Properties to configure speed thresholds
+        public double StoppedThreshold { get; set; } = 2.0; // Speed ​​below which it is considered stopped
+        public double SpeedingThreshold { get; set; } = 65.0; // Speed ​​above which is considered speeding
+
+        // Properties to configure colors (Brushes)
+        public Brush StoppedBrush { get; set; } = Brushes.SlateGray;
+        public Brush NormalSpeedBrush { get; set; } = Brushes.DodgerBlue;
+        public Brush SpeedingBrush { get; set; } = Brushes.Red;
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is double speed)
             {
-                // If the speed is greater than, say, 2 mph, it is in motion.
-                if (speed > 2.0)
+                if (speed >= SpeedingThreshold)
                 {
-                    return new SolidColorBrush(Colors.DodgerBlue); // On the move
+                    return SpeedingBrush; // Speeding
                 }
-                else
+                if (speed > StoppedThreshold)
                 {
-                    return new SolidColorBrush(Colors.SlateGray); // Stopped
+                    return NormalSpeedBrush; // normal speed
                 }
+                return StoppedBrush; // Stopped or moving very slowly
             }
-            return new SolidColorBrush(Colors.SlateGray); // Default value
+            // Returns the brush stopped if the value is invalid
+            return StoppedBrush;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
+        }
+     
+        protected override Freezable CreateInstanceCore()
+        {
+            return new SpeedToBrushConverter();
         }
     }
 }
