@@ -10,6 +10,8 @@
              xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
              xmlns:converters="clr-namespace:Meditrans.Client.Converters"
              xmlns:schedules="clr-namespace:Meditrans.Client.Views.Schedules"
+             xmlns:gmaps="clr-namespace:GMap.NET.WindowsPresentation;assembly=GMap.NET.WindowsPresentation"
+             
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1200">
 
@@ -18,6 +20,9 @@
         <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
         <helpers:BooleanToVisibilityConverter x:Key="BoolToVis" />
         <converters:StatusToVisibilityConverter x:Key="StatusToVisibilityConverter" />
+        <converters:LocationToPointConverter x:Key="LocationToPointConverter"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVis"/>
+        <converters:DirectionToAngleConverter x:Key="DirectionToAngleConverter"/>
 
         <DataTemplate DataType="{x:Type viewModels:SchedulesViewModel}">
             <schedules:ScheduleView />
@@ -485,12 +490,12 @@
 
                             <!-- Information Headband -->
                             <TextBlock Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,0,0,0" Background="{DynamicResource MaterialDesign.Brush.Primary}" Foreground="White" TextWrapping="Wrap" FontSize="26">
-                        <Run Text="Vehicles: "/><Run Text="{Binding TotalVehicles}" FontWeight="Bold"/>
-                        <Run Text="  Clear: "/><Run Text="{Binding ClearVehicles}" FontWeight="Bold"/>
-                        <Run Text="  Loaded: "/><Run Text="{Binding LoadedVehicles}" FontWeight="Bold"/>
-                        <Run Text="  En Route: "/><Run Text="{Binding EnRouteVehicles}" FontWeight="Bold"/>
-                        <Run Text="  On Break: "/><Run Text="{Binding OnBreakVehicles}" FontWeight="Bold"/>
-                        <Run Text="  Off Line: "/><Run Text="{Binding OfflineVehicles}" FontWeight="Bold"/>
+                                <Run Text="Vehicles: "/><Run Text="{Binding TotalVehicles}" FontWeight="Bold"/>
+                                <Run Text="  Clear: "/><Run Text="{Binding ClearVehicles}" FontWeight="Bold"/>
+                                <Run Text="  Loaded: "/><Run Text="{Binding LoadedVehicles}" FontWeight="Bold"/>
+                                <Run Text="  En Route: "/><Run Text="{Binding EnRouteVehicles}" FontWeight="Bold"/>
+                                <Run Text="  On Break: "/><Run Text="{Binding OnBreakVehicles}" FontWeight="Bold"/>
+                                <Run Text="  Off Line: "/><Run Text="{Binding OfflineVehicles}" FontWeight="Bold"/>
                             </TextBlock>
 
 
@@ -500,7 +505,126 @@
                     <!-- Tab Control for Map and Events -->
                     <TabControl Margin="0 -15 0 0">
                         <TabItem Header="Map Overview">
-                            <TextBlock Text="El contenido del mapa se implementará más adelante." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16" />
+                            
+                            <Grid ClipToBounds="True">
+                                
+                                <gmaps:GMapControl x:Name="OverviewMapView" 
+                                       MinZoom="2" MaxZoom="20"
+                                       Position="{Binding OverviewMapCenter, Mode=TwoWay}"
+                                       Zoom="{Binding OverviewMapZoom, Mode=TwoWay}" />
+
+                                <!-- (Runs) -->
+                                <ItemsControl ItemsSource="{Binding Runs}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <Canvas />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+
+                                    <ItemsControl.ItemContainerStyle>
+                                        <Style TargetType="ContentPresenter">
+                                            <Setter Property="Canvas.Left">
+                                                <Setter.Value>
+                                                    <MultiBinding Converter="{StaticResource LocationToPointConverter}">
+                                                        <Binding ElementName="OverviewMapView"/>
+                                                        <Binding Path="LastKnownLocation.Latitude"/>
+                                                        <Binding Path="LastKnownLocation.Longitude"/>
+                                                        <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}"/>
+                                                        <Binding Path="Zoom" ElementName="OverviewMapView"/>
+                                                        <Binding Path="Position" ElementName="OverviewMapView"/>
+                                                    </MultiBinding>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Setter Property="Canvas.Top">
+                                                <Setter.Value>
+                                                    <MultiBinding Converter="{StaticResource LocationToPointConverter}" ConverterParameter="Y">
+                                                        <Binding ElementName="OverviewMapView"/>
+                                                        <Binding Path="LastKnownLocation.Latitude"/>
+                                                        <Binding Path="LastKnownLocation.Longitude"/>
+                                                        <Binding Path="ActualHeight" RelativeSource="{RelativeSource Self}"/>
+                                                        <Binding Path="Zoom" ElementName="OverviewMapView"/>
+                                                        <Binding Path="Position" ElementName="OverviewMapView"/>
+                                                    </MultiBinding>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ItemsControl.ItemContainerStyle>
+
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <!-- The marker is only visible if we have location data -->
+                                            <Grid Visibility="{Binding LastKnownLocation, Converter={StaticResource NullToVis}}">
+                                                <!-- Container that rotates to point in the right direction -->
+                                                <Grid>
+                                                    <Grid.RenderTransform>
+                                                        <RotateTransform Angle="{Binding LastKnownLocation.Direction, Converter={StaticResource DirectionToAngleConverter}}" 
+                                                 CenterX="16" CenterY="16" />
+                                                    </Grid.RenderTransform>
+
+                                                    <!-- The scoreboard visual: blue circle with white arrow -->
+                                                    <Grid Width="32" Height="32">
+                                                        <Grid.ToolTip>
+                                                            <ToolTip>
+                                                                <StackPanel MinWidth="180">
+                                                                    
+                                                                    <TextBlock>
+                                                                        <Run Text="Driver:" FontWeight="Bold"/>                                                                        
+                                                                        <Run Text="{Binding DriverFullName, Mode=OneWay}"/>
+                                                                    </TextBlock>
+                                                                    <TextBlock>
+                                                                        <Run Text="Run:" FontWeight="Bold"/>
+                                                                        <Run Text="{Binding Name, Mode=OneWay}"/>
+                                                                    </TextBlock>
+                                                                    <Separator Margin="0,4"/>
+                                                                    <TextBlock>
+                                                                        <Run Text="Last Event:" FontWeight="Bold"/>
+                                                                        <Run Text="{Binding LastEventDescription, Mode=OneWay}"/>
+                                                                    </TextBlock>
+                                                                    <TextBlock>
+                                                                        <Run Text="On Board:" FontWeight="Bold"/>
+                                                                        <Run Text="{Binding OnBoardCount, Mode=OneWay}"/>
+                                                                    </TextBlock>
+                                                                    <TextBlock>
+                                                                        <Run Text="Next Event:" FontWeight="Bold"/>
+                                                                        <Run Text="{Binding NextEventDescription, Mode=OneWay}"/>
+                                                                    </TextBlock>
+                                                                    <Separator Margin="0,4"/>
+                                                                    <TextBlock>
+                                                                        <Run Text="Time:" FontWeight="Bold"/>
+                                                                        <Run Text="{Binding LastKnownLocation.DateTime, StringFormat='{}{0:hh:mm:ss tt}', Mode=OneWay}"/>
+                                                                    </TextBlock>
+                                                                    <TextBlock>
+                                                                        <Run Text="Speed:" FontWeight="Bold"/>
+                                                                        <Run Text="{Binding LastKnownLocation.Speed, StringFormat='{}{0:N1} mph}', Mode=OneWay}"/>
+                                                                    </TextBlock>
+                                                                    <TextBlock>
+                                                                        <Run Text="Direction:" FontWeight="Bold"/>
+                                                                        <Run Text="{Binding LastKnownLocation.Direction, Mode=OneWay}"/>
+                                                                    </TextBlock>
+                                                                    <TextBlock>
+                                                                        <Run Text="Altitude:" FontWeight="Bold"/>
+                                                                        <Run Text="N/A"/>
+                                                                    </TextBlock>
+                                                                    
+                                                                </StackPanel>
+                                                            </ToolTip>
+                                                        </Grid.ToolTip>
+
+                                                        <Ellipse Fill="DodgerBlue" Stroke="White" StrokeThickness="2">
+                                                            <Ellipse.Effect>
+                                                                <DropShadowEffect ShadowDepth="2" BlurRadius="4" Opacity="0.5"/>
+                                                            </Ellipse.Effect>
+                                                        </Ellipse>
+                                                        <materialDesign:PackIcon Kind="ArrowUp" Foreground="White" Width="20" Height="20"
+                                                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Grid>
+                                                </Grid>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                            
                         </TabItem>
                         <TabItem Header="All Events">
                             <Border BorderThickness="1,1,1,1" BorderBrush="{StaticResource MainBorderBrush}">

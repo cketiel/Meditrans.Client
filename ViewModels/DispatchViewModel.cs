@@ -12,15 +12,52 @@ using System.Windows;
 using System.Windows.Input;
 using Meditrans.Client.Views.Schedules;
 
+using GMap.NET;
+using System.Windows.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+
+
 namespace Meditrans.Client.ViewModels
 {
-    public class DispatchViewModel : BaseViewModel
+
+    public partial class DispatchViewModel : ObservableObject
     {
         private readonly ScheduleService _scheduleService;
         private readonly TripService _tripService;
         private readonly GoogleMapsService _googleMapsService;
 
+        private DispatcherTimer _overviewLiveUpdateTimer;
+
+        private readonly GpsService _gpsService = new GpsService();
+
         private ObservableCollection<VehicleRouteViewModel> _allVehicleRoutes;
+        /// <summary>
+        /// Event that is fired to request the view to zoom the map.
+        /// </summary>
+        public event EventHandler<ZoomAndCenterEventArgs> ZoomAndCenterRequest;
+
+        //A flag to control that the auto-zoom is only done the first time.
+        private bool _isInitialZoomDone = false;
+
+
+        #region Overview Map Properties
+
+        // Properties to control the center and zoom of the Overview map
+        private PointLatLng _overviewMapCenter = new PointLatLng(26.6166, -81.8333); // Fort Myers
+        public PointLatLng OverviewMapCenter
+        {
+            get => _overviewMapCenter;
+            set => SetProperty(ref _overviewMapCenter, value);
+        }
+
+        private int _overviewMapZoom = 12;
+        public int OverviewMapZoom
+        {
+            get => _overviewMapZoom;
+            set => SetProperty(ref _overviewMapZoom, value);
+        }
+
+        #endregion
 
         #region Main Dispatch Properties
 
@@ -114,12 +151,14 @@ namespace Meditrans.Client.ViewModels
         public bool ShowLatePickups { get => _showLatePickups; set { if (SetProperty(ref _showLatePickups, value)) FilterAllEvents(); } }
 
         // Properties for the information band
-        public int TotalVehicles { get; set; } = 24;
-        public int ClearVehicles { get; set; } = 11;
-        public int LoadedVehicles { get; set; } = 5;
-        public int EnRouteVehicles { get; set; } = 2;
-        public int OnBreakVehicles { get; set; } = 0;
-        public int OfflineVehicles { get; set; } = 3;
+        [ObservableProperty]
+        private int _totalVehicles;
+        //public int TotalVehicles { get; set; } // = 24;
+        public int ClearVehicles { get; set; } // = 11;
+        public int LoadedVehicles { get; set; }  // = 5;
+        public int EnRouteVehicles { get; set; } //  = 2;
+        public int OnBreakVehicles { get; set; } // = 0;
+        public int OfflineVehicles { get; set; } // = 3;
 
         private string _eventsSummaryText;
         public string EventsSummaryText { get => _eventsSummaryText; set => SetProperty(ref _eventsSummaryText, value); }
@@ -220,18 +259,106 @@ namespace Meditrans.Client.ViewModels
             // Initial data loading
             //LoadAllDataAsync();
         }
+
+        private void StartOverviewLiveTracking()
+        {         
+            if (_overviewLiveUpdateTimer != null && _overviewLiveUpdateTimer.IsEnabled) return;
+
+            _overviewLiveUpdateTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(15) 
+            };
+            _overviewLiveUpdateTimer.Tick += async (s, e) => await UpdateAllRunsLocationAsync();
+            _overviewLiveUpdateTimer.Start();
+          
+            _ = UpdateAllRunsLocationAsync();
+        }
+
+        private void StopOverviewLiveTracking()
+        {
+            _overviewLiveUpdateTimer?.Stop();
+            _overviewLiveUpdateTimer = null;
+            _isInitialZoomDone = false;
+        }
+
+        private async Task UpdateAllRunsLocationAsync()
+        {
+            if (Runs == null || !Runs.Any()) return;
+
+            // We create a task list to obtain the location of all runs in parallel
+            var updateTasks = Runs.Select(async run =>
+            {
+                try
+                {
+                    var gpsData = await _gpsService.GetLatestGpsDataAsync(run.VehicleRoute.Id);
+                    // We update the property in the RunItemViewModel.
+                    // The UI will automatically react to this change.
+                    run.LastKnownLocation = gpsData;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error updating location for run {run.Name}: {ex.Message}");
+                    run.LastKnownLocation = null; 
+                }
+            });
+
+            // We wait for all the tasks to finish
+            await Task.WhenAll(updateTasks);
+
+            if (!_isInitialZoomDone)
+            {
+                // We collect all valid run locations.
+                var allPoints = Runs
+                    .Where(r => r.LastKnownLocation != null)
+                    .Select(r => new PointLatLng(r.LastKnownLocation.Latitude, r.LastKnownLocation.Longitude))
+                    .ToList();
+
+                if (allPoints.Any())
+                {
+                    // If there is only one point, we simply center it with a fixed zoom.
+                    if (allPoints.Count == 1)
+                    {
+                        OverviewMapCenter = allPoints.First();
+                        OverviewMapZoom = 14;
+                    }
+                    else
+                    {
+                        // If there are several points, we calculate the rectangle that contains them.
+                        double maxLat = allPoints.Max(p => p.Lat);
+                        double minLat = allPoints.Min(p => p.Lat);
+                        double maxLng = allPoints.Max(p => p.Lng);
+                        double minLng = allPoints.Min(p => p.Lng);
+
+                        var rect = new RectLatLng(maxLat, minLng, Math.Abs(maxLng - minLng), Math.Abs(maxLat - minLat));
+
+                        // We add a small margin so that the points do not remain on the edge.
+                        rect.Inflate(0.05, 0.05);
+
+                        // We fire the event for the view to handle.
+                        ZoomAndCenterRequest?.Invoke(this, new ZoomAndCenterEventArgs(rect));
+                    }
+
+                    _isInitialZoomDone = true; // We mark that the initial zoom has already been done.
+                }
+            }
+
+        }
         private void ExecuteShowOverview(object parameter)
         {
             CurrentViewMode = DispatchViewMode.Overview;
+            // We start the timer when the view is shown
+            StartOverviewLiveTracking();
         }
 
         private void ExecuteShowDispatchMain(object parameter)
-        {
+        {           
+            StopOverviewLiveTracking();
             CurrentViewMode = DispatchViewMode.Main;
         }
 
         private void ExecuteShowMainView(object parameter)
-        {         
+        {
+            StopOverviewLiveTracking();
             CurrentViewMode = DispatchViewMode.Main;
             CurrentScheduleViewModel = null; 
         }
@@ -243,6 +370,7 @@ namespace Meditrans.Client.ViewModels
 
         private async void ExecuteShowScheduleView(object parameter)
         {
+            StopOverviewLiveTracking();
             if (parameter is RunItemViewModel selectedRun && selectedRun.VehicleRoute?.Model != null)
             {
                 IsLoading = true;
@@ -417,15 +545,25 @@ namespace Meditrans.Client.ViewModels
                 try
                 {
                     var schedules = await _scheduleService.GetSchedulesAsync(route.Id, CurrentDispatchDate);
+                    
                     foreach (var schedule in schedules)
                     {
-                        // Enriquecemos el DTO con datos de la ruta para la vista "All Events"
+                        
                         /*schedule.Run = route.Name;
                         schedule.Driver = route.DriverFullName;
                         schedule.Vehicle = route.VehicleName;*/
                         _masterAllEvents.Add(schedule);
                     }
                     runItem.Schedules = new ObservableCollection<ScheduleDto>(schedules);
+                    runItem.UpdateCalculatedProperties();
+
+                    TotalVehicles = Runs.Count();
+                    ClearVehicles = 0;
+                    LoadedVehicles = 0;
+                    EnRouteVehicles = 0; // 
+                    OnBreakVehicles = 0;
+                    OfflineVehicles = 0;
+
                 }
                 catch (Exception ex)
                 {

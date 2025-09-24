@@ -1,18 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Meditrans.Client.ViewModels;
+using Meditrans.Client.Models;
 
 namespace Meditrans.Client.Views
 {
@@ -25,6 +16,61 @@ namespace Meditrans.Client.Views
         {
             InitializeComponent();
             DataContext = new DispatchViewModel();
+            this.DataContextChanged += OnDataContextChanged;
+            this.Unloaded += OnUnloaded;
+
+            this.Loaded += (s, e) =>
+            {
+                try
+                {
+                    
+                    OverviewMapView.MapProvider = GMap.NET.MapProviders.GoogleMapProvider.Instance;
+                    GMap.NET.GMaps.Instance.Mode = GMap.NET.AccessMode.ServerAndCache;
+                    OverviewMapView.DragButton = MouseButton.Left;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine("Error initializing GMap.NET in DispatchView: " + ex.Message);
+                }
+            };
+            
+        }
+
+        private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            // Nos desuscribimos del ViewModel antiguo para evitar fugas de memoria.
+            if (e.OldValue is DispatchViewModel oldVm)
+            {
+                oldVm.ZoomAndCenterRequest -= OnZoomAndCenterRequest;
+            }
+
+            // Nos suscribimos al nuevo ViewModel.
+            if (e.NewValue is DispatchViewModel newVm)
+            {
+                newVm.ZoomAndCenterRequest += OnZoomAndCenterRequest;
+            }
+        }
+
+        private void OnZoomAndCenterRequest(object sender, ZoomAndCenterEventArgs e)
+        {
+            if (e.BoundingBox != null)
+            {
+                // Le decimos al control del mapa que se ajuste al rectángulo proporcionado.
+                OverviewMapView.SetZoomToFitRect(e.BoundingBox);
+                // Forzamos un refresco visual para asegurar que los marcadores se dibujen correctamente.
+                OverviewMapView.InvalidateVisual();
+            }
+        }
+
+        // No olvides desuscribirte cuando el control se descargue.
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            if (this.DataContext is DispatchViewModel vm)
+            {
+                vm.ZoomAndCenterRequest -= OnZoomAndCenterRequest;
+            }
+            this.DataContextChanged -= OnDataContextChanged;
+            this.Unloaded -= OnUnloaded;
         }
     }
 }

@@ -1,13 +1,14 @@
-﻿using Meditrans.Client.Models;
-using Meditrans.Client.DTOs;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Meditrans.Client.DTOs;
+using Meditrans.Client.Models;
 using System;
-using System.Collections.ObjectModel; // Necesario para la colección de ScheduleDto
+using System.Collections.Generic;
+using System.Collections.ObjectModel; 
+using System.Linq;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Meditrans.Client.ViewModels
 {
-    public class RunItemViewModel : BaseViewModel
+    public partial class RunItemViewModel : ObservableObject
     {
         private VehicleRouteViewModel _vehicleRoute;
         public VehicleRouteViewModel VehicleRoute
@@ -22,6 +23,18 @@ namespace Meditrans.Client.ViewModels
             get => _schedules;
             set => SetProperty(ref _schedules, value);
         }
+
+        [ObservableProperty]
+        private GpsDataDto _lastKnownLocation;
+
+        [ObservableProperty]
+        private string _lastEventDescription = "N/A";
+
+        [ObservableProperty]
+        private string _nextEventDescription = "N/A";
+
+        [ObservableProperty]
+        private int _onBoardCount = 0;
 
         public RunItemViewModel(VehicleRouteViewModel vehicleRoute)
         {
@@ -62,6 +75,30 @@ namespace Meditrans.Client.ViewModels
 
                 return $"Last: {lastEventText}\nNext: {nextEventText}";
             }
+        }
+
+        public void UpdateCalculatedProperties()
+        {
+            if (Schedules == null || !Schedules.Any())
+            {
+                LastEventDescription = "N/A";
+                NextEventDescription = "N/A";
+                OnBoardCount = 0;
+                return;
+            }
+
+            // Calcular el último evento realizado
+            var lastPerformedEvent = Schedules.Where(s => s.Performed).OrderBy(s => s.Sequence).LastOrDefault();
+            LastEventDescription = lastPerformedEvent?.Name ?? "No events performed yet";
+
+            // Calcular el próximo evento pendiente
+            var nextEvent = Schedules.FirstOrDefault(s => !s.Performed);
+            NextEventDescription = nextEvent?.Name ?? "Route completed";
+
+            // Calcular pasajeros/items a bordo
+            int performedPickups = Schedules.Count(s => s.EventType == ScheduleEventType.Pickup && s.Performed);
+            int performedDropoffs = Schedules.Count(s => s.EventType == ScheduleEventType.Dropoff && s.Performed);
+            OnBoardCount = performedPickups - performedDropoffs;
         }
     }
 
