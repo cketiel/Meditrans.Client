@@ -533,23 +533,9 @@ namespace Meditrans.Client.ViewModels
         }
         public void TriggerZoomToFit()
         {
-            var allPoints = new List<PointLatLng>();
+            UpdateMapViewForAllPoints();
 
-            if (Schedules != null)
-            {
-                allPoints.AddRange(Schedules.Select(s => new PointLatLng(s.ScheduleLatitude, s.ScheduleLongitude)));
-            }
-
-          
-            // if (DriverLastKnownLocation != null)
-            // {
-            //     allPoints.Add(new PointLatLng(DriverLastKnownLocation.Latitude, DriverLastKnownLocation.Longitude));
-            // }
-
-            if (allPoints.Any())
-            {
-                ZoomAndCenterOnPoints(allPoints);
-            }
+            
         }
 
 
@@ -840,6 +826,17 @@ namespace Meditrans.Client.ViewModels
             ZoomAndCenterOnPoints(allPoints);
         }
 
+        public void ForceRefreshSchedules()
+        {
+            var items = new List<ScheduleDto>(Schedules);
+            Schedules.Clear();
+            foreach (var item in items)
+            {
+                Schedules.Add(item);
+            }
+          
+            FilterSchedules();
+        }
 
         #region Drag and Drop Implementation
 

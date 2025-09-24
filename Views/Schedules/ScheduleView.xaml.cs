@@ -52,7 +52,7 @@ namespace Meditrans.Client.Views.Schedules
                 {
                     await viewModel.InitializeAsync();
                 }
-                //viewModel.TriggerZoomToFit();
+                viewModel.TriggerZoomToFit();
             }
             
         }
@@ -84,9 +84,16 @@ namespace Meditrans.Client.Views.Schedules
         // The event handler that calls the map method
         private void OnZoomAndCenterRequest(object sender, ZoomAndCenterEventArgs e)
         {
-            if (e.BoundingBox != null)
+            if (e.BoundingBox != null && DataContext is SchedulesViewModel viewModel)
             {
                 MapView.SetZoomToFitRect(e.BoundingBox);
+                //MapView.InvalidateVisual();
+                Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    
+                    viewModel.ForceRefreshSchedules();
+
+                }), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
             }
         }
 
