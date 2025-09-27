@@ -90,7 +90,11 @@ namespace Meditrans.Client.Views
         {
             try
             {
-                await MapaWebView.EnsureCoreWebView2Async();
+                // This creates a route like: C:\Users\<TuUsuario>\AppData\Local\Raphael\WebView2
+                string userDataFolder = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Raphael", "WebView2");
+                var environment = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
+
+                await MapaWebView.EnsureCoreWebView2Async(environment);
                 LoadMap();
                 // MapaWebView.WebMessageReceived += MapaWebView_WebMessageReceived;
                 // Subscribe to message from JavaScript

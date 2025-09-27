@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="Milanes Transport" Height="400" Width="300"
+        Title="Raphael" Height="400" Width="300"
         Icon="/Assets/logo.png"
         WindowStartupLocation="CenterScreen">
 
