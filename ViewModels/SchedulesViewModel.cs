@@ -387,15 +387,15 @@ namespace Meditrans.Client.ViewModels
                 Interval = TimeSpan.FromSeconds(15) // Update every 15 seconds
             };
             // Subscribe the Tick event to our update method.
-            _liveUpdateTimer.Tick += async (s, e) => await UpdateLiveLocationAsync();
+            _liveUpdateTimer.Tick += async (s, e) => await RefreshLiveDataAsync();
             // Start the timer.
             _liveUpdateTimer.Start();
 
             // Make an immediate first call so as not to wait 15 seconds
-            _ = UpdateLiveLocationAsync();
+            _ = RefreshLiveDataAsync();
         }
 
-        private async Task UpdateLiveLocationAsync()
+        private async Task RefreshLiveDataAsync()
         {
             if (SelectedVehicleRoute == null) return;
 
@@ -407,11 +407,49 @@ namespace Meditrans.Client.ViewModels
                     // CommunityToolkit notifies the UI, and the marker moves.
                     DriverLastKnownLocation = gpsData;
                 }
+
+                var latestSchedules = await _scheduleService.GetSchedulesAsync(SelectedVehicleRoute.Id, SelectedDate);
+
+                // Only events that changed will be updated
+                MergeScheduleUpdates(latestSchedules);
+               
+                CalculateVisualOffsets();
+                UpdateRouteSummary();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching live GPS data: {ex.Message}");
                 
+            }
+        }
+
+        /// <summary>
+        /// Updates the existing 'Schedules' collection with data from a new list,
+        /// modifying properties instead of replacing objects. This preserves the UI selection.
+        /// </summary>
+        /// <param name="latestSchedules">The list of schedules just obtained from the API.</param>
+        private void MergeScheduleUpdates(List<ScheduleDto> latestSchedules)
+        {         
+            var existingSchedulesDict = Schedules.ToDictionary(s => s.Id);
+
+            foreach (var latestSchedule in latestSchedules)
+            {
+                // We look to see if the newly obtained schedule already exists in our visible collection.
+                if (existingSchedulesDict.TryGetValue(latestSchedule.Id, out var existingSchedule))
+                {
+                    // If it exists, we update its properties.
+                    // Since ScheduleDto is an ObservableObject, the UI will react to every change.
+                    existingSchedule.ETA = latestSchedule.ETA;
+                    existingSchedule.Arrive = latestSchedule.Arrive;
+                    existingSchedule.Perform = latestSchedule.Perform;
+                    existingSchedule.Performed = latestSchedule.Performed;
+                    existingSchedule.ArriveDist = latestSchedule.ArriveDist;
+                    existingSchedule.PerformDist = latestSchedule.PerformDist;
+                    existingSchedule.GPSArrive = latestSchedule.GPSArrive;
+                    existingSchedule.Status = latestSchedule.Status;                  
+                }
+                // Note: This simple implementation does not handle schedules that are added or removed
+
             }
         }
 
@@ -421,7 +459,7 @@ namespace Meditrans.Client.ViewModels
             _liveUpdateTimer?.Stop();
             if (_liveUpdateTimer != null)
             {
-                _liveUpdateTimer.Tick -= async (s, e) => await UpdateLiveLocationAsync();
+                _liveUpdateTimer.Tick -= async (s, e) => await RefreshLiveDataAsync();
             }
             _liveUpdateTimer = null;
         }
