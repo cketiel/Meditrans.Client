@@ -20,6 +20,16 @@ namespace Meditrans.Client.ViewModels
 {
     public partial class SchedulesViewModel : ObservableObject, IDragSource, IDropTarget
     {
+        // Flag to prevent concurrent recalculations.
+        private bool _isRecalculating = false;
+        /// <summary>
+        /// Stores the sequence of the last 'Performed' event that triggered a recalculation.
+        /// It acts as a "seal" to prevent redundant recalculations.
+        /// It is initialized to -1 to indicate that it has never been calculated.
+        /// </summary>
+        private int _lastRecalculatedSequence = -1;
+
+
         private readonly GpsService _gpsService; 
         private DispatcherTimer _liveUpdateTimer;
         private List<ScheduleDto> _masterSchedules = new List<ScheduleDto>();
@@ -269,6 +279,7 @@ namespace Meditrans.Client.ViewModels
             if (IsInitialized) return;
 
             IsLoading = true;
+
             try
             {
                 await LoadInitialDataListsAsync();
@@ -295,6 +306,9 @@ namespace Meditrans.Client.ViewModels
                 {
                     await LoadSchedulesAndTripsAsync();
                 }
+
+                // After the initial loading, we check if a recalculation is needed.
+                await CheckForPendingRecalculation();
 
                 if (isLiveTracking)
                 {
@@ -397,6 +411,10 @@ namespace Meditrans.Client.ViewModels
 
         private async Task RefreshLiveDataAsync()
         {
+            // Additional security measure: if a recalculation is already in progress,
+            // We skip this refresh cycle so as not to interfere.
+            if (_isRecalculating) return;
+
             if (SelectedVehicleRoute == null) return;
 
             try
@@ -411,8 +429,29 @@ namespace Meditrans.Client.ViewModels
                 var latestSchedules = await _scheduleService.GetSchedulesAsync(SelectedVehicleRoute.Id, SelectedDate);
 
                 // Only events that changed will be updated
-                MergeScheduleUpdates(latestSchedules);
-               
+                bool stateChanged = MergeScheduleUpdates(latestSchedules);
+
+                // If the status of an event changed to 'Performed', we need to recalculate.
+                /*if (stateChanged)
+                {
+                    // We look up the index of the latest event which is now marked 'Performed'.
+                    var lastPerformedIndex = Schedules
+                        .Select((schedule, index) => new { schedule, index })
+                        .Where(x => x.schedule.Performed)
+                        .OrderByDescending(x => x.schedule.Sequence)
+                        .Select(x => (int?)x.index)
+                        .FirstOrDefault();
+
+                    // If we find an event and it is not the last one in the list, we recalculate from the next one.
+                    if (lastPerformedIndex.HasValue && lastPerformedIndex.Value < Schedules.Count - 1)
+                    {
+                        // We call our method recalculation!
+                        await RecalculateScheduleAsync(lastPerformedIndex.Value + 1);
+                    }
+                }*/
+
+                await CheckForPendingRecalculation();
+
                 CalculateVisualOffsets();
                 UpdateRouteSummary();
             }
@@ -424,12 +463,44 @@ namespace Meditrans.Client.ViewModels
         }
 
         /// <summary>
+        /// Checks if a new event has completed since the last recalculation, and
+        /// If so, a new ETA recalculation begins.
+        /// </summary>
+        private async Task CheckForPendingRecalculation()
+        {
+            // We look for the last event that is marked as 'Performed'.
+            var lastPerformedEvent = Schedules
+                .Where(s => s.Performed && s.Sequence.HasValue)
+                .OrderByDescending(s => s.Sequence.Value)
+                .FirstOrDefault();
+
+            // If there is no event held, there is nothing to do.
+            if (lastPerformedEvent == null) return;
+
+            // If the sequence of the last completed event is GREATER than our "stamp",
+            // It means there has been progress on the route and we need to recalculate.
+            if (lastPerformedEvent.Sequence.Value > _lastRecalculatedSequence)
+            {
+                // The start index is that of the event NEXT to the one that just completed.
+                int startIndex = lastPerformedEvent.Sequence.Value + 1;
+
+                // We recalculate
+                await RecalculateScheduleAsync(startIndex);
+
+                // IMPORTANT! We updated our "seal" to not recalculate for this same event.
+                _lastRecalculatedSequence = lastPerformedEvent.Sequence.Value;
+            }
+        }
+
+        /// <summary>
         /// Updates the existing 'Schedules' collection with data from a new list,
         /// modifying properties instead of replacing objects. This preserves the UI selection.
         /// </summary>
         /// <param name="latestSchedules">The list of schedules just obtained from the API.</param>
-        private void MergeScheduleUpdates(List<ScheduleDto> latestSchedules)
-        {         
+        private bool MergeScheduleUpdates(List<ScheduleDto> latestSchedules)
+        {
+            bool performanceStateChanged = false; // Flag to track whether an event completed.
+
             var existingSchedulesDict = Schedules.ToDictionary(s => s.Id);
 
             foreach (var latestSchedule in latestSchedules)
@@ -437,6 +508,12 @@ namespace Meditrans.Client.ViewModels
                 // We look to see if the newly obtained schedule already exists in our visible collection.
                 if (existingSchedulesDict.TryGetValue(latestSchedule.Id, out var existingSchedule))
                 {
+                    // We detect if the 'Performed' state changed from false to true.
+                    if (!existingSchedule.Performed && latestSchedule.Performed)
+                    {
+                        performanceStateChanged = true;
+                    }
+
                     // If it exists, we update its properties.
                     // Since ScheduleDto is an ObservableObject, the UI will react to every change.
                     existingSchedule.ETA = latestSchedule.ETA;
@@ -451,6 +528,7 @@ namespace Meditrans.Client.ViewModels
                 // Note: This simple implementation does not handle schedules that are added or removed
 
             }
+            return performanceStateChanged;
         }
 
         public void Cleanup()
@@ -1049,87 +1127,117 @@ namespace Meditrans.Client.ViewModels
 
         private async Task RecalculateScheduleAsync(int startIndex)
         {
+            // If we are already recalculating, we leave to avoid problems.
+            if (_isRecalculating) return;
+
             // If the collection is empty or only has the Pull-out, there is nothing to do.
             if (Schedules.Count <= 1) return;
-          
-            for (int i = startIndex; i < Schedules.Count - 1; i++)
-            {
-                var currentSchedule = Schedules[i];
-                var previousSchedule = Schedules[i - 1];
-               
-                currentSchedule.Sequence = i;
-              
-                var routeDetails = await _googleMapsService.GetRouteFullDetails(
-                    previousSchedule.ScheduleLatitude,
-                    previousSchedule.ScheduleLongitude,
-                    currentSchedule.ScheduleLatitude,
-                    currentSchedule.ScheduleLongitude);
 
-                if (routeDetails != null)
+            // If the collection is very small or the index is invalid, there is nothing to do.
+            // startIndex should point to an actual event, not the Pull-in.
+            if (Schedules.Count <= 2 || startIndex <= 0 || startIndex >= Schedules.Count - 1) return;
+
+            try
+            {
+                _isRecalculating = true;
+                IsBusy = true; 
+                BusyMessage = "Recalculating route ETAs...";
+
+                for (int i = startIndex; i < Schedules.Count - 1; i++)
                 {
-                    currentSchedule.Distance = routeDetails.DistanceMiles;
-                    currentSchedule.Travel = TimeSpan.FromSeconds(routeDetails.DurationInTrafficSeconds);
-                }
-                else
-                {
-                    currentSchedule.Distance = 0;
-                    currentSchedule.Travel = TimeSpan.Zero;
-                }
-              
-                TimeSpan previousEta = previousSchedule.ETA ?? TimeSpan.Zero;
-                TimeSpan previousServiceTime = TimeSpan.FromMinutes(previousSchedule.On ?? 15);
-                TimeSpan travelToCurrent = currentSchedule.Travel ?? TimeSpan.Zero;
-                TimeSpan calculatedEta = previousEta + previousServiceTime + travelToCurrent;
-              
-                TimeSpan finalEta = calculatedEta;
-                if (currentSchedule.EventType == ScheduleEventType.Pickup && previousSchedule.EventType != ScheduleEventType.Pickup)
-                {
-                    TimeSpan? scheduledTime = currentSchedule.Pickup;
-                    if (scheduledTime.HasValue)
+                    var currentSchedule = Schedules[i];
+                    var previousSchedule = Schedules[i - 1];
+
+                    // If the current event is already 'Performed', we do not need to recalculate its ETA.
+                    // We just skip to the next one.
+                    if (currentSchedule.Performed)
                     {
-                        TimeSpan earlyArrivalWindow = (currentSchedule.TripType == "Return")
-                            ? TimeSpan.FromMinutes(5)
-                            : TimeSpan.FromMinutes(15);
-                        TimeSpan violationLimit = scheduledTime.Value - earlyArrivalWindow;
-                        if (calculatedEta < violationLimit)
+                        continue;
+                    }
+
+                    currentSchedule.Sequence = i;
+              
+                    var routeDetails = await _googleMapsService.GetRouteFullDetails(
+                        previousSchedule.ScheduleLatitude,
+                        previousSchedule.ScheduleLongitude,
+                        currentSchedule.ScheduleLatitude,
+                        currentSchedule.ScheduleLongitude);
+
+                    if (routeDetails != null)
+                    {
+                        currentSchedule.Distance = routeDetails.DistanceMiles;
+                        currentSchedule.Travel = TimeSpan.FromSeconds(routeDetails.DurationInTrafficSeconds);
+                    }
+                    else
+                    {
+                        currentSchedule.Distance = 0;
+                        currentSchedule.Travel = TimeSpan.Zero;
+                    }
+              
+                    TimeSpan previousEta = previousSchedule.ETA ?? TimeSpan.Zero;
+                    TimeSpan previousServiceTime = TimeSpan.FromMinutes(previousSchedule.On ?? 15);
+                    TimeSpan travelToCurrent = currentSchedule.Travel ?? TimeSpan.Zero;
+                    TimeSpan calculatedEta = previousEta + previousServiceTime + travelToCurrent;
+              
+                    TimeSpan finalEta = calculatedEta;
+                    if (currentSchedule.EventType == ScheduleEventType.Pickup && previousSchedule.EventType != ScheduleEventType.Pickup)
+                    {
+                        TimeSpan? scheduledTime = currentSchedule.Pickup;
+                        if (scheduledTime.HasValue)
                         {
-                            finalEta = violationLimit;
+                            TimeSpan earlyArrivalWindow = (currentSchedule.TripType == "Return")
+                                ? TimeSpan.FromMinutes(5)
+                                : TimeSpan.FromMinutes(15);
+                            TimeSpan violationLimit = scheduledTime.Value - earlyArrivalWindow;
+                            if (calculatedEta < violationLimit)
+                            {
+                                finalEta = violationLimit;
+                            }
                         }
                     }
-                }
                
-                currentSchedule.ETA = finalEta;
-                await _scheduleService.UpdateAsync(currentSchedule.Id, currentSchedule);
-            }
+                    currentSchedule.ETA = finalEta;
+                    await _scheduleService.UpdateAsync(currentSchedule.Id, currentSchedule);
+                }
            
-            if (Schedules.Count > 1)
-            {
-                var pullInEvent = Schedules.Last();
-                var lastRealStop = Schedules[Schedules.Count - 2]; // The last event BEFORE the Pull-in
+                if (Schedules.Count > 1)
+                {
+                    var pullInEvent = Schedules.Last();
+                    var lastRealStop = Schedules[Schedules.Count - 2]; // The last event BEFORE the Pull-in
               
-                pullInEvent.Sequence = Schedules.Count - 1;
+                    pullInEvent.Sequence = Schedules.Count - 1;
               
-                var finalRouteDetails = await _googleMapsService.GetRouteFullDetails(
-                    lastRealStop.ScheduleLatitude, lastRealStop.ScheduleLongitude,
-                    pullInEvent.ScheduleLatitude, pullInEvent.ScheduleLongitude);
+                    var finalRouteDetails = await _googleMapsService.GetRouteFullDetails(
+                        lastRealStop.ScheduleLatitude, lastRealStop.ScheduleLongitude,
+                        pullInEvent.ScheduleLatitude, pullInEvent.ScheduleLongitude);
 
-                if (finalRouteDetails != null)
-                {
-                    pullInEvent.Distance = finalRouteDetails.DistanceMiles;
-                    pullInEvent.Travel = TimeSpan.FromSeconds(finalRouteDetails.DurationInTrafficSeconds);
-                }
-                else
-                {
-                    pullInEvent.Distance = 0;
-                    pullInEvent.Travel = TimeSpan.Zero;
-                }
+                    if (finalRouteDetails != null)
+                    {
+                        pullInEvent.Distance = finalRouteDetails.DistanceMiles;
+                        pullInEvent.Travel = TimeSpan.FromSeconds(finalRouteDetails.DurationInTrafficSeconds);
+                    }
+                    else
+                    {
+                        pullInEvent.Distance = 0;
+                        pullInEvent.Travel = TimeSpan.Zero;
+                    }
                
-                TimeSpan lastStopEta = lastRealStop.ETA ?? TimeSpan.Zero;
-                TimeSpan lastStopServiceTime = TimeSpan.FromMinutes(lastRealStop.On ?? 15);
-                TimeSpan travelToPullIn = pullInEvent.Travel ?? TimeSpan.Zero;
-                pullInEvent.ETA = lastStopEta + lastStopServiceTime + travelToPullIn;
+                    TimeSpan lastStopEta = lastRealStop.ETA ?? TimeSpan.Zero;
+                    TimeSpan lastStopServiceTime = TimeSpan.FromMinutes(lastRealStop.On ?? 15);
+                    TimeSpan travelToPullIn = pullInEvent.Travel ?? TimeSpan.Zero;
+                    pullInEvent.ETA = lastStopEta + lastStopServiceTime + travelToPullIn;
               
-                await _scheduleService.UpdateAsync(pullInEvent.Id, pullInEvent);
+                    await _scheduleService.UpdateAsync(pullInEvent.Id, pullInEvent);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to recalculate schedule: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                _isRecalculating = false;
+                IsBusy = false;
             }
         }
         public void DragDropOperationFinished(DragDropEffects operationResult, IDragInfo dragInfo)
