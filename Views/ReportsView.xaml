@@ -3,10 +3,129 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:Meditrans.Client.Views"
+             xmlns:local="clr-namespace:Meditrans.Client.ViewModels"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
+             d:DesignHeight="600" d:DesignWidth="800"
+             FontFamily="Segoe UI">
+
+    <UserControl.Resources>
+        <!-- Simple and clean style for the Generate Button -->
+        <Style x:Key="GenerateButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#007ACC"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#005A9E"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Style for the TabControl -->
+        <Style x:Key="CustomTabControlStyle" TargetType="TabControl">
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+
+        <!-- Style for TabItems to give them a modern look -->
+        <Style x:Key="CustomTabItemStyle" TargetType="TabItem">
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="Foreground" Value="Gray"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Grid>
+                            <Border Name="Border" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="LightGray" 
+                                BorderThickness="0,0,0,2"
+                                Margin="0,0,-1,0">
+                                <ContentPresenter x:Name="ContentSite"
+                                              VerticalAlignment="Center"
+                                              HorizontalAlignment="Center"
+                                              ContentSource="Header"
+                                              Margin="{TemplateBinding Padding}"/>
+                            </Border>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Foreground" Value="#007ACC"/>
+                                <Setter TargetName="Border" Property="BorderBrush" Value="#007ACC" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="#005A9E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="15">
+        <TabControl Style="{StaticResource CustomTabControlStyle}">
+            <!-- Production Report Tab -->
+            <TabItem Header="Production Report" Style="{StaticResource CustomTabItemStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Section for Report Parameters/Filters -->
+                    <Border Grid.Row="0" Background="#F7F7F7" CornerRadius="5" Padding="15" BorderBrush="#E0E0E0" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Report Options" FontSize="16" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Select Date:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <DatePicker Width="150" VerticalAlignment="Center"/>
+                                <!-- You can add more filters here as needed -->
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Section for the Generate Button -->
+                    <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Button Content="Generate Production Report" 
+                                Command="{Binding GenerateProductionReportCommand}"
+                                Style="{StaticResource GenerateButtonStyle}"/>
+                        <TextBlock Text="Click the button to export the Production Report to an Excel file." 
+                                   Foreground="Gray" 
+                                   Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
+            <!-- GPS Report Tab (Content can be added later) -->
+            <TabItem Header="GPS Report" Style="{StaticResource CustomTabItemStyle}">
+                <Grid>
+                    <TextBlock Text="GPS Report content will be implemented here." 
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center" 
+                               FontSize="16" 
+                               Foreground="Gray"/>
+                </Grid>
+            </TabItem>
+
+            <!-- New reports can be added as new TabItems here -->
+
+        </TabControl>
     </Grid>
+
+    
 </UserControl>

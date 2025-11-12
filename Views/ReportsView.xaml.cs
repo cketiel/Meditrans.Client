@@ -23,6 +23,7 @@ namespace Meditrans.Client.Views
         public ReportsView()
         {
             InitializeComponent();
+            this.DataContext = new ViewModels.ReportsViewModel();
         }
     }
 }
