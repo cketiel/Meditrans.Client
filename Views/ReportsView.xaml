@@ -79,7 +79,6 @@
 
     <Grid Margin="15">
         <TabControl Style="{StaticResource CustomTabControlStyle}">
-            <!-- Production Report Tab -->
             <TabItem Header="Production Report" Style="{StaticResource CustomTabItemStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -92,18 +91,20 @@
                         <StackPanel>
                             <TextBlock Text="Report Options" FontSize="16" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Select Date:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                <DatePicker Width="150" VerticalAlignment="Center"/>
-                                <!-- You can add more filters here as needed -->
+                                <TextBlock Text="Select Report Date:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                <!-- Bind the DatePicker to a property in the ViewModel -->
+                                <DatePicker SelectedDate="{Binding SelectedDate}" Width="150" VerticalAlignment="Center"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
 
                     <!-- Section for the Generate Button -->
                     <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <Button Content="Generate Production Report" 
-                                Command="{Binding GenerateProductionReportCommand}"
-                                Style="{StaticResource GenerateButtonStyle}"/>
+                        <Button Command="{Binding GenerateProductionReportCommand}"
+                                Style="{StaticResource GenerateButtonStyle}">
+                            <!-- Change button content based on whether the report is being generated -->
+                            <TextBlock Text="{Binding GenerateButtonText}"/>
+                        </Button>
                         <TextBlock Text="Click the button to export the Production Report to an Excel file." 
                                    Foreground="Gray" 
                                    Margin="0,10,0,0"/>
@@ -111,21 +112,11 @@
                 </Grid>
             </TabItem>
 
-            <!-- GPS Report Tab (Content can be added later) -->
             <TabItem Header="GPS Report" Style="{StaticResource CustomTabItemStyle}">
-                <Grid>
-                    <TextBlock Text="GPS Report content will be implemented here." 
-                               HorizontalAlignment="Center" 
-                               VerticalAlignment="Center" 
-                               FontSize="16" 
-                               Foreground="Gray"/>
-                </Grid>
+                <!-- GPS Report Content -->
             </TabItem>
-
-            <!-- New reports can be added as new TabItems here -->
-
         </TabControl>
     </Grid>
 
-    
+
 </UserControl>

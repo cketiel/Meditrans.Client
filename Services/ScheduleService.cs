@@ -70,6 +70,20 @@ namespace Meditrans.Client.Services
                 throw new ApiException("Connection error with the server.", ex);
             }
         }
+
+        public async Task<List<ProductionReportRowDto>> GetProductionReportDataAsync(DateTime date)
+        {
+            // Format the date correctly for the URL query string.
+            string formattedDate = date.ToString("yyyy-MM-dd");
+            var requestUri = $"{_endPoint}/reports/production?date={formattedDate}";
+
+            var response = await _httpClient.GetAsync(requestUri);
+
+            response.EnsureSuccessStatusCode(); // Throws an exception if the HTTP response is not successful.
+
+            // The ReadFromJsonAsync method handles JSON deserialization for you.
+            return await response.Content.ReadFromJsonAsync<List<ProductionReportRowDto>>();
+        }
         private async Task<ApiException> CreateApiException(HttpResponseMessage response, string context)
         {
             try
