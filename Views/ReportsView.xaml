@@ -112,9 +112,46 @@
                 </Grid>
             </TabItem>
 
+            <!-- GPS Report Tab -->
             <TabItem Header="GPS Report" Style="{StaticResource CustomTabItemStyle}">
-                <!-- GPS Report Content -->
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Section for Report Parameters/Filters -->
+                    <Border Grid.Row="0" Background="#F7F7F7" CornerRadius="5" Padding="15" BorderBrush="#E0E0E0" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Report Options" FontSize="16" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <TextBlock Text="Select Report Date:" VerticalAlignment="Center" Margin="0,0,10,0" Width="120"/>
+                                <DatePicker SelectedDate="{Binding SelectedDate}" Width="150" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Select Vehicle Route:" VerticalAlignment="Center" Margin="0,0,10,0" Width="120"/>
+                                <ComboBox ItemsSource="{Binding AllVehicleRoutes}" 
+                                          SelectedItem="{Binding SelectedVehicleRoute}"
+                                          DisplayMemberPath="Name"
+                                          Width="200"
+                                          VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Section for the Generate Button -->
+                    <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Button Command="{Binding GenerateGpsReportCommand}"
+                                Style="{StaticResource GenerateButtonStyle}">
+                            <TextBlock Text="{Binding GenerateGpsButtonText}"/>
+                        </Button>
+                        <TextBlock Text="Select a date and route, then click to export the GPS Report." 
+                                   Foreground="Gray" 
+                                   Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Grid>
             </TabItem>
+            
         </TabControl>
     </Grid>
 

@@ -38,5 +38,18 @@ namespace Meditrans.Client.Services
 
             return await response.Content.ReadFromJsonAsync<GpsDataDto>();
         }
+
+        public async Task<List<GpsDataDto>> GetGpsHistoryAsync(int vehicleRouteId, DateTime date)
+        {
+            // Format the date correctly for the URL query string.
+            string formattedDate = date.ToString("yyyy-MM-dd");
+            var url = $"{_endPoint}/reports/history?vehicleRouteId={vehicleRouteId}&date={formattedDate}";
+
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<List<GpsDataDto>>();
+        }
+
     }
 }
