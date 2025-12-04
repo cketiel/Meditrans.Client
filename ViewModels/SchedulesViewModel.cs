@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Spreadsheet;
 using GMap.NET;
 using GMap.NET.WindowsPresentation;
@@ -632,10 +633,20 @@ namespace Meditrans.Client.ViewModels
                 //foreach (var s in schedules) Schedules.Add(s);
 
                 var trips = await _scheduleService.GetUnscheduledTripsAsync(SelectedDate);
-                var geocodingTasks = trips.Select(trip => PopulateCitiesForTravel(trip)).ToList();
-                await Task.WhenAll(geocodingTasks);
 
-                foreach (var t in trips) UnscheduledTrips.Add(t);
+                //var geocodingTasks = trips.Select(trip => PopulateCitiesForTravel(trip)).ToList();
+                //await Task.WhenAll(geocodingTasks);
+
+                // Only consume the Google Maps service if the Trip object does not have PickupCity or DropoffCity
+                foreach (var source in trips)
+                {
+                    if (source.PickupCity.Equals("") || source.PickupCity == null)
+                        source.PickupCity = await _googleMapsService.GetCityFromCoordinates(source.PickupLatitude, source.PickupLongitude) ?? "N/A";
+                    if (source.DropoffCity.Equals("") || source.DropoffCity == null)
+                        source.DropoffCity = await _googleMapsService.GetCityFromCoordinates(source.DropoffLatitude, source.DropoffLongitude) ?? "N/A";
+                    UnscheduledTrips.Add(source);
+                }
+                //foreach (var t in trips) UnscheduledTrips.Add(t);
 
                 UpdateMapViewForAllPoints();
                 UpdateRouteSummary();
