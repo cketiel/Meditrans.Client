@@ -310,6 +310,9 @@ namespace Meditrans.Client.Services
         }
         public async Task<TripReadDto> MapToTripAsync(CsvTripRawModel raw, FundingSource fundingSource, bool isSaferide, CsvType csvType)
         {
+            //string PickupCity = string.Empty;
+            //string DropoffCity = string.Empty;
+
             var allMobilityTypes = MobilityType.AllMobilityTypes();
             MobilityType mobilityType = new MobilityType();
 
@@ -620,6 +623,9 @@ namespace Meditrans.Client.Services
 
                 // 9. Creation date
                 trip.Created = DateTime.Now;
+
+                trip.PickupCity = raw.FromCity;
+                trip.DropoffCity = raw.ToCity;
 
                 try
                 {

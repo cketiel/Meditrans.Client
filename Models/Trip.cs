@@ -85,5 +85,8 @@ namespace Meditrans.Client.Models
 
         public ICollection<TripLog> TripLogs { get; set; }
 
+        public string? PickupCity { get; set; } // The city for the pickup location
+        public string? DropoffCity { get; set; } // The city for the dropoff location
+
     }
 }
