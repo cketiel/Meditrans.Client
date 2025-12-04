@@ -781,11 +781,19 @@ namespace Meditrans.Client.ViewModels
                 var sources = await _tripService.GetTripsByDateAsync(date);
                 GridSummary = sources.Count().ToString();
 
-                var geocodingTasks = sources.Select(trip => PopulateCitiesForTravel(trip)).ToList();
-                await Task.WhenAll(geocodingTasks);
 
-                foreach (var source in sources)
+                //var geocodingTasks = sources.Select(trip => PopulateCitiesForTravel(trip)).ToList();
+                //await Task.WhenAll(geocodingTasks);
+
+                // Only consume the Google Maps service if the Trip object does not have PickupCity or DropoffCity
+                foreach (var source in sources) {
+                    if(source.PickupCity.Equals("") || source.PickupCity == null)
+                        source.PickupCity = await _googleMapsService.GetCityFromCoordinates(source.PickupLatitude, source.PickupLongitude) ?? "N/A";
+                    if (source.DropoffCity.Equals("") || source.DropoffCity == null)
+                        source.DropoffCity = await _googleMapsService.GetCityFromCoordinates(source.DropoffLatitude, source.DropoffLongitude) ?? "N/A";
                     TripsByDate.Add(source);
+                }
+                    
             }
             catch (Exception ex)
             {
