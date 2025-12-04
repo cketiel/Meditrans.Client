@@ -581,14 +581,26 @@ namespace Meditrans.Client.ViewModels
             {
                 var unscheduledDtoList = await _scheduleService.GetUnscheduledTripsAsync(CurrentDispatchDate);
 
-                var geocodingTasks = unscheduledDtoList.Select(trip => PopulateCitiesForTravel(trip)).ToList();
-                await Task.WhenAll(geocodingTasks);
+                //var geocodingTasks = unscheduledDtoList.Select(trip => PopulateCitiesForTravel(trip)).ToList();
+                //await Task.WhenAll(geocodingTasks);
 
+                // Only consume the Google Maps service if the Trip object does not have PickupCity or DropoffCity
                 _allUnscheduledTripsFromService.Clear();
+                foreach (var source in unscheduledDtoList)
+                {
+                    if (source.PickupCity.Equals("") || source.PickupCity == null)
+                        source.PickupCity = await _googleMapsService.GetCityFromCoordinates(source.PickupLatitude, source.PickupLongitude) ?? "N/A";
+                    if (source.DropoffCity.Equals("") || source.DropoffCity == null)
+                        source.DropoffCity = await _googleMapsService.GetCityFromCoordinates(source.DropoffLatitude, source.DropoffLongitude) ?? "N/A";
+                    _allUnscheduledTripsFromService.Add(new TripItemViewModel(source));
+                }
+
+                /*_allUnscheduledTripsFromService.Clear();
                 foreach (var dto in unscheduledDtoList)
                 {
                     _allUnscheduledTripsFromService.Add(new TripItemViewModel(dto));
-                }
+                }*/
+
                 FilterUnscheduledTrips(); // Apply filter after loading
             }
             catch (Exception ex)
