@@ -122,6 +122,8 @@ namespace Meditrans.Client.ViewModels
 
         public SchedulesViewModel(ScheduleService scheduleService)
         {
+            AllowUnperformAction = true;
+
             //UserConfigService _userConfigService = new UserConfigService();
             _scheduleService = scheduleService;
             _tripService = new TripService();
