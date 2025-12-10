@@ -131,7 +131,7 @@ namespace Meditrans.Client.ViewModels
             LoadInitialDataCommand = new AsyncRelayCommand(LoadInitialDataAsync);
             LoadSchedulesAndTripsCommand = new AsyncRelayCommand(LoadSchedulesAndTripsAsync, CanLoadSchedulesAndTrips);
             RouteTripCommand = new AsyncRelayCommand(RouteSelectedTripAsync, CanRouteSelectedTrip);
-            CancelRouteCommand = new AsyncRelayCommand(CancelSelectedRouteAsync, CanCancelSelectedRoute);
+            CancelRouteCommand = new AsyncRelayCommand<ScheduleDto>(CancelSelectedRouteAsync/*, CanCancelSelectedRoute*/);
             OpenColumnSelectorCommand = new RelayCommand(OpenColumnSelector);
 
             CancelTripCommand = new AsyncRelayCommand<object>(ExecuteCancelTripAsync);
@@ -186,7 +186,7 @@ namespace Meditrans.Client.ViewModels
         public IAsyncRelayCommand LoadInitialDataCommand { get; }
         public IAsyncRelayCommand LoadSchedulesAndTripsCommand { get; }
         public IAsyncRelayCommand RouteTripCommand { get; }
-        public IAsyncRelayCommand CancelRouteCommand { get; }
+        public IAsyncRelayCommand<ScheduleDto> CancelRouteCommand { get; }
         public ICommand OpenColumnSelectorCommand { get; }
         public IAsyncRelayCommand CancelTripCommand { get; }
         public IAsyncRelayCommand UncancelTripCommand { get; }
@@ -802,11 +802,13 @@ namespace Meditrans.Client.ViewModels
         private bool CanRouteSelectedTrip() => SelectedVehicleRoute != null && SelectedUnscheduledTrip != null;
 
         // Logic to cancel
-        private async Task CancelSelectedRouteAsync()
+        private async Task CancelSelectedRouteAsync(ScheduleDto schedule)
         {
+            if (schedule == null) return;
+
             try
             {
-                await _scheduleService.CancelRouteAsync(SelectedSchedule.Id);
+                await _scheduleService.CancelRouteAsync(schedule.Id);
 
                 // Refresh data
                 await LoadSchedulesAndTripsAsync();

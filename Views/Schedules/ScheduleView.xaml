@@ -200,6 +200,7 @@
                                                         <Grid Margin="5,0,0,0">
                                                             <!-- BUTTON 1: "Unschedule" (Visible if the event is NOT done) -->
                                                             <Button Command="{Binding Data.CancelRouteCommand, Source={StaticResource vmProxy}}" 
+                                                                    CommandParameter="{Binding}"
                                                                     VerticalAlignment="Center" 
                                                                     ToolTip="{Binding Data.UnscheduleToolTip, Source={StaticResource vmProxy}}"
                                                                     Visibility="{Binding Performed, Converter={StaticResource InverseBoolToVis}}">
