@@ -399,7 +399,7 @@ namespace Meditrans.Client.ViewModels
             _liveUpdateTimer = new DispatcherTimer
             {
                 // Defines the update interval.
-                Interval = TimeSpan.FromSeconds(1) // Update every 5 seconds
+                Interval = TimeSpan.FromSeconds(3) // Update every 5 seconds
             };
             // Subscribe the Tick event to our update method.
             _liveUpdateTimer.Tick += async (s, e) => await RefreshLiveDataAsync();
@@ -640,10 +640,10 @@ namespace Meditrans.Client.ViewModels
                 // Only consume the Google Maps service if the Trip object does not have PickupCity or DropoffCity
                 foreach (var source in trips)
                 {
-                    if (source.PickupCity.Equals("") || source.PickupCity == null)
+                    /*if (source.PickupCity.Equals("") || source.PickupCity == null)
                         source.PickupCity = await _googleMapsService.GetCityFromCoordinates(source.PickupLatitude, source.PickupLongitude) ?? "N/A";
                     if (source.DropoffCity.Equals("") || source.DropoffCity == null)
-                        source.DropoffCity = await _googleMapsService.GetCityFromCoordinates(source.DropoffLatitude, source.DropoffLongitude) ?? "N/A";
+                        source.DropoffCity = await _googleMapsService.GetCityFromCoordinates(source.DropoffLatitude, source.DropoffLongitude) ?? "N/A";*/
                     UnscheduledTrips.Add(source);
                 }
                 //foreach (var t in trips) UnscheduledTrips.Add(t);

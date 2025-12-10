@@ -588,10 +588,10 @@ namespace Meditrans.Client.ViewModels
                 _allUnscheduledTripsFromService.Clear();
                 foreach (var source in unscheduledDtoList)
                 {
-                    if (source.PickupCity.Equals("") || source.PickupCity == null)
+                    /*if (source.PickupCity.Equals("") || source.PickupCity == null)
                         source.PickupCity = await _googleMapsService.GetCityFromCoordinates(source.PickupLatitude, source.PickupLongitude) ?? "N/A";
                     if (source.DropoffCity.Equals("") || source.DropoffCity == null)
-                        source.DropoffCity = await _googleMapsService.GetCityFromCoordinates(source.DropoffLatitude, source.DropoffLongitude) ?? "N/A";
+                        source.DropoffCity = await _googleMapsService.GetCityFromCoordinates(source.DropoffLatitude, source.DropoffLongitude) ?? "N/A";*/
                     _allUnscheduledTripsFromService.Add(new TripItemViewModel(source));
                 }
 

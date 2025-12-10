@@ -787,10 +787,10 @@ namespace Meditrans.Client.ViewModels
 
                 // Only consume the Google Maps service if the Trip object does not have PickupCity or DropoffCity
                 foreach (var source in sources) {
-                    if(source.PickupCity.Equals("") || source.PickupCity == null)
+                    /*if(source.PickupCity.Equals("") || source.PickupCity == null)
                         source.PickupCity = await _googleMapsService.GetCityFromCoordinates(source.PickupLatitude, source.PickupLongitude) ?? "N/A";
                     if (source.DropoffCity.Equals("") || source.DropoffCity == null)
-                        source.DropoffCity = await _googleMapsService.GetCityFromCoordinates(source.DropoffLatitude, source.DropoffLongitude) ?? "N/A";
+                        source.DropoffCity = await _googleMapsService.GetCityFromCoordinates(source.DropoffLatitude, source.DropoffLongitude) ?? "N/A";*/
                     TripsByDate.Add(source);
                 }
                     
