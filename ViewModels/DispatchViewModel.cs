@@ -233,10 +233,12 @@ namespace Meditrans.Client.ViewModels
             _masterAllEvents = new List<ScheduleDto>();
             AllEvents = new ObservableCollection<ScheduleDto>();
 
-            CurrentDispatchDate = DateTime.Today;          
+            //CurrentDispatchDate = DateTime.Today;
+            _currentDispatchDate = DateTime.Today; 
+            OnPropertyChanged(nameof(CurrentDispatchDate));
 
             // Initialize commands
-            
+
             ExportScheduleCommand = new AsyncRelayCommand(ExecuteExportScheduleAsync);
             RefreshCommand = new AsyncRelayCommand(ExecuteRefreshAsync);          
             CancelTripCommand = new AsyncRelayCommand(ExecuteCancelTripAsync);
@@ -258,6 +260,20 @@ namespace Meditrans.Client.ViewModels
 
             // Initial data loading
             //LoadAllDataAsync();
+
+            _ = InitializeDataAsync();
+        }
+
+        private async Task InitializeDataAsync()
+        {
+            try
+            {
+                await LoadAllDataAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error inicializando datos: {ex.Message}");
+            }
         }
 
         private void StartOverviewLiveTracking()
@@ -266,7 +282,7 @@ namespace Meditrans.Client.ViewModels
 
             _overviewLiveUpdateTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromSeconds(15) 
+                Interval = TimeSpan.FromSeconds(5) 
             };
             _overviewLiveUpdateTimer.Tick += async (s, e) => await UpdateAllRunsLocationAsync();
             _overviewLiveUpdateTimer.Start();
@@ -285,31 +301,113 @@ namespace Meditrans.Client.ViewModels
         {
             if (Runs == null || !Runs.Any()) return;
 
+            double defaultLat = 26.6166;
+            double defaultLng = -81.8333;
+
+            // We make a COPY of the list to iterate. 
+            // This prevents the "Collection was modified" error if the user hits Refresh
+            // just while this method was executed by the Timer.
+            var runsSnapshot = Runs.ToList();
+
             // We create a task list to obtain the location of all runs in parallel
-            var updateTasks = Runs.Select(async run =>
+            var updateTasks = runsSnapshot.Select(async run =>
             {
                 try
                 {
                     var gpsData = await _gpsService.GetLatestGpsDataAsync(run.VehicleRoute.Id);
                     // We update the property in the RunItemViewModel.
                     // The UI will automatically react to this change.
-                    run.LastKnownLocation = gpsData;
+                    //run.LastKnownLocation = gpsData;
+
+                    if (gpsData != null && gpsData.Latitude != 0 && gpsData.Longitude != 0)
+                    {
+                        // CASE 1: We have real GPS data
+                        run.LastKnownLocation = gpsData;
+                    }
+                    else
+                    {
+                        // CASE 2: The API returned null (no signal/data).
+                        // FIX: Using the Garage location as a fallback
+                        // so that the vehicle DOES NOT disappear from the map.
+
+                        double garageLat = (run.VehicleRoute.Model?.GarageLatitude != 0)
+                                    ? run.VehicleRoute.Model.GarageLatitude
+                                    : defaultLat;
+
+                        double garageLng = (run.VehicleRoute.Model?.GarageLongitude != 0)
+                                            ? run.VehicleRoute.Model.GarageLongitude
+                                            : defaultLng;
+
+                        run.LastKnownLocation = new GpsDataDto
+                        {
+                            IdVehicleRoute = run.VehicleRoute.Id,
+                            Latitude = garageLat,
+                            Longitude = garageLng,
+                            Direction = "N/A", // This will activate your red Stop icon
+                            Speed = 0,
+                            DateTime = DateTime.Now,
+                            Address = "No GPS Signal - At Garage"
+                        };
+                    }
                 }
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"Error updating location for run {run.Name}: {ex.Message}");
-                    run.LastKnownLocation = null; 
+                    //run.LastKnownLocation = null; 
+
+                    // CASE 3: Call error (timeout, server error).
+                    // We keep the last known location if it exists, or use the garage fallback
+                    if (run.LastKnownLocation == null)
+                    {
+                        double garageLat = (run.VehicleRoute.Model?.GarageLatitude != 0)
+                                    ? run.VehicleRoute.Model.GarageLatitude
+                                    : defaultLat;
+
+                        double garageLng = (run.VehicleRoute.Model?.GarageLongitude != 0)
+                                            ? run.VehicleRoute.Model.GarageLongitude
+                                            : defaultLng;
+
+                        run.LastKnownLocation = new GpsDataDto
+                        {
+                            IdVehicleRoute = run.VehicleRoute.Id,
+                            Latitude = garageLat,
+                            Longitude = garageLng,
+                            Direction = "N/A",
+                            DateTime = DateTime.Now,
+                            Address = "GPS Error"
+                        };
+                    }
                 }
             });
 
             // We wait for all the tasks to finish
             await Task.WhenAll(updateTasks);
 
+            // We reset indexes
+            foreach (var run in Runs) run.OverlapIndex = 0;
+
+            // We group by coordinates (only those that have a location)
+            var groupedRuns = Runs
+                .Where(r => r.LastKnownLocation != null)
+                .GroupBy(r => new { r.LastKnownLocation.Latitude, r.LastKnownLocation.Longitude })
+                .Where(g => g.Count() > 1); // We are only interested in groups with more than 1 element
+
+            // We assign incremental index to those that collide
+            foreach (var group in groupedRuns)
+            {
+                int index = 0;
+                foreach (var run in group)
+                {
+                    run.OverlapIndex = index;
+                    index++;
+                }
+            }
+
             if (!_isInitialZoomDone)
             {
                 // We collect all valid run locations.
                 var allPoints = Runs
-                    .Where(r => r.LastKnownLocation != null)
+                    .Where(r => r.LastKnownLocation != null && r.LastKnownLocation.Latitude != 0)
                     .Select(r => new PointLatLng(r.LastKnownLocation.Latitude, r.LastKnownLocation.Longitude))
                     .ToList();
 
@@ -537,6 +635,8 @@ namespace Meditrans.Client.ViewModels
 
         private async Task LoadRunsAndEventsAsync()
         {
+            StopOverviewLiveTracking();
+
             Runs.Clear();
             _masterAllEvents.Clear();
             foreach (var route in _allVehicleRoutes)
@@ -572,6 +672,10 @@ namespace Meditrans.Client.ViewModels
                 Runs.Add(runItem);
             }
             FilterAllEvents(); // Call the filter to populate the visible collection
+
+            await UpdateAllRunsLocationAsync();
+
+            StartOverviewLiveTracking();
         }
 
         private async Task LoadUnscheduledTripsAsync()

@@ -36,6 +36,9 @@ namespace Meditrans.Client.ViewModels
         [ObservableProperty]
         private int _onBoardCount = 0;
 
+        [ObservableProperty]
+        private int _overlapIndex = 0;
+
         public RunItemViewModel(VehicleRouteViewModel vehicleRoute)
         {
             _vehicleRoute = vehicleRoute;

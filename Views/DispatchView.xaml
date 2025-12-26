@@ -23,6 +23,7 @@
         <converters:LocationToPointConverter x:Key="LocationToPointConverter"/>
         <converters:NullToVisibilityConverter x:Key="NullToVis"/>
         <converters:DirectionToAngleConverter x:Key="DirectionToAngleConverter"/>
+        <converters:IndexToMarginConverter x:Key="IndexToMarginConverter"/>
 
         <DataTemplate DataType="{x:Type viewModels:SchedulesViewModel}">
             <schedules:ScheduleView />
@@ -547,6 +548,7 @@
                                                     </MultiBinding>
                                                 </Setter.Value>
                                             </Setter>
+                                            <Setter Property="Panel.ZIndex" Value="{Binding OverlapIndex}" />
                                         </Style>
                                     </ItemsControl.ItemContainerStyle>
 
@@ -555,11 +557,29 @@
                                             <!-- The marker is only visible if we have location data -->
                                             <Grid Visibility="{Binding LastKnownLocation, Converter={StaticResource NullToVis}}">
                                                 <!-- Container that rotates to point in the right direction -->
-                                                <Grid>
-                                                    <Grid.RenderTransform>
-                                                        <RotateTransform Angle="{Binding LastKnownLocation.Direction, Converter={StaticResource DirectionToAngleConverter}}" 
-                                                 CenterX="16" CenterY="16" />
-                                                    </Grid.RenderTransform>
+                                                <Grid Margin="{Binding OverlapIndex, Converter={StaticResource IndexToMarginConverter}}" RenderTransformOrigin="0.5, 0.5">
+
+                                                    <Grid.Style>
+                                                        <Style TargetType="Grid">
+                                                            <!-- 1. Definimos la Rotación por defecto (Binding normal) -->
+                                                            <Setter Property="RenderTransform">
+                                                                <Setter.Value>
+                                                                    <RotateTransform Angle="{Binding LastKnownLocation.Direction, Converter={StaticResource DirectionToAngleConverter}}"/>
+                                                                </Setter.Value>
+                                                            </Setter>
+
+                                                            <Style.Triggers>
+                                                                <!-- 2. Si la dirección es N/A, sobrescribimos el RenderTransform con ángulo 0 -->
+                                                                <DataTrigger Binding="{Binding LastKnownLocation.Direction}" Value="N/A">
+                                                                    <Setter Property="RenderTransform">
+                                                                        <Setter.Value>
+                                                                            <RotateTransform Angle="0"/>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Grid.Style>
 
                                                     <!-- The scoreboard visual: blue circle with white arrow -->
                                                     <Grid Width="32" Height="32">
@@ -610,13 +630,42 @@
                                                             </ToolTip>
                                                         </Grid.ToolTip>
 
-                                                        <Ellipse Fill="DodgerBlue" Stroke="White" StrokeThickness="2">
+                                                        <!-- ELIPSE (Círculo de fondo) -->
+                                                        <Ellipse Stroke="White" StrokeThickness="2">
                                                             <Ellipse.Effect>
                                                                 <DropShadowEffect ShadowDepth="2" BlurRadius="4" Opacity="0.5"/>
                                                             </Ellipse.Effect>
+                                                            <Ellipse.Style>
+                                                                <Style TargetType="Ellipse">
+                                                                    <Setter Property="Fill" Value="DodgerBlue"/>
+                                                                    <Style.Triggers>
+                                                                        <!-- Cambio de color a Naranja si está parado (N/A) -->
+                                                                        <DataTrigger Binding="{Binding LastKnownLocation.Direction}" Value="N/A">
+                                                                            <Setter Property="Fill" Value="#FF5722"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Ellipse.Style>
                                                         </Ellipse>
-                                                        <materialDesign:PackIcon Kind="ArrowUp" Foreground="White" Width="20" Height="20"
-                                                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+                                                        <!-- ICONO (Flecha o Stop) -->
+                                                        <materialDesign:PackIcon Width="20" Height="20"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 Foreground="White">
+                                                            <materialDesign:PackIcon.Style>
+                                                                <Style TargetType="materialDesign:PackIcon">
+                                                                    <Setter Property="Kind" Value="ArrowUp"/>
+                                                                    <!-- Icono por defecto -->
+                                                                    <Style.Triggers>
+                                                                        <!-- Cambio de icono a Stop si está parado (N/A) -->
+                                                                        <DataTrigger Binding="{Binding LastKnownLocation.Direction}" Value="N/A">
+                                                                            <Setter Property="Kind" Value="Stop"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </materialDesign:PackIcon.Style>
+                                                        </materialDesign:PackIcon>
+
                                                     </Grid>
                                                 </Grid>
                                             </Grid>
