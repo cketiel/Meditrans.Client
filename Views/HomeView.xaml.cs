@@ -811,7 +811,11 @@ namespace Meditrans.Client.Views
                         FundingSource importSelectedFundingSource = vm.SelectedFundingSourceImport;
                         // fundingSourceName = "SAFERIDE"; 
                         bool selectedFileIsSaferide = isSaferide;
-                        bool selectedFundingSourceIsSaferide = string.Equals(importSelectedFundingSource.Name, "SAFERIDE", StringComparison.OrdinalIgnoreCase);
+                        //bool selectedFundingSourceIsSaferide = string.Equals(importSelectedFundingSource.Name, "SAFERIDE", StringComparison.OrdinalIgnoreCase);
+
+                        // para los casos de "SAFERIDE MILANES" Y "SAFERIDE YAMIGROUP"
+                        bool selectedFundingSourceIsSaferide = importSelectedFundingSource.Name?.StartsWith("SAFERIDE", StringComparison.OrdinalIgnoreCase) ?? false;
+
                         // If the uploaded file does not correspond to the selected FundingSource, display a message and do not allow the file to be imported
                         if ((selectedFileIsSaferide && !selectedFundingSourceIsSaferide) || (!selectedFileIsSaferide && selectedFundingSourceIsSaferide))
                         {
