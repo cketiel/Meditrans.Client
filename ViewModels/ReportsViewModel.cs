@@ -20,7 +20,12 @@ namespace Meditrans.Client.ViewModels
     /// </summary>
     public class ReportsViewModel : BaseViewModel
     {
+        private readonly FundingSourceService _fundingSourceService;
         private readonly ScheduleService _scheduleService;
+
+        private ObservableCollection<FundingSource> _allFundingSources;
+        private FundingSource _selectedFundingSource;
+
         private DateTime _selectedDate = DateTime.Today;
         private string _generateButtonText = "Generate Production Report";
         private bool _isGenerating;
@@ -41,6 +46,7 @@ namespace Meditrans.Client.ViewModels
 
         public ReportsViewModel()
         {
+            _fundingSourceService = new FundingSourceService();
             _scheduleService = new ScheduleService();
             _gpsService = new GpsService();
             _vehicleRouteService = new RunService();
@@ -51,6 +57,40 @@ namespace Meditrans.Client.ViewModels
 
             // Load initial data
             LoadVehicleRoutes();
+            LoadFundingSources();
+        }
+
+        private async void LoadFundingSources()
+        {
+            try
+            {
+                var sources = await _fundingSourceService.GetFundingSourcesAsync(false); // Get only active sources
+
+                // --- Create a special "All" item ---
+                // This is a placeholder for the UI. Its ID helps us know when to send 'null' to the API.
+                var allSourcesPlaceholder = new FundingSource { Id = -1, Name = "[ All Funding Sources ]" };
+
+                sources.Insert(0, allSourcesPlaceholder); // Add it to the top of the list
+
+                AllFundingSources = new ObservableCollection<FundingSource>(sources);
+                SelectedFundingSource = allSourcesPlaceholder; // Set it as the default selection
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load funding sources: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        public ObservableCollection<FundingSource> AllFundingSources
+        {
+            get => _allFundingSources;
+            set { _allFundingSources = value; OnPropertyChanged(); }
+        }
+
+        public FundingSource SelectedFundingSource
+        {
+            get => _selectedFundingSource;
+            set { _selectedFundingSource = value; OnPropertyChanged(); }
         }
 
         public DateTime SelectedDate
@@ -113,8 +153,15 @@ namespace Meditrans.Client.ViewModels
 
             try
             {
+                // --- Determine the ID to send to the API ---
+                // If the user selected our "[ All ]" placeholder, we send null.
+                // Otherwise, we send the selected ID.
+                int? fundingSourceId = (SelectedFundingSource != null && SelectedFundingSource.Id != -1)
+                    ? SelectedFundingSource.Id
+                    : (int?)null;
+
                 // Fetch data from the API
-                var reportData = await _scheduleService.GetProductionReportDataAsync(SelectedDate);
+                var reportData = await _scheduleService.GetProductionReportDataAsync(SelectedDate, fundingSourceId);
 
                 if (reportData == null || reportData.Count == 0)
                 {

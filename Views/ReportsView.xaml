@@ -90,11 +90,24 @@
                     <Border Grid.Row="0" Background="#F7F7F7" CornerRadius="5" Padding="15" BorderBrush="#E0E0E0" BorderThickness="1">
                         <StackPanel>
                             <TextBlock Text="Report Options" FontSize="16" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
+
+                            <!-- Date Picker -->
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="Select Report Date:" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                 <!-- Bind the DatePicker to a property in the ViewModel -->
                                 <DatePicker SelectedDate="{Binding SelectedDate}" Width="150" VerticalAlignment="Center"/>
                             </StackPanel>
+
+                            <!-- NEW: Funding Source ComboBox -->
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Funding Source:" VerticalAlignment="Center" Margin="0,0,10,0" Width="120"/>
+                                <ComboBox ItemsSource="{Binding AllFundingSources}"
+                              SelectedItem="{Binding SelectedFundingSource}"
+                              DisplayMemberPath="Name"
+                              Width="250"
+                              VerticalAlignment="Center"/>
+                            </StackPanel>
+                            
                         </StackPanel>
                     </Border>
 

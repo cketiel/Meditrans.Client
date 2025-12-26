@@ -71,11 +71,17 @@ namespace Meditrans.Client.Services
             }
         }
 
-        public async Task<List<ProductionReportRowDto>> GetProductionReportDataAsync(DateTime date)
+        public async Task<List<ProductionReportRowDto>> GetProductionReportDataAsync(DateTime date, int? fundingSourceId)
         {
             // Format the date correctly for the URL query string.
             string formattedDate = date.ToString("yyyy-MM-dd");
             var requestUri = $"{_endPoint}/reports/production?date={formattedDate}";
+
+            // --- NEW: Append the fundingSourceId if it has a value ---
+            if (fundingSourceId.HasValue)
+            {
+                requestUri += $"&fundingSourceId={fundingSourceId.Value}";
+            }
 
             var response = await _httpClient.GetAsync(requestUri);
 
