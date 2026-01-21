@@ -118,6 +118,7 @@ namespace Meditrans.Client.ViewModels
 
         #endregion
 
+        public IAsyncRelayCommand ManualRefreshCommand { get; }
         public IAsyncRelayCommand UnperformEventCommand { get; }
 
         public SchedulesViewModel(ScheduleService scheduleService)
@@ -141,6 +142,8 @@ namespace Meditrans.Client.ViewModels
             EditTripCommand = new AsyncRelayCommand<object>(ExecuteEditTripAsync);
 
             UnperformEventCommand = new AsyncRelayCommand<ScheduleDto>(ExecuteUnperformEventAsync);
+
+            ManualRefreshCommand = new AsyncRelayCommand(RefreshLiveDataAsync);
 
             InitializeColumns();
             //_ = InitializeAsync();
