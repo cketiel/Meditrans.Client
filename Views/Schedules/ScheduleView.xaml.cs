@@ -136,5 +136,20 @@ namespace Meditrans.Client.Views.Schedules
                 e.Handled = true;
             }
         }
+
+        private void SetNormalMap_Click(object sender, RoutedEventArgs e)
+        {
+            MapView.MapProvider = GMap.NET.MapProviders.GoogleMapProvider.Instance;
+        }
+
+        private void SetHybridMap_Click(object sender, RoutedEventArgs e)
+        {           
+            MapView.MapProvider = GMap.NET.MapProviders.GoogleHybridMapProvider.Instance;
+        }
+
+        private void SetSatelliteMap_Click(object sender, RoutedEventArgs e)
+        {
+            MapView.MapProvider = GMap.NET.MapProviders.GoogleSatelliteMapProvider.Instance;
+        }
     }
 }

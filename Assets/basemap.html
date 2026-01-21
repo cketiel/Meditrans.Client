@@ -92,11 +92,11 @@
 
         function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
-                mapTypeControl: false,
+                //mapTypeControl: false,
                 //disableDefaultUI: true,
                 zoom: 5, // 3
-                center: { lat: originLat, lng: originLng },
-                mapTypeId: 'roadmap'
+                center: { lat: originLat, lng: originLng }//,
+                //mapTypeId: 'roadmap'
             });
 
             initPickupAutocomplete();

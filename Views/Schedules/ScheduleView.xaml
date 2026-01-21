@@ -389,7 +389,41 @@
                         <Grid Grid.Column="2" Margin="5" ClipToBounds="True">
                             <gmaps:GMapControl x:Name="MapView" MinZoom="2" MaxZoom="20"
                                                Zoom="{Binding MapZoom, Mode=TwoWay}"
-                                               Position="{Binding MapCenter, Mode=TwoWay}"/>
+                                               Position="{Binding MapCenter, Mode=TwoWay}">
+
+                                <gmaps:GMapControl.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Mapa Normal" Click="SetNormalMap_Click" />
+                                        <MenuItem Header="Satélite (Híbrido)" Click="SetHybridMap_Click" />
+                                        <MenuItem Header="Satélite" Click="SetSatelliteMap_Click" />
+                                    </ContextMenu>
+                                </gmaps:GMapControl.ContextMenu>
+                                
+                            </gmaps:GMapControl>
+
+                            <!-- Mini Floating Control over the map -->
+                            <Border VerticalAlignment="Top" HorizontalAlignment="Right" 
+                                Margin="10" Background="White" CornerRadius="4" Padding="2">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.3"/>
+                                </Border.Effect>
+                                <StackPanel Orientation="Horizontal">
+                                    <!-- Normal Map Button -->
+                                    <Button Content="Mapa" 
+                                        Click="SetNormalMap_Click" 
+                                        Style="{StaticResource MaterialDesignFlatButton}" 
+                                        Height="30" Padding="10,0"/>
+
+                                    <!-- SEPARATOR -->
+                                    <Rectangle Width="1" Fill="#DADCE0" Margin="2,5" VerticalAlignment="Stretch"/>
+
+                                    <!-- Satellite Button -->
+                                    <Button Content="Satélite" 
+                                        Click="SetHybridMap_Click" 
+                                        Style="{StaticResource MaterialDesignFlatButton}" 
+                                        Height="30" Padding="10,0"/>
+                                </StackPanel>
+                            </Border>
 
                             <ItemsControl ItemsSource="{Binding Schedules}">
                                 <ItemsControl.ItemsPanel>
