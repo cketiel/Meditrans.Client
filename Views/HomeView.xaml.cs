@@ -52,6 +52,11 @@ namespace Meditrans.Client.Views
     {
         public HomeViewModel ViewModel { get; set; }
         private bool _isUpdatingFromHtml = false;
+
+        // STATIC VARIABLE for the environment (shared throughout the App)
+        private static CoreWebView2Environment _commonEnvironment;
+        // Flag to avoid simultaneous calls on the same instance
+        private bool _isInitializing = false;
         public HomeView()
         {
             InitializeComponent();
@@ -88,80 +93,107 @@ namespace Meditrans.Client.Views
 
         private async void WebView_Loaded(object sender, RoutedEventArgs e)
         {
-            try
+            if (MapaWebView.CoreWebView2 != null || _isInitializing)
             {
-                // This creates a route like: C:\Users\<TuUsuario>\AppData\Local\Raphael\WebView2
-                string userDataFolder = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Raphael", "WebView2");
-                var environment = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
+                if (MapaWebView.CoreWebView2 != null) LoadMap();
+                return;
+            }
 
-                await MapaWebView.EnsureCoreWebView2Async(environment);
-                LoadMap();
-                // MapaWebView.WebMessageReceived += MapaWebView_WebMessageReceived;
-                // Subscribe to message from JavaScript
-                MapaWebView.CoreWebView2.WebMessageReceived += (s, args) =>
+            _isInitializing = true;
+
+            try
+            {              
+
+                if (_commonEnvironment == null)
                 {
-                    try
-                    {
-                        var json = args.WebMessageAsJson;
-                        dynamic data = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
+                    // This creates a route like: C:\Users\<TuUsuario>\AppData\Local\Raphael\WebView2
+                    string userDataFolder = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Raphael", "WebView2");
 
-                        if (data.type == "routeInfo")
-                        {
-                            string eta = data.eta;
-                            string distance = data.distance;
+                    _commonEnvironment = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
+                }
 
+                // Wait for initialization with the shared environment
+                await MapaWebView.EnsureCoreWebView2Async(_commonEnvironment);
 
-                            // Show on Label
-                            Dispatcher.Invoke(() =>
-                            {
-                                if (DataContext is HomeViewModel vm)
-                                {
-                                    vm.Distance = distance; // double.Parse(distance); // meters
-                                    vm.ETA = eta; // double.Parse(eta); // seconds
-                                }
-                                //TripInfoLabel.Content = $"ETA: {eta} | Distance: {distance}";
-                            });
-                            // Here you can display the message
-                            //MessageBox.Show($"ETA: {eta}\nDistance: {distance}", "Trip Info");
-                        }
-                        else if (data.type == "autocomplete")
-                        {
-                            var result = data.result;
+                // Only subscribe to events if it's the first time (CoreWebView2 has just been created)
+                ConfigureWebViewEvents();
 
-                            if (result is null) return;
-
-                            _isUpdatingFromHtml = true;
-
-                            GooglePlacesInput.Text = result.address;
-                            //Address.Text = result.address;
-                            City.Text = result.city;
-                            State.Text = result.state;
-                            Zip.Text = result.zip;
-
-                            _isUpdatingFromHtml = false;
-
-                            //ShowLocationOnMap((double)result.lat, (double)result.lng);
-                        }
-                        else if (data.type == "dropoff")
-                        {
-                            if (data.dropoff_address is null) return;
-
-                            _isUpdatingFromHtml = true;
-                            DropoffAddressTextBox.Text = data.dropoff_address;
-                            _isUpdatingFromHtml = false;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("Error receiving message: " + ex.Message);
-                    }
-                };
+                LoadMap();
 
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error initializing WebView2: {ex.Message}");
             }
+            finally
+            {
+                _isInitializing = false;
+            }
+
+        }
+
+        private void ConfigureWebViewEvents()
+        {
+            // MapaWebView.WebMessageReceived += MapaWebView_WebMessageReceived;
+            // Subscribe to message from JavaScript
+            MapaWebView.CoreWebView2.WebMessageReceived += (s, args) =>
+            {
+                try
+                {
+                    var json = args.WebMessageAsJson;
+                    dynamic data = Newtonsoft.Json.JsonConvert.DeserializeObject(json);
+
+                    if (data.type == "routeInfo")
+                    {
+                        string eta = data.eta;
+                        string distance = data.distance;
+
+
+                        // Show on Label
+                        Dispatcher.Invoke(() =>
+                        {
+                            if (DataContext is HomeViewModel vm)
+                            {
+                                vm.Distance = distance; // double.Parse(distance); // meters
+                                vm.ETA = eta; // double.Parse(eta); // seconds
+                            }
+                            //TripInfoLabel.Content = $"ETA: {eta} | Distance: {distance}";
+                        });
+                        // Here you can display the message
+                        //MessageBox.Show($"ETA: {eta}\nDistance: {distance}", "Trip Info");
+                    }
+                    else if (data.type == "autocomplete")
+                    {
+                        var result = data.result;
+
+                        if (result is null) return;
+
+                        _isUpdatingFromHtml = true;
+
+                        GooglePlacesInput.Text = result.address;
+                        //Address.Text = result.address;
+                        City.Text = result.city;
+                        State.Text = result.state;
+                        Zip.Text = result.zip;
+
+                        _isUpdatingFromHtml = false;
+
+                        //ShowLocationOnMap((double)result.lat, (double)result.lng);
+                    }
+                    else if (data.type == "dropoff")
+                    {
+                        if (data.dropoff_address is null) return;
+
+                        _isUpdatingFromHtml = true;
+                        DropoffAddressTextBox.Text = data.dropoff_address;
+                        _isUpdatingFromHtml = false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error receiving message: " + ex.Message);
+                }
+            };
 
         }
 

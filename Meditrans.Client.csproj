@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Raphael.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -69,6 +70,7 @@
     <Content Include="Assets\Mappings\SAFERIDE2.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Raphael.ico" />
   </ItemGroup>
 
   <ItemGroup>

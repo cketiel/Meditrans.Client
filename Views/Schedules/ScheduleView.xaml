@@ -589,7 +589,6 @@
                                             <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}"/>
                                             <Binding Path="Zoom" ElementName="MapView"/>
                                             <Binding Path="Position" ElementName="MapView"/>
-                                            
                                         </MultiBinding>
                                     </Canvas.Left>
                                     <Canvas.Top>
@@ -600,25 +599,47 @@
                                             <Binding Path="ActualHeight" RelativeSource="{RelativeSource Self}"/>
                                             <Binding Path="Zoom" ElementName="MapView"/>
                                             <Binding Path="Position" ElementName="MapView"/>
-                                            
                                         </MultiBinding>
                                     </Canvas.Top>
 
+                                    <!-- Contenedor del Marcador con Estilo para Rotación Condicional -->
+                                    <Grid RenderTransformOrigin="0.5, 0.5">
+                                        <Grid.Style>
+                                            <Style TargetType="Grid">
+                                                <!-- Por defecto: Rotar según la dirección -->
+                                                <Setter Property="RenderTransform">
+                                                    <Setter.Value>
+                                                        <RotateTransform Angle="{Binding DriverLastKnownLocation.Direction, Converter={StaticResource DirectionToAngleConverter}}" />
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <!-- Si la dirección es N/A (parado), forzamos rotación 0 para que el Stop no salga girado -->
+                                                    <DataTrigger Binding="{Binding DriverLastKnownLocation.Direction}" Value="N/A">
+                                                        <Setter Property="RenderTransform">
+                                                            <Setter.Value>
+                                                                <RotateTransform Angle="0"/>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </DataTrigger>
+                                                   
+                                                    <DataTrigger Binding="{Binding DriverLastKnownLocation.Speed}" Value="0">
+                                                        <Setter Property="RenderTransform">
+                                                            <Setter.Value>
+                                                                <RotateTransform Angle="0"/>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Grid.Style>
 
-                                    <Grid>
-
-                                        <Grid.RenderTransform>
-                                            <RotateTransform Angle="{Binding DriverLastKnownLocation.Direction, Converter={StaticResource DirectionToAngleConverter}}" CenterX="12" CenterY="12" />
-                                        </Grid.RenderTransform>
-
-                                        <Grid x:Name="DriverMarkerVisual" Width="24" Height="24">
-                                           
+                                        <!-- El visual del marcador (Círculo + Icono) -->
+                                        <Grid x:Name="DriverMarkerVisual" Width="28" Height="28">
                                             <Grid.RenderTransform>
-                                                <ScaleTransform ScaleX="1" ScaleY="1" CenterX="12" CenterY="12"/>
+                                                <ScaleTransform ScaleX="1" ScaleY="1" CenterX="14" CenterY="14"/>
                                             </Grid.RenderTransform>
 
                                             <Grid.Triggers>
-                                                <!-- When the Grid loads (becomes visible), the Storyboard starts -->
                                                 <EventTrigger RoutedEvent="Loaded">
                                                     <BeginStoryboard Storyboard="{StaticResource HeartbeatStoryboard}" />
                                                 </EventTrigger>
@@ -627,33 +648,50 @@
                                             <Grid.Effect>
                                                 <DropShadowEffect ShadowDepth="2" BlurRadius="4" Opacity="0.5"/>
                                             </Grid.Effect>
-                                            
+
                                             <Grid.ToolTip>
                                                 <ToolTip>
                                                     <StackPanel>
-                                                        <TextBlock FontWeight="Bold" Text="{Binding Data.SelectedVehicleRoute.Name, Source={StaticResource vmProxy}}"/>
+                                                        <TextBlock FontWeight="Bold" Text="{Binding SelectedVehicleRoute.Name}"/>
                                                         <TextBlock>
-                                                            <Run Text="Last update:"/>
-                                                            <Run Text="{Binding Data.DriverLastKnownLocation.DateTime, Source={StaticResource vmProxy}, StringFormat='{}{0:hh:mm:ss tt}'}"/>
+                            <Run Text="Last update:"/>
+                            <Run Text="{Binding DriverLastKnownLocation.DateTime, StringFormat='{}{0:hh:mm:ss tt}'}"/>
                                                         </TextBlock>
                                                         <TextBlock>
-                                                            <Run Text="Speed:"/>
-                                                            <Run Text="{Binding Data.DriverLastKnownLocation.Speed, Source={StaticResource vmProxy}, StringFormat='{}{0:N1} mph'}"/>
+                            <Run Text="Speed:"/>
+                            <Run Text="{Binding DriverLastKnownLocation.Speed, StringFormat='{}{0:N1} mph'}"/>
                                                         </TextBlock>
                                                     </StackPanel>
                                                 </ToolTip>
                                             </Grid.ToolTip>
-                                           
-                                            <Ellipse Fill="{Binding DataContext.DriverLastKnownLocation.Speed, 
-                                                    RelativeSource={RelativeSource AncestorType=UserControl}, 
-                                                    Converter={StaticResource SmartSpeedToBrushConverter}}" 
-                                                    Stroke="White" StrokeThickness="2"/>
+
                                             
-                                            <materialDesign:PackIcon Kind="ArrowUp" Foreground="White" Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            <Ellipse Fill="{Binding DriverLastKnownLocation.Speed, Converter={StaticResource SmartSpeedToBrushConverter}}" 
+                     Stroke="White" 
+                     StrokeThickness="2"/>
+
+                                            <!-- Icono que cambia entre Flecha y Stop -->
+                                            <materialDesign:PackIcon Width="20" Height="20" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White">
+                                                <materialDesign:PackIcon.Style>
+                                                    <Style TargetType="materialDesign:PackIcon">
+                                                        <Setter Property="Kind" Value="ArrowUp"/>
+                                                        <Style.Triggers>
+                                                            <!-- Si la dirección es N/A, mostrar Stop -->
+                                                            <DataTrigger Binding="{Binding DriverLastKnownLocation.Direction}" Value="N/A">
+                                                                <Setter Property="Kind" Value="Stop"/>
+                                                            </DataTrigger>
+                                                            <!-- Adicionalmente, si la velocidad es muy baja, mostrar Stop -->
+                                                            <DataTrigger Binding="{Binding DriverLastKnownLocation.Speed, Converter={StaticResource SmartSpeedToBrushConverter}}" Value="{StaticResource StoppedBlueBrush}">
+                                                                <Setter Property="Kind" Value="Stop"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </materialDesign:PackIcon.Style>
+                                            </materialDesign:PackIcon>
                                         </Grid>
                                     </Grid>
-
                                 </Grid>
+                                
                             </Canvas>
 
                         </Grid>
