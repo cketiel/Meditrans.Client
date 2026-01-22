@@ -160,6 +160,23 @@ namespace Meditrans.Client.Services
             response.EnsureSuccessStatusCode();
         }
 
+        public async Task AssignRunAsync(int tripId, int? vehicleRouteId)
+        {           
+            var response = await _httpClient.PatchAsJsonAsync($"{EndPoint}/{tripId}/assign-run", vehicleRouteId);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw await CreateApiException(response, "Error assigning run to trip");
+            }
+        }
+
+        /*public async Task AssignRunAsync(int tripId, int? vehicleRouteId)
+        {
+            
+            var response = await _httpClient.PatchAsJsonAsync($"{EndPoint}/{tripId}/assign-run", vehicleRouteId);
+            response.EnsureSuccessStatusCode();
+        }*/
+
         private async Task<ApiException> CreateApiException(HttpResponseMessage response, string context)
         {
             try

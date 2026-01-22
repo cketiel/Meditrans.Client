@@ -20,7 +20,7 @@ using System.Windows.Threading;
 namespace Meditrans.Client.ViewModels
 {
     public partial class SchedulesViewModel : ObservableObject, IDragSource, IDropTarget
-    {
+    {      
         // Flag to prevent concurrent recalculations.
         private bool _isRecalculating = false;
         /// <summary>
@@ -143,12 +143,12 @@ namespace Meditrans.Client.ViewModels
 
             UnperformEventCommand = new AsyncRelayCommand<ScheduleDto>(ExecuteUnperformEventAsync);
 
-            ManualRefreshCommand = new AsyncRelayCommand(RefreshLiveDataAsync);
+            ManualRefreshCommand = new AsyncRelayCommand(RefreshLiveDataAsync);          
 
             InitializeColumns();
             //_ = InitializeAsync();
          
-        }
+        }      
 
         private async Task ExecuteUnperformEventAsync(ScheduleDto schedule)
         {

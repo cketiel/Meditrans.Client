@@ -3,10 +3,196 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
+             xmlns:converters="clr-namespace:Meditrans.Client.Converters"
              xmlns:local="clr-namespace:Meditrans.Client.Views.Schedules"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
+
+    <UserControl.Resources>
+        <helpers:BindingProxy x:Key="vmProxy" Data="{Binding}" />
+        <helpers:BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <converters:NullToVisibilityConverter x:Key="NullToVis"/>
+        <converters:ColumnVisibilityConverter x:Key="ColumnVisibilityConverter"/>
+        <converters:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVis" />
+        <converters:StatusToVisibilityConverter x:Key="StatusToVisibilityConverter" />
+        <converters:NullToBooleanConverter x:Key="NullToBoolConverter"/>
+
+        
+
+        <Style x:Key="UnscheduledTripRowStyle" TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
+            <Setter Property="Background" Value="{StaticResource EvenRowBackgroundBrush}"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Status}" Value="Canceled">
+                    <Setter Property="Foreground" Value="Red" />
+                    <Setter Property="ToolTip" Value="Canceled: Driver No-Show reported." />
+                </DataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding Status}" Value="Canceled" />
+                        <Condition Binding="{Binding DriverNoShowReason, TargetNullValue={x:Null}}" Value="{x:Null}" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Foreground" Value="Gray" />
+                    <Setter Property="FontStyle" Value="Italic" />
+                    <Setter Property="ToolTip" Value="This trip was canceled by the office." />
+                </MultiDataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding Status}" Value="Canceled" />
+                        <Condition Binding="{Binding DriverNoShowReason}" Value="" />
+                    </MultiDataTrigger.Conditions>
+                    <Setter Property="Foreground" Value="Gray" />
+                    <Setter Property="ToolTip" Value="This trip was canceled by the office." />
+                </MultiDataTrigger>
+            </Style.Triggers>
+        </Style>
+        
+    </UserControl.Resources>
+
+    <materialDesign:DialogHost Identifier="TripsDialogHost">
+        
+    <Border BorderThickness="1,1,1,1" BorderBrush="{StaticResource MainBorderBrush}">
+
+    <Grid Margin="4 0 4 4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- FILTERS -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
+            <DatePicker SelectedDate="{Binding SelectedDate}" Margin="5,0"/>
+
+            <CheckBox Content="Hide Canceled Trips" 
+                          IsChecked="{Binding HideCanceledTrips}" 
+                          VerticalAlignment="Center" Margin="20,0"/>
+
+            <TextBlock Text="Trip Type:" VerticalAlignment="Center" Margin="20,0,5,0"/>
+            <ComboBox ItemsSource="{Binding TripTypeOptions}" 
+                          SelectedItem="{Binding SelectedTripTypeFilter}" 
+                          Width="120"/>
+        </StackPanel>
+
+        <!-- GRID OF ALL TRIPS -->
+        <DataGrid Grid.Row="1" ItemsSource="{Binding AllTrips}" 
+                  ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" 
+                  FrozenColumnCount="2" 
+                  AlternationCount="2" AlternatingRowBackground="White" 
+                  Style="{StaticResource CustomDataGridStyle}" 
+                  ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}"
+                  RowStyle="{StaticResource UnscheduledTripRowStyle}" 
+                  CellStyle="{StaticResource CustomCellStyle}" 
+                  SelectionUnit="FullRow" 
+                  AutoGenerateColumns="False" CanUserAddRows="False" Cursor="Hand"
+                  >
+            <DataGrid.Columns>
+
+                <DataGridTemplateColumn Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Command="{Binding Data.CancelTripCommand, Source={StaticResource vmProxy}}" CommandParameter="{Binding}" Style="{StaticResource MaterialDesignToolButton}" VerticalAlignment="Center" ToolTip="{Binding Data.CancelTripToolTip, Source={StaticResource vmProxy}}">
+                                    <Button.Visibility>
+                                        <Binding Path="Status" Converter="{StaticResource StatusToVisibilityConverter}" ConverterParameter="NotCanceled" />
+                                    </Button.Visibility>
+                                    <materialDesign:PackIcon Kind="CloseThick" Foreground="Red" Width="20" Height="20" />
+                                </Button>
+                                <Button Command="{Binding DataContext.UncancelTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Style="{StaticResource MaterialDesignToolButton}" ToolTip="Uncancel trip">
+                                    <Button.Visibility>
+                                        <Binding Path="Status" Converter="{StaticResource StatusToVisibilityConverter}" ConverterParameter="Canceled" />
+                                    </Button.Visibility>
+                                    <materialDesign:PackIcon Kind="Restore" Foreground="Green" Width="20" Height="20" />
+                                </Button>
+                                <Button Command="{Binding DataContext.EditTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Style="{StaticResource MaterialDesignToolButton}" ToolTip="{Binding Data.EditTripToolTip, Source={StaticResource vmProxy}}">
+                                    <materialDesign:PackIcon Kind="FileEdit" Foreground="Orange"/>
+                                </Button>
+                                
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Run" Width="200">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                
+                                <Button Command="{Binding Data.CancelRouteCommand, Source={StaticResource vmProxy}}" 
+                        CommandParameter="{Binding}"
+                        ToolTip="Unschedule">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignToolButton}">
+                                            <!-- Only visible if the trip HAS a Run assigned -->
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding VehicleRouteId, Converter={StaticResource NullToBoolConverter}}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding VehicleRouteId}" Value="0">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    
+                                    <materialDesign:PackIcon Kind="CalendarRemove" Foreground="{DynamicResource MaterialDesign.Brush.Primary}" Width="20" Height="20" />
+                                </Button>
+
+                                <!-- COMBOBOX -->                              
+                                <ComboBox ItemsSource="{Binding Data.VehicleRoutes, Source={StaticResource vmProxy}}"
+                                      DisplayMemberPath="Name"
+                                      SelectedValuePath="Id"
+                                      SelectedValue="{Binding VehicleRouteId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      SelectionChanged="RunComboBox_SelectionChanged"
+                                      Width="150" Margin="5,0,0,0">
+                                </ComboBox>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTextColumn Binding="{Binding Date, StringFormat=d}" Header="{Binding Data.ColumnHeaderDate, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding FromTime}" Header="{Binding Data.ColumnHeaderFromTime, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding ToTime}" Header="{Binding Data.ColumnHeaderToTime, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding NotificationStatus}" Header="{Binding Data.ColumnHeaderNotificationStatus, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding CustomerName}" Header="{Binding Data.ColumnHeaderPatient, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding PickupAddress}" Header="{Binding Data.ColumnHeaderPickupAddress, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding DropoffAddress}" Header="{Binding Data.ColumnHeaderDropoffAddress, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding Charge}" Header="{Binding Data.ColumnHeaderCharge, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding Paid}" Header="{Binding Data.ColumnHeaderPaid, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding SpaceType}" Header="{Binding Data.ColumnHeaderSpace, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding PickupComment}" Header="{Binding Data.ColumnHeaderPickupComment, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding DropoffComment}" Header="{Binding Data.ColumnHeaderDropoffComment, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding Type}" Header="{Binding Data.ColumnHeaderType, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding Pickup}" Header="{Binding Data.ColumnHeaderPickup, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding Dropoff}" Header="{Binding Data.ColumnHeaderDropoff, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding PickupPhone}" Header="{Binding Data.ColumnHeaderPickupPhone, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding DropoffPhone}" Header="{Binding Data.ColumnHeaderDropoffPhone, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding Authorization}" Header="{Binding Data.ColumnHeaderAuthorization, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding FundingSource}" Header="{Binding Data.ColumnHeaderFundingSource, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding Distance}" Header="{Binding Data.ColumnHeaderDistance, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding PickupCity}" Header="{Binding Data.ColumnHeaderPickupCity, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                <DataGridTextColumn Binding="{Binding DropoffCity}" Header="{Binding Data.ColumnHeaderDropoffCity, Source={StaticResource vmProxy}}" IsReadOnly="True"/>
+                
+                <DataGridTextColumn Binding="{Binding Status}" Header="Status" IsReadOnly="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Status}" Value="Canceled">
+                                    <Setter Property="Foreground" Value="Red"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+
+
+            </DataGrid.Columns>
+        </DataGrid>
     </Grid>
+
+    </Border>
+    </materialDesign:DialogHost>
 </UserControl>

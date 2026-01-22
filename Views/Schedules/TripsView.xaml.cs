@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Meditrans.Client.DTOs;
+using Meditrans.Client.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +25,28 @@ namespace Meditrans.Client.Views.Schedules
         public TripsView()
         {
             InitializeComponent();
+            DataContext = new ViewModels.TripsViewModel();
+        }
+        private void RunComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // We get the ComboBox that fired the event
+            var comboBox = sender as ComboBox;
+            if (comboBox == null) return;
+
+            // We get the row object (TripReadDto)
+            var trip = comboBox.DataContext as TripReadDto;
+
+            // We get the main ViewModel
+            var viewModel = this.DataContext as TripsViewModel;
+
+            if (trip != null && viewModel != null)
+            {
+                // We execute the ViewModel command manually
+                if (viewModel.UpdateTripRunCommand.CanExecute(trip))
+                {
+                    viewModel.UpdateTripRunCommand.Execute(trip);
+                }
+            }
         }
     }
 }
