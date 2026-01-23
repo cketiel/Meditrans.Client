@@ -23,12 +23,15 @@ namespace Meditrans.Client.Services
 
         public async Task SaveHistoryAsync(int tripId, string field, string priorValue, string newValue)
         {
+            // We force UTC conversion not to be applied
+            DateTime dateNow = DateTime.Now;
+            DateTime changeDate = DateTime.SpecifyKind(dateNow, DateTimeKind.Unspecified);// tells the system: "Don't touch the time, send it as is."
             try
             {
                 var history = new TripHistoryCreateDto
                 {
                     TripId = tripId,
-                    ChangeDate = DateTime.Now,
+                    ChangeDate = changeDate,
                     User = SessionManager.Username,
                     Field = field,
                     PriorValue = priorValue ?? "N/A",
