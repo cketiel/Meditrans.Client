@@ -332,7 +332,14 @@
                                                             <materialDesign:PackIcon Kind="FileEdit" Foreground="Orange"/>
                                                         </Button>
 
-                                                        <!--<Button Command="{Binding DataContext.RouteTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                        <Button Command="{Binding Data.ShowHistoryCommand, Source={StaticResource vmProxy}}"
+                                                            CommandParameter="{Binding}"
+                                                            Style="{StaticResource MaterialDesignToolButton}"
+                                                            ToolTip="Change History">
+                                                            <materialDesign:PackIcon Kind="History" Foreground="Blue" Width="20" Height="20" />
+                                                        </Button>
+
+                                                            <!--<Button Command="{Binding DataContext.RouteTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                                             CommandParameter="{Binding}"
                                                             Style="{StaticResource MaterialDesignToolButton}"
                                                             ToolTip="{Binding Data.ScheduleTripToolTip, Source={StaticResource vmProxy}}">

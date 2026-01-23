@@ -51,6 +51,8 @@ namespace Meditrans.Client.ViewModels
         public IAsyncRelayCommand UncancelTripCommand { get; }
         public IAsyncRelayCommand EditTripCommand { get; }
 
+        public IAsyncRelayCommand ShowHistoryCommand { get; }
+
         public TripsViewModel()
         {
             _tripService = new TripService();
@@ -63,9 +65,26 @@ namespace Meditrans.Client.ViewModels
             CancelTripCommand = new AsyncRelayCommand<object>(ExecuteCancelTripAsync);
             UncancelTripCommand = new AsyncRelayCommand<object>(ExecuteUncancelTripAsync);
             EditTripCommand = new AsyncRelayCommand<object>(ExecuteEditTripAsync);
-         
+
+            ShowHistoryCommand = new AsyncRelayCommand<object>(ExecuteShowHistoryAsync);
+
             _ = LoadInitialDataAsync();
             _ = LoadAllTripsAsync();
+        }
+
+        private async Task ExecuteShowHistoryAsync(object parameter)
+        {
+            var trip = parameter as TripReadDto;
+            if (trip == null) return;
+
+            var viewModel = new TripHistoryViewModel(trip);
+
+            var view = new Views.TripHistoryDialog
+            {
+                DataContext = viewModel
+            };
+           
+            await MaterialDesignThemes.Wpf.DialogHost.Show(view, "TripsDialogHost");
         }
         public async Task LoadInitialDataAsync()
         {           

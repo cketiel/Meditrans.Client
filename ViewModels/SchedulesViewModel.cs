@@ -121,6 +121,8 @@ namespace Meditrans.Client.ViewModels
         public IAsyncRelayCommand ManualRefreshCommand { get; }
         public IAsyncRelayCommand UnperformEventCommand { get; }
 
+        public IAsyncRelayCommand ShowHistoryCommand { get; }
+
         public SchedulesViewModel(ScheduleService scheduleService)
         {
             AllowUnperformAction = true;
@@ -143,12 +145,54 @@ namespace Meditrans.Client.ViewModels
 
             UnperformEventCommand = new AsyncRelayCommand<ScheduleDto>(ExecuteUnperformEventAsync);
 
-            ManualRefreshCommand = new AsyncRelayCommand(RefreshLiveDataAsync);          
+            ManualRefreshCommand = new AsyncRelayCommand(RefreshLiveDataAsync);
+
+            ShowHistoryCommand = new AsyncRelayCommand<object>(ExecuteShowHistoryAsync);
 
             InitializeColumns();
             //_ = InitializeAsync();
          
-        }      
+        }
+
+        private async Task ExecuteShowHistoryAsync(object parameter)
+        {
+            TripReadDto tripToView = null;
+
+            if (parameter is UnscheduledTripDto unscheduled)
+            {               
+                tripToView = new TripReadDto
+                {
+                    Id = unscheduled.Id,
+                    CustomerName = unscheduled.CustomerName,
+                    PickupAddress = unscheduled.PickupAddress,
+                    DropoffAddress = unscheduled.DropoffAddress
+                };
+            }
+            else if (parameter is ScheduleDto schedule && schedule.TripId.HasValue)
+            {
+                
+                IsBusy = true;
+                try
+                {
+                    
+                    tripToView = new TripReadDto
+                    {
+                        Id = schedule.TripId.Value,
+                        CustomerName = schedule.Patient,
+                        PickupAddress = "See trip details...", 
+                        DropoffAddress = "See trip details..."
+                    };
+                }
+                finally { IsBusy = false; }
+            }
+
+            if (tripToView == null) return;
+
+            var viewModel = new TripHistoryViewModel(tripToView);
+            var view = new Views.TripHistoryDialog { DataContext = viewModel };
+           
+            await MaterialDesignThemes.Wpf.DialogHost.Show(view, "RootDialogHost");
+        }
 
         private async Task ExecuteUnperformEventAsync(ScheduleDto schedule)
         {

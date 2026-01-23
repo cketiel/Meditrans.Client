@@ -214,6 +214,8 @@ namespace Meditrans.Client.ViewModels
         public ICommand EditTripCommand { get; private set; }
         public ICommand UncancelTripCommand { get; private set; }
 
+        public ICommand ShowHistoryCommand { get; private set; }
+
         #endregion
 
         public DispatchViewModel()
@@ -250,6 +252,8 @@ namespace Meditrans.Client.ViewModels
             ShowScheduleViewCommand = new RelayCommandObject(ExecuteShowScheduleView, CanExecuteShowScheduleView);
             ShowMainViewCommand = new RelayCommandObject(ExecuteShowMainView);
 
+            ShowHistoryCommand = new AsyncRelayCommand(ExecuteShowHistoryAsync);
+
             //CancelTripCommand = new AsyncRelayCommand<TripItemViewModel>(ExecuteCancelTripAsync);
             //EditTripCommand = new AsyncRelayCommand<TripItemViewModel>(ExecuteEditTripAsync);
 
@@ -262,6 +266,39 @@ namespace Meditrans.Client.ViewModels
             //LoadAllDataAsync();
 
             _ = InitializeDataAsync();
+        }
+
+        private async Task ExecuteShowHistoryAsync(object parameter)
+        {
+            TripReadDto tripToView = null;
+
+            // En esta vista, el parámetro suele ser TripItemViewModel
+            if (parameter is TripItemViewModel itemViewModel)
+            {
+                //tripToView = itemViewModel.TripDto;
+                tripToView = new TripReadDto();
+                tripToView.Id = itemViewModel.TripDto.Id;
+                tripToView.PickupAddress = itemViewModel.TripDto.PickupAddress;
+                tripToView.DropoffAddress = itemViewModel.TripDto.DropoffAddress;
+                tripToView.CustomerName = itemViewModel.TripDto.CustomerName;
+            }
+            else if (parameter is TripReadDto dto)
+            {
+                tripToView = dto;
+            }
+
+            if (tripToView == null) return;
+
+            // Crear el ViewModel del historial con el DTO del viaje
+            var viewModel = new TripHistoryViewModel(tripToView);
+
+            var view = new Views.TripHistoryDialog
+            {
+                DataContext = viewModel
+            };
+
+            // Usamos "RootDialogHost" que es el identificador en DispatchView.xaml
+            await MaterialDesignThemes.Wpf.DialogHost.Show(view, "RootDialogHost");
         }
 
         private async Task InitializeDataAsync()

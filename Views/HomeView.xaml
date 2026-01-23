@@ -1105,7 +1105,15 @@
                                             <materialDesign:PackIcon Kind="FileEdit" Foreground="Orange"/>
                                         </Button>
 
-                                    </StackPanel>
+                                        <!-- NEW BUTTON: Change History -->
+                                        <Button Command="{Binding DataContext.ShowHistoryCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignToolButton}"
+                                            ToolTip="Change History">
+                                            <materialDesign:PackIcon Kind="History" Foreground="Blue" Width="20" Height="20" />
+                                        </Button>
+
+                                        </StackPanel>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

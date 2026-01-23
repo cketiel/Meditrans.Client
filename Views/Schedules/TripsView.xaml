@@ -107,7 +107,14 @@
                                 <Button Command="{Binding DataContext.EditTripCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="{Binding}" Style="{StaticResource MaterialDesignToolButton}" ToolTip="{Binding Data.EditTripToolTip, Source={StaticResource vmProxy}}">
                                     <materialDesign:PackIcon Kind="FileEdit" Foreground="Orange"/>
                                 </Button>
-                                
+
+                                <Button Command="{Binding Data.ShowHistoryCommand, Source={StaticResource vmProxy}}" 
+                                    CommandParameter="{Binding}" 
+                                    Style="{StaticResource MaterialDesignToolButton}" 
+                                    ToolTip="Change History">
+                                    <materialDesign:PackIcon Kind="History" Foreground="Blue" Width="20" Height="20" />
+                                </Button>
+
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

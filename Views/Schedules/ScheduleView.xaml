@@ -777,6 +777,12 @@
                                                 </Button.Style>
                                                 <materialDesign:PackIcon Kind="SortClockDescending" Foreground="Green"/>
                                             </Button>
+                                            <Button Command="{Binding Data.ShowHistoryCommand, Source={StaticResource vmProxy}}" 
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource MaterialDesignToolButton}"
+                                                ToolTip="Change History">
+                                                <materialDesign:PackIcon Kind="History" Foreground="Blue" Width="20" Height="20" />
+                                            </Button>
                                         </StackPanel>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>

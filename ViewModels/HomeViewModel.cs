@@ -642,6 +642,8 @@ namespace Meditrans.Client.ViewModels
         public IAsyncRelayCommand CancelTripCommand { get; }
         public IAsyncRelayCommand UncancelTripCommand { get; }
 
+        public IAsyncRelayCommand ShowHistoryCommand { get; }
+
         private readonly GoogleMapsService _googleMapsService;
         public HomeViewModel() {
 
@@ -662,6 +664,8 @@ namespace Meditrans.Client.ViewModels
             CancelTripCommand = new AsyncRelayCommand<object>(ExecuteCancelTripAsync);
             UncancelTripCommand = new AsyncRelayCommand<object>(ExecuteUncancelTripAsync);
 
+            ShowHistoryCommand = new AsyncRelayCommand<object>(ExecuteShowHistoryAsync);
+
             LoadData();
             InitializeData();
 
@@ -674,6 +678,21 @@ namespace Meditrans.Client.ViewModels
                     //Debug.WriteLine($"Customer seleccionado: {SelectedCustomer?.FullName}");
             };*/
 
+        }
+
+        private async Task ExecuteShowHistoryAsync(object parameter)
+        {
+            var trip = parameter as TripReadDto;
+            if (trip == null) return;
+           
+            var viewModel = new TripHistoryViewModel(trip);
+
+            var view = new Views.TripHistoryDialog
+            {
+                DataContext = viewModel
+            };
+
+            await MaterialDesignThemes.Wpf.DialogHost.Show(view, "RootDialogHost");
         }
 
         #region API
