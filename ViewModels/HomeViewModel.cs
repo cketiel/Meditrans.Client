@@ -43,6 +43,15 @@ namespace Meditrans.Client.ViewModels
         [ObservableProperty] private double _dropoffLatitude;
         [ObservableProperty] private double _dropoffLongitude;
 
+        [ObservableProperty] private string _dropoffAddress;
+
+        [ObservableProperty] private DateTime? _pickupTimePicker;
+        [ObservableProperty] private DateTime? _apptTimePicker;
+        [ObservableProperty] private DateTime? _returnTimePicker;
+
+        [ObservableProperty] private string _pickupCity;
+        [ObservableProperty] private string _dropoffCity;
+
         //[ObservableProperty] private string _authorization;
 
 
@@ -407,11 +416,11 @@ namespace Meditrans.Client.ViewModels
         public DateTime? TripFilterDate { get; set; } = DateTime.Today;
         public bool ShowCanceled { get; set; }
 
-        [ObservableProperty] private string _dropoffAddress;
+       
 
         // Trip data section
 
-        private TimeSpan _pickupTimePicker;
+        /*private TimeSpan _pickupTimePicker;
 
         public TimeSpan PickupTimePicker
         {
@@ -445,7 +454,7 @@ namespace Meditrans.Client.ViewModels
                 _returnTimePicker = value;
                 OnPropertyChanged();
             }
-        }
+        }*/
 
         /*private string? _name;
         public string? Name
@@ -900,18 +909,24 @@ namespace Meditrans.Client.ViewModels
                 if (SelectedFundingSource == null) { MessageBox.Show("Please select a Funding Source."); return; }
                 if (string.IsNullOrEmpty(DropoffAddress)) { MessageBox.Show("Dropoff Address is required."); return; }
 
+
+                // We force UTC conversion not to be applied
+                DateTime tripDate = DateTime.SpecifyKind(FilterDate.Date, DateTimeKind.Unspecified); // tells the system: "Don't touch the time, send it as is."
+
                 Trip trip = new Trip
                 {
-                    Date = FilterDate,
-                    Day = FilterDate.DayOfWeek.ToString(),
-                    FromTime = PickupTimePicker,
-                    ToTime = ApptTimePicker,
+                    Date = tripDate,
+                    Day = tripDate.DayOfWeek.ToString(),
+                    FromTime = PickupTimePicker?.TimeOfDay ?? TimeSpan.Zero,
+                    ToTime = ApptTimePicker?.TimeOfDay ?? TimeSpan.Zero,
                     CustomerId = IdCustomer,
+                    Authorization = Authorization,
 
                     // Direcciones y Coordenadas
                     PickupAddress = SelectedCustomer?.Address,
-                    PickupLatitude = PickupLatitude,   // Asegúrate de que estos valores se llenen desde el Mapa
+                    PickupLatitude = PickupLatitude,   
                     PickupLongitude = PickupLongitude,
+                    PickupCity = PickupCity,
                     Pickup = PickupName ?? SelectedCustomer?.FullName,
                     PickupPhone = PickupPhone ?? SelectedCustomer?.Phone,
                     PickupComment = PickupComment,
@@ -919,12 +934,13 @@ namespace Meditrans.Client.ViewModels
                     DropoffAddress = DropoffAddress,
                     DropoffLatitude = DropoffLatitude,
                     DropoffLongitude = DropoffLongitude,
+                    DropoffCity = DropoffCity,
                     Dropoff = DropoffName,
                     DropoffPhone = DropoffPhone,
                     DropoffComment = DropoffComment,
 
-                    SpaceTypeId = SelectedSpaceType.Id,
-                    FundingSourceId = SelectedFundingSource.Id,
+                    SpaceTypeId = SelectedSpaceType?.Id ?? 0,
+                    FundingSourceId = SelectedFundingSource?.Id ?? 0,
 
                     // Distancia: Si el ViewModel tiene la distancia calculada por Google, úsala
                     // "11.5 mi" -> parsear a double
@@ -932,10 +948,10 @@ namespace Meditrans.Client.ViewModels
 
                     Status = TripStatus.Accepted,
                     Created = DateTime.Now,
-                    WillCall = (ApptTimePicker == TimeSpan.Zero) // O tu lógica de WillCall
+                    
                 };
 
-                // Determinar tipo de viaje
+                trip.WillCall = (trip.ToTime == TimeSpan.Zero);             
                 trip.Type = trip.WillCall ? "Return" : "Appointment";
 
                 var result = await _tripService.CreateTripAsync(trip);

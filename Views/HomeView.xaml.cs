@@ -185,6 +185,8 @@ namespace Meditrans.Client.Views
                                 // Guardar coordenadas en el ViewModel
                                 vm.PickupLatitude = (double)result.lat;
                                 vm.PickupLongitude = (double)result.lng;
+
+                                vm.PickupCity = (string)result.city;
                                 _isUpdatingFromHtml = false;
                             }
                         });
@@ -216,6 +218,9 @@ namespace Meditrans.Client.Views
                                 // Guardar coordenadas en el ViewModel
                                 vm.DropoffLatitude = (double)data.lat;
                                 vm.DropoffLongitude = (double)data.lng;
+
+                                vm.DropoffCity = (string)data.city ?? vm.DropoffCity;
+
                                 _isUpdatingFromHtml = false;
                             }
                         });

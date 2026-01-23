@@ -323,11 +323,13 @@
             if (!location) return;
            
             let dropoff_address = "";
+            let city = "";
 
             for (const comp of place.address_components) {
                 const types = comp.types;
                 if (types.includes("street_number")) dropoff_address = comp.long_name + ' ';
                 if (types.includes("route")) dropoff_address += comp.long_name;
+                if (comp.types.includes("locality")) city = comp.long_name;
             }
 
             // Send to WebView2 (Function WebView_Loaded())
@@ -335,6 +337,7 @@
                 window.chrome.webview.postMessage({
                     type: 'dropoff',
                     dropoff_address: dropoff_address,
+                    city: city,
                     lat: location.lat(), 
                     lng: location.lng() 
                 });
@@ -386,10 +389,16 @@
                         const latVal = (typeof pos.lat === 'function') ? pos.lat() : pos.lat;
                         const lngVal = (typeof pos.lng === 'function') ? pos.lng() : pos.lng;
 
+                        let city = "";
+                        results[0].address_components.forEach(c => {
+                            if (c.types.includes("locality")) city = c.long_name;
+                        });
+
                         if (window.chrome && window.chrome.webview) {
                             window.chrome.webview.postMessage({
                                 type: 'dropoff',
                                 dropoff_address: formattedAddress,
+                                city: city,
                                 lat: latVal,
                                 lng: lngVal
                             });
