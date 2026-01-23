@@ -91,6 +91,25 @@
         let loadedPosition = { lat: originLat, lng: originLng }         
 
         function initMap() {
+            // Verify that C# values ​​are valid numbers
+            const lat = parseFloat("{ORIGIN_LAT}");
+            const lng = parseFloat("{ORIGIN_LNG}");
+
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 5,
+                center: { lat: isNaN(lat) ? 25.774 : lat, lng: isNaN(lng) ? -80.193 : lng }
+            });
+
+            initPickupAutocomplete();
+            initDropoffAutocomplete();
+
+            // Only put the marker if there are real coordinates (not the C# placeholder)
+            if (!isNaN(lat) && !isNaN(lng) && lat != 25.77427) {
+                setPickupMarker({ lat: lat, lng: lng });
+            }
+        }
+
+        /*function initMap() {
             map = new google.maps.Map(document.getElementById('map'), {
                 //mapTypeControl: false,
                 //disableDefaultUI: true,
@@ -104,7 +123,7 @@
 
             if (originLat != 25.77427 && originLng != -80.19366)
                 setPickupMarker(loadedPosition) 
-        }
+        }*/
 
         function initPickupAutocomplete() {
             const pickupInput = document.getElementById("pickup");
@@ -161,6 +180,9 @@
             if (pickupMarker) {
                 pickupMarker.setMap(null);
             }
+
+            pickupPosition = position; 
+
             pickupMarker = new google.maps.Marker({
                 draggable: true,
                 animation: google.maps.Animation.DROP,
@@ -216,8 +238,40 @@
                 }
             );
         }
-       
+
         function completeAddress(formattedAddress, pos) {
+            const addressArray = formattedAddress.split(",");
+
+            // Detectar si es función .lat() o propiedad .lat
+            const latVal = (typeof pos.lat === 'function') ? pos.lat() : pos.lat;
+            const lngVal = (typeof pos.lng === 'function') ? pos.lng() : pos.lng;
+
+            const result = {
+                address: '',
+                city: '',
+                state: '',
+                zip: '',
+                lat: latVal,
+                lng: lngVal
+            };
+
+            let stateZip = addressArray[2] || "";
+            const stateZipArray = stateZip.trim().split(" ");
+
+            result.address = addressArray[0];
+            result.city = addressArray[1] ? addressArray[1].trim() : "";
+            result.state = stateZipArray[0] || "";
+            result.zip = stateZipArray[1] || "";
+
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({
+                    type: 'autocomplete',
+                    result: result
+                });
+            }
+        }
+       
+        /*function completeAddress(formattedAddress, pos) {
 
             const addressArray = formattedAddress.split(",");
             const result = {
@@ -243,7 +297,7 @@
                 });
             }
 
-        }
+        }*/
 
         function initDropoffAutocomplete() {
             const dropoffInput = document.getElementById("dropoff");
@@ -291,6 +345,9 @@
             if (dropoffMarker) {
                 dropoffMarker.setMap(null);
             }
+
+            dropoffPosition = position;
+
             dropoffMarker = new google.maps.Marker({
                 draggable: true,
                 animation: google.maps.Animation.DROP,
@@ -324,6 +381,32 @@
                     if (status == google.maps.GeocoderStatus.OK) {
                         var formattedAddress = results[0].formatted_address;
                         document.getElementById('dropoff').value = formattedAddress;
+
+                        // Detectar si es función o propiedad
+                        const latVal = (typeof pos.lat === 'function') ? pos.lat() : pos.lat;
+                        const lngVal = (typeof pos.lng === 'function') ? pos.lng() : pos.lng;
+
+                        if (window.chrome && window.chrome.webview) {
+                            window.chrome.webview.postMessage({
+                                type: 'dropoff',
+                                dropoff_address: formattedAddress,
+                                lat: latVal,
+                                lng: lngVal
+                            });
+                        }
+                    }
+                });
+        }
+
+        /*function dropoffGeocodePosition(pos) {
+            geocoder = new google.maps.Geocoder();
+            geocoder.geocode({
+                latLng: pos
+            },
+                function (results, status) {
+                    if (status == google.maps.GeocoderStatus.OK) {
+                        var formattedAddress = results[0].formatted_address;
+                        document.getElementById('dropoff').value = formattedAddress;
                         if (window.chrome && window.chrome.webview) {
                             window.chrome.webview.postMessage({
                                 type: 'dropoff',
@@ -336,7 +419,7 @@
                     }
                 }
             );
-        }
+        }*/
 
         function updateDropoffAddressShort(address) {
             // Send to WebView2 (Function WebView_Loaded())
@@ -357,6 +440,11 @@
         }
 
         function showsRoute() {
+
+            if (!pickupPosition || !dropoffPosition) {
+                console.warn("Falta pickup o dropoff para calcular la ruta.");
+                return;
+            }
 
             if (directionsRenderer) {
                 directionsRenderer.setMap(null);
@@ -387,9 +475,16 @@
 
             directionsRenderer.setMap(map);
 
+            // Convert to pure LatLngLiteral to avoid object formatting errors
+            const origin = (typeof pickupPosition.lat === 'function') ?
+                { lat: pickupPosition.lat(), lng: pickupPosition.lng() } : pickupPosition;
+
+            const destination = (typeof dropoffPosition.lat === 'function') ?
+                { lat: dropoffPosition.lat(), lng: dropoffPosition.lng() } : dropoffPosition;
+
             directionsService.route({
-                origin: pickupPosition,
-                destination: dropoffPosition,
+                origin: origin, //pickupPosition,
+                destination: destination, // dropoffPosition,
                 travelMode: google.maps.TravelMode.DRIVING,
                 drivingOptions: {
                     departureTime: new Date(),
