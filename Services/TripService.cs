@@ -22,9 +22,11 @@ namespace Meditrans.Client.Services
     {
         private readonly HttpClient _httpClient;
         private readonly string EndPoint = "trips";
+        private readonly TripHistoryService _historyService;
         public TripService()
         {
-            _httpClient = ApiClientFactory.Create();          
+            _httpClient = ApiClientFactory.Create();
+            _historyService = new TripHistoryService();
         }
 
         public async Task<List<TripReadDto>> GetAllTripsAsync()
@@ -107,7 +109,15 @@ namespace Meditrans.Client.Services
                     throw await CreateApiException(response, "Error creating trip");
                 }
 
-                return await response.Content.ReadFromJsonAsync<TripReadDto>();
+                var createdTrip = await response.Content.ReadFromJsonAsync<TripReadDto>();
+
+                // --- HISTORY RECORD ---
+                if (createdTrip != null)
+                    await _historyService.SaveHistoryAsync(createdTrip.Id, "Add_New_Trip", null, "Trip Created (Manual/Import)");
+
+                return createdTrip;
+
+                //return await response.Content.ReadFromJsonAsync<TripReadDto>();
             }
             catch (HttpRequestException ex)
             {
@@ -146,18 +156,29 @@ namespace Meditrans.Client.Services
         {
             var response = await _httpClient.PostAsync($"{EndPoint}/{tripId}/cancel", null);
             response.EnsureSuccessStatusCode();
+
+            // --- HISTORY RECORD ---
+            await _historyService.SaveHistoryAsync(tripId, "IsCanceled", "False", "True");
+            //await _historyService.SaveHistoryAsync(tripId, "Status", "Active", "Cancelled");
         }
 
         public async Task UncancelTripAsync(int tripId)
         {           
             var response = await _httpClient.PostAsync($"{EndPoint}/{tripId}/uncancel", null);           
             response.EnsureSuccessStatusCode();
+
+            // --- HISTORY RECORD ---
+            await _historyService.SaveHistoryAsync(tripId, "IsCanceled", "True", "False");
+            //await _historyService.SaveHistoryAsync(tripId, "Status", "Cancelled", "Active");
         }
 
         public async Task UpdateFromDispatchAsync(int tripId, TripDispatchUpdateDto dto)
         {
             var response = await _httpClient.PatchAsJsonAsync($"{EndPoint}/{tripId}/dispatch-update", dto);
             response.EnsureSuccessStatusCode();
+
+            // --- HISTORY RECORD ---
+            await _historyService.SaveHistoryAsync(tripId, "Update_Trip", "Some Fields", "Manual Update");
         }
 
         public async Task AssignRunAsync(int tripId, int? vehicleRouteId)

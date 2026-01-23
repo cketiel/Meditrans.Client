@@ -1,6 +1,8 @@
 ﻿using Meditrans.Client.DTOs;
+using Meditrans.Client.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -21,17 +23,31 @@ namespace Meditrans.Client.Services
 
         public async Task SaveHistoryAsync(int tripId, string field, string priorValue, string newValue)
         {
-            var history = new TripHistoryCreateDto
+            try
             {
-                TripId = tripId,
-                ChangeDate = DateTime.Now,
-                User = Environment.UserName, // O el nombre del usuario logueado
-                Field = field,
-                PriorValue = priorValue ?? "N/A",
-                NewValue = newValue ?? "N/A"
-            };
+                var history = new TripHistoryCreateDto
+                {
+                    TripId = tripId,
+                    ChangeDate = DateTime.Now,
+                    User = SessionManager.Username,
+                    Field = field,
+                    PriorValue = priorValue ?? "N/A",
+                    NewValue = newValue ?? "N/A"
+                };
 
-            await _httpClient.PostAsJsonAsync(EndPoint, history);
+                var response = await _httpClient.PostAsJsonAsync(EndPoint, history);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var error = await response.Content.ReadAsStringAsync();
+                    Debug.WriteLine($"Error insertando historial: {error}");
+                    // Aquí podrías lanzar una excepción o loguear
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Excepción en SaveHistory: {ex.Message}");
+            }
         }
 
         public async Task<List<TripHistoryCreateDto>> GetHistoryByTripAsync(int tripId)

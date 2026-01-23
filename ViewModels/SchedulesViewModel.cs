@@ -756,7 +756,8 @@ namespace Meditrans.Client.ViewModels
                     PickupETA = pFinalEta,
                     DropoffDistance = dDistance,
                     DropoffTravelTime = dTravelTime,
-                    DropoffETA = dFinalEta
+                    DropoffETA = dFinalEta,
+                    VehicleRouteName = vehicleRoute.Name
                 };
 
                 await _scheduleService.RouteTripsAsync(request);

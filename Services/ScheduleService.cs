@@ -16,10 +16,12 @@ namespace Meditrans.Client.Services
         //private readonly string _baseUrl = "https://localhost:7123/api/"; 
         private readonly HttpClient _httpClient;
         private readonly string _endPoint = "schedules";
+        private readonly TripHistoryService _historyService;
 
         public ScheduleService()
         {
             _httpClient = ApiClientFactory.Create();
+            _historyService = new TripHistoryService();
         }
 
         public async Task<List<ScheduleDto>> GetSchedulesAsync(int routeId, DateTime date)
@@ -44,13 +46,30 @@ namespace Meditrans.Client.Services
             //var request = new RouteTripRequest { VehicleRouteId = vehicleRouteId, TripIds = tripIds };
             var response = await _httpClient.PostAsJsonAsync($"{_endPoint}/route", request);
             response.EnsureSuccessStatusCode();
+
+            // --- HISTORY RECORD ---
+            await _historyService.SaveHistoryAsync(request.TripId, "Run", "Unassigned", request.VehicleRouteName);
         }
 
         public async Task CancelRouteAsync(int scheduleId)
         {
-            var request = new CancelRouteRequest { ScheduleId = scheduleId };
+            var scheduleInfo = await _httpClient.GetFromJsonAsync<ScheduleDto>($"{_endPoint}/{scheduleId}");
+
+            if (scheduleInfo != null && scheduleInfo.TripId.HasValue)
+            {             
+                var request = new CancelRouteRequest { ScheduleId = scheduleId };
+                var response = await _httpClient.PostAsJsonAsync($"{_endPoint}/cancel-route", request);
+                response.EnsureSuccessStatusCode();
+
+                await _historyService.SaveHistoryAsync(scheduleInfo.TripId.Value, "Run", scheduleInfo.Run, "Unassigned (Route Cancelled)");
+               
+            }
+
+            /*var request = new CancelRouteRequest { ScheduleId = scheduleId };
             var response = await _httpClient.PostAsJsonAsync($"{_endPoint}/cancel-route", request);
             response.EnsureSuccessStatusCode();
+
+            await _historyService.SaveHistoryAsync(tripId, "Run", "Assigned", "Unassigned (Route Cancelled)");*/
         }
 
         public async Task UpdateAsync(int id, ScheduleDto dto)

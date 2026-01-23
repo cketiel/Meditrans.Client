@@ -12,6 +12,7 @@ namespace Meditrans.Client.DTOs
     {
         [Required]
         public int VehicleRouteId { get; set; }
+        public string? VehicleRouteName { get; set; }
 
         [Required]
         public int TripId { get; set; }
