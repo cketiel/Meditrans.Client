@@ -62,6 +62,7 @@ namespace Meditrans.Client.Views
             InitializeComponent();
             ViewModel = new HomeViewModel();
             DataContext = ViewModel;
+            ViewModel.OnTripSavedSuccess = ResetLayoutToInitialState;
             ViewModel.PropertyChanged += ViewModel_PropertyChanged;
 
             InitializeData();
@@ -168,7 +169,27 @@ namespace Meditrans.Client.Views
 
                         if (result is null) return;
 
-                        _isUpdatingFromHtml = true;
+                        Dispatcher.Invoke(() =>
+                        {
+                            if (DataContext is HomeViewModel vm)
+                            {
+                                _isUpdatingFromHtml = true;
+                                GooglePlacesInput.Text = result.address;
+                                City.Text = result.city;
+                                State.Text = result.state;
+                                Zip.Text = result.zip;
+
+                                if (vm.SelectedCustomer != null)
+                                    vm.SelectedCustomer.Address = result.address;
+
+                                // Guardar coordenadas en el ViewModel
+                                vm.PickupLatitude = (double)result.lat;
+                                vm.PickupLongitude = (double)result.lng;
+                                _isUpdatingFromHtml = false;
+                            }
+                        });
+
+                        /*_isUpdatingFromHtml = true;
 
                         GooglePlacesInput.Text = result.address;
                         //Address.Text = result.address;
@@ -176,7 +197,7 @@ namespace Meditrans.Client.Views
                         State.Text = result.state;
                         Zip.Text = result.zip;
 
-                        _isUpdatingFromHtml = false;
+                        _isUpdatingFromHtml = false;*/
 
                         //ShowLocationOnMap((double)result.lat, (double)result.lng);
                     }
@@ -184,9 +205,24 @@ namespace Meditrans.Client.Views
                     {
                         if (data.dropoff_address is null) return;
 
-                        _isUpdatingFromHtml = true;
+                        Dispatcher.Invoke(() =>
+                        {
+                            if (DataContext is HomeViewModel vm)
+                            {
+                                _isUpdatingFromHtml = true;
+                                //DropoffAddressTextBox.Text = data.dropoff_address;
+                                vm.DropoffAddress = (string)data.dropoff_address;
+
+                                // Guardar coordenadas en el ViewModel
+                                vm.DropoffLatitude = (double)data.lat;
+                                vm.DropoffLongitude = (double)data.lng;
+                                _isUpdatingFromHtml = false;
+                            }
+                        });
+
+                        /*_isUpdatingFromHtml = true;
                         DropoffAddressTextBox.Text = data.dropoff_address;
-                        _isUpdatingFromHtml = false;
+                        _isUpdatingFromHtml = false;*/
                     }
                 }
                 catch (Exception ex)
@@ -314,6 +350,7 @@ namespace Meditrans.Client.Views
             public string Type { get; set; } = "";
             public string Eta { get; set; } = "";
             public string Distance { get; set; } = "";
+            public string Pickup { get; set; } = "";
         }
 
         // testing
@@ -531,6 +568,34 @@ namespace Meditrans.Client.Views
                 // MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
+        }
+
+        public void ResetLayoutToInitialState()
+        {
+            // 1. Restaurar anchos de columnas
+            CustomerColumn.Width = new GridLength(1, GridUnitType.Star);
+            BillingColumn.Width = new GridLength(0, GridUnitType.Pixel); // Ocultar Billing
+            MapColumn.Width = new GridLength(2, GridUnitType.Star);
+
+            // 2. Mover el mapa de vuelta a su posición original (Columna 4)
+            MapaWebView.SetValue(Grid.ColumnProperty, 4);
+
+            // 3. Visibilidad de Paneles
+            BillingPanel.Visibility = Visibility.Hidden;
+            ForDateCalendar.Visibility = Visibility.Collapsed;
+            TripTabs.Visibility = Visibility.Collapsed;
+            TripFilterPanel.Visibility = Visibility.Visible; // Mostrar filtros de nuevo
+
+            // 4. Restaurar tamaño de filas (Top 45% / Bottom 55%)
+            TopRow.Height = new GridLength(4.5, GridUnitType.Star);
+            BottomRow.Height = new GridLength(5.5, GridUnitType.Star);
+
+            // 5. Resetear el Mapa (JavaScript)
+            // Esto limpiará los marcadores y ocultará el input de Dropoff
+            MapaWebView.ExecuteScriptAsync("prepareNewCustomer();");
+
+            // 6. Limpiar campos de búsqueda (Opcional)
+            CustomersAutoSuggestBox.Text = string.Empty;
         }
 
         private async void OnNewCustomerClick(object sender, RoutedEventArgs e) {

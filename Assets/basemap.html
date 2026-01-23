@@ -280,7 +280,9 @@
             if (window.chrome && window.chrome.webview) {
                 window.chrome.webview.postMessage({
                     type: 'dropoff',
-                    dropoff_address: dropoff_address
+                    dropoff_address: dropoff_address,
+                    lat: location.lat(), 
+                    lng: location.lng() 
                 });
             }
         }
@@ -322,7 +324,15 @@
                     if (status == google.maps.GeocoderStatus.OK) {
                         var formattedAddress = results[0].formatted_address;
                         document.getElementById('dropoff').value = formattedAddress;
-                        updateDropoffAddressShort(formattedAddress);
+                        if (window.chrome && window.chrome.webview) {
+                            window.chrome.webview.postMessage({
+                                type: 'dropoff',
+                                dropoff_address: formattedAddress,
+                                lat: pos.lat(), 
+                                lng: pos.lng()  
+                            });
+                        }
+                        //updateDropoffAddressShort(formattedAddress);
                     }
                 }
             );
@@ -444,7 +454,31 @@
             document.getElementById("dropoff-group").style.display = "flex";
             document.getElementById("pickup-label").innerText = "📍 Pickup";
         }
+
         function prepareNewCustomer() {
+            // Ocultar grupo dropoff
+            document.getElementById("dropoff-group").style.display = "none";
+            document.getElementById("pickup-label").innerText = "📍 Search address";
+
+            // Limpiar inputs
+            document.getElementById("pickup").value = "";
+            document.getElementById("dropoff").value = "";
+
+            // Quitar marcadores del mapa
+            if (pickupMarker) pickupMarker.setMap(null);
+            if (dropoffMarker) dropoffMarker.setMap(null);
+            pickupPosition = null;
+            dropoffPosition = null;
+
+            // Quitar ruta y ventana de info
+            if (directionsRenderer) directionsRenderer.setMap(null);
+            if (infoWindow) infoWindow.close();
+
+            // Centrar mapa en posición inicial
+            map.setCenter({ lat: originLat, lng: originLng });
+            map.setZoom(5);
+        }
+        /*function prepareNewCustomer() {
             document.getElementById("dropoff-group").style.display = "none";
             const pickupInput = document.getElementById("pickup");
             if (pickupInput) {
@@ -452,7 +486,7 @@
             }
             document.getElementById("pickup-label").innerText = "📍 Search address";
 
-        }
+        }*/
     </script>
 </body>
 </html>

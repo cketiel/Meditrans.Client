@@ -10,9 +10,10 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
+
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,10 +23,29 @@ using System.Windows.Input;
 using System.Xml.Linq;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
+
 namespace Meditrans.Client.ViewModels
 {
-    public class HomeViewModel : BaseViewModel
+    public partial class HomeViewModel : ObservableObject // BaseViewModel
     {
+        public Action OnTripSavedSuccess { get; set; }
+
+        [ObservableProperty] private string _pickupName;
+        [ObservableProperty] private string _pickupPhone;
+        [ObservableProperty] private string _pickupComment;
+
+        [ObservableProperty] private string _dropoffName;
+        [ObservableProperty] private string _dropoffPhone;
+        [ObservableProperty] private string _dropoffComment;
+
+        [ObservableProperty] private double _pickupLatitude;
+        [ObservableProperty] private double _pickupLongitude;
+        [ObservableProperty] private double _dropoffLatitude;
+        [ObservableProperty] private double _dropoffLongitude;
+
+        //[ObservableProperty] private string _authorization;
+
+
         private readonly TripService _tripService;
 
         private bool _isLoadingTrips;
@@ -272,7 +292,7 @@ namespace Meditrans.Client.ViewModels
                     {
                         if (c.BillingItem.Unit.Abbreviation == "MILE")
                         {
-                            string[] parts = Distance.Split(' '); // format => 11.5 mi
+                          string[] parts = Distance.Split(' '); // format => 11.5 mi
                             c.Qty = decimal.Parse(parts[0]);
                         }
                         else if (c.BillingItem.Unit.Abbreviation == "UNIT")
@@ -387,17 +407,7 @@ namespace Meditrans.Client.ViewModels
         public DateTime? TripFilterDate { get; set; } = DateTime.Today;
         public bool ShowCanceled { get; set; }
 
-        private string _drogoffAddress;
-        public string DrogoffAddress
-        {
-            get => _drogoffAddress;
-            set
-            {
-                _drogoffAddress = value;
-                OnPropertyChanged();
-                //UpdateSelectedCharges();
-            }
-        }
+        [ObservableProperty] private string _dropoffAddress;
 
         // Trip data section
 
@@ -882,6 +892,91 @@ namespace Meditrans.Client.ViewModels
 
         private async void SaveTrip()
         {
+            try
+            {
+                // 1. Validaciones básicas antes de enviar
+                if (IdCustomer <= 0) { MessageBox.Show("Please select or save a customer first."); return; }
+                if (SelectedSpaceType == null) { MessageBox.Show("Please select a Space Type."); return; }
+                if (SelectedFundingSource == null) { MessageBox.Show("Please select a Funding Source."); return; }
+                if (string.IsNullOrEmpty(DropoffAddress)) { MessageBox.Show("Dropoff Address is required."); return; }
+
+                Trip trip = new Trip
+                {
+                    Date = FilterDate,
+                    Day = FilterDate.DayOfWeek.ToString(),
+                    FromTime = PickupTimePicker,
+                    ToTime = ApptTimePicker,
+                    CustomerId = IdCustomer,
+
+                    // Direcciones y Coordenadas
+                    PickupAddress = SelectedCustomer?.Address,
+                    PickupLatitude = PickupLatitude,   // Asegúrate de que estos valores se llenen desde el Mapa
+                    PickupLongitude = PickupLongitude,
+                    Pickup = PickupName ?? SelectedCustomer?.FullName,
+                    PickupPhone = PickupPhone ?? SelectedCustomer?.Phone,
+                    PickupComment = PickupComment,
+
+                    DropoffAddress = DropoffAddress,
+                    DropoffLatitude = DropoffLatitude,
+                    DropoffLongitude = DropoffLongitude,
+                    Dropoff = DropoffName,
+                    DropoffPhone = DropoffPhone,
+                    DropoffComment = DropoffComment,
+
+                    SpaceTypeId = SelectedSpaceType.Id,
+                    FundingSourceId = SelectedFundingSource.Id,
+
+                    // Distancia: Si el ViewModel tiene la distancia calculada por Google, úsala
+                    // "11.5 mi" -> parsear a double
+                    Distance = double.TryParse(Distance?.Split(' ')[0], out var d) ? d : 0.0,
+
+                    Status = TripStatus.Accepted,
+                    Created = DateTime.Now,
+                    WillCall = (ApptTimePicker == TimeSpan.Zero) // O tu lógica de WillCall
+                };
+
+                // Determinar tipo de viaje
+                trip.Type = trip.WillCall ? "Return" : "Appointment";
+
+                var result = await _tripService.CreateTripAsync(trip);
+                MessageBox.Show("Trip created successfully!");
+
+                await LoadTripsByDateAsync(FilterDate);
+
+                ClearTripForm();
+
+                OnTripSavedSuccess?.Invoke();
+            }
+            catch (ApiException ex)
+            {
+                // Esto es vital: La API suele enviar un JSON explicando EXACTAMENTE qué campo falló
+                // Ejemplo: "The DropoffLatitude field is required."
+                MessageBox.Show($"Server Error: {ex.StatusCode}\nDetails: {ex.ErrorDetails}", "Validation Error");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Unexpected error: {ex.Message}");
+            }
+        }
+
+        private void ClearTripForm()
+        {
+            DropoffAddress = string.Empty;
+            DropoffName = string.Empty;
+            DropoffPhone = string.Empty;
+            DropoffComment = string.Empty;
+            PickupComment = string.Empty;
+            Distance = "0.0 mi";
+            ETA = string.Empty;
+
+            // Si quieres limpiar también el nombre y teléfono del pickup 
+            // (aunque a veces se dejan si es el mismo cliente)
+            PickupName = string.Empty;
+            PickupPhone = string.Empty;
+        }
+
+        /*private async void SaveTrip()
+        {
             MessageBox.Show("save trip");
             Trip trip = new Trip();
             trip.Date = FilterDate;
@@ -890,35 +985,35 @@ namespace Meditrans.Client.ViewModels
             trip.ToTime = ApptTimePicker;
             trip.CustomerId = IdCustomer;
 
-            //trip.PickupAddress = pickupAd           
-            /*trip.PickupLatitude
-            trip.PickupLongitude
-            trip.Pickup
-            trip.PickupPhone
-            trip.PickupComment
-                
-            trip.DropoffAddress = DrogoffAddress;
-            trip.DropoffLatitude
-            trip.DropoffLongitude
-            trip.Dropoof
-            trip.DropoofPhone
-            trip.DropoofComment
+            trip.PickupAddress = SelectedCustomer.Address;
+            trip.PickupLatitude = PickupLatitude;   
+            trip.PickupLongitude = PickupLongitude;
+            trip.Pickup = PickupName;
+            trip.PickupPhone = PickupPhone;
+            trip.PickupComment = PickupComment;
+
+
+            trip.DropoffAddress = DropoffAddress;
+            trip.DropoffLatitude = DropoffLatitude;   
+            trip.DropoffLongitude = DropoffLongitude;
+            trip.Dropoff = DropoffName;
+            trip.DropoffPhone = DropoffPhone;
+            trip.DropoffComment = DropoffComment;
 
             trip.SpaceTypeId = SelectedSpaceType.Id;
+            trip.FundingSourceId = SelectedFundingSource.Id;
 
-            trip.Charge
-            trip.Paid
-            trip.Type
-            trip.TripId
-            trip.Authorization
-            trip.Distance
-            trip.ETA
-            trip.WillCall
-            trip.Status
-            trip.Created
-            trip.FundingSourceId*/
+            bool isWillCall = trip.ToTime == null;
+            string tripType = isWillCall ? Models.TripType.Return : Models.TripType.Appointment;
+            trip.Type = tripType;
+            trip.WillCall = isWillCall;
+            trip.Status = TripStatus.Accepted;
+            trip.Created = DateTime.Now;
 
+            trip.Distance = 0.00;
+            //trip.Authorization = Authorization;
 
+            
             TripService _tripService = new TripService();
 
             try
@@ -943,7 +1038,7 @@ namespace Meditrans.Client.ViewModels
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
             }
-        }
+        }*/
 
         private async Task ExecuteEditTripAsync(object parameter)
         {

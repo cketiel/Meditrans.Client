@@ -523,7 +523,7 @@
                                         
                                     <TextBox
                                             x:Name="PickupAddressTextBox" Grid.Row="0" Grid.Column="0" Margin="0,3,0,2"
-                                            Text="{Binding SelectedCustomer.Address}"
+                                            Text="{Binding SelectedCustomer.Address, UpdateSourceTrigger=PropertyChanged}"
                                             materialDesign:HintAssist.Hint="{Binding PickupAddressTextBoxHint}"                                                    
                                             materialDesign:TextFieldAssist.HasClearButton="True"
                                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
@@ -533,7 +533,7 @@
 
                                         <TextBox
                                             x:Name="DropoffAddressTextBox" Grid.Row="1" Grid.Column="0" Margin="0,0,0,2"
-                                            Text="{Binding DropoffAddress}"
+                                            Text="{Binding DropoffAddress, UpdateSourceTrigger=PropertyChanged}"
                                             materialDesign:HintAssist.Hint="{Binding DropoffAddressTextBoxHint}"                                                    
                                             materialDesign:TextFieldAssist.HasClearButton="True"
                                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
