@@ -24,6 +24,7 @@ namespace Meditrans.Client.Models
         public bool IsActive { get; set; }
         [Required]
         public int RoleId { get; set; }
+        public string RoleName { get; set; }
         public Role Role { get; set; }
         //public ICollection<VehicleRoute> VehicleRoutes { get; set; }
     }

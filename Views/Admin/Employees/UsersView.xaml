@@ -79,7 +79,7 @@
                     
                     <DataGridTextColumn 
                         Header="{Binding Data.ColumnHeaderRole, Source={StaticResource vmProxy}}"
-                        Binding="{Binding Role.RoleName}" Width="*"/>
+                        Binding="{Binding RoleName}" Width="*"/>
                     <DataGridCheckBoxColumn 
                         Header="{Binding Data.ColumnHeaderActive, Source={StaticResource vmProxy}}"
                         Binding="{Binding IsActive}" Width="Auto"/>
