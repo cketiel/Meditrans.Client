@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Office2016.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using GMap.NET;
 using GMap.NET.WindowsPresentation;
@@ -13,6 +14,7 @@ using Meditrans.Client.Views.Schedules;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 
@@ -145,7 +147,7 @@ namespace Meditrans.Client.ViewModels
 
             UnperformEventCommand = new AsyncRelayCommand<ScheduleDto>(ExecuteUnperformEventAsync);
 
-            ManualRefreshCommand = new AsyncRelayCommand(RefreshLiveDataAsync);
+            ManualRefreshCommand = new AsyncRelayCommand(ManualRefreshAsync); // RefreshLiveDataAsync
 
             ShowHistoryCommand = new AsyncRelayCommand<object>(ExecuteShowHistoryAsync);
 
@@ -459,6 +461,13 @@ namespace Meditrans.Client.ViewModels
             _ = RefreshLiveDataAsync();
         }
 
+        // It is forced to update, refresh the map and grid data
+        private async Task ManualRefreshAsync()
+        {
+            await RefreshLiveDataAsync(); // refresh map
+            await LoadSchedulesAndTripsAsync(); // refresh grids
+        }
+
         private async Task RefreshLiveDataAsync()
         {
             // Additional security measure: if a recalculation is already in progress,
@@ -504,6 +513,7 @@ namespace Meditrans.Client.ViewModels
 
                 CalculateVisualOffsets();
                 UpdateRouteSummary();
+                //await LoadSchedulesAndTripsAsync();
             }
             catch (Exception ex)
             {
