@@ -126,6 +126,16 @@ namespace Meditrans.Client.Services
             
         }
 
+        public async Task<bool> UpdateTripAsync(TripReadDto tripDto)
+        {
+            var response = await _httpClient.PutAsJsonAsync($"{EndPoint}/update", tripDto);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw await CreateApiException(response, $"Error updating trip {tripDto.Id}");
+            }
+            return true;
+        }
+
         public async Task<List<TripReadDto>> GetTripsByDateAsync(DateTime date)
         {
             try
