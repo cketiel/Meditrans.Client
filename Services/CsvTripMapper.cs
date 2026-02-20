@@ -342,8 +342,11 @@ namespace Meditrans.Client.Services
                 trip.TripId = raw.RideId;
 
                 // 2. Address and coordinates
-                trip.PickupAddress = raw.FromSt;
-                trip.DropoffAddress = raw.ToST;
+                var pickupFullAddress = $"{raw.FromSt}, {raw.FromCity}, {raw.FromState}, {raw.FromZIP}";
+                var dropoffFullAddress = $"{raw.ToST}, {raw.ToCity}, {raw.ToState}, {raw.ToZip}";
+
+                trip.PickupAddress = pickupFullAddress; // raw.FromSt;
+                trip.DropoffAddress = dropoffFullAddress; // raw.ToST;               
 
                 switch (csvType)
                 {
@@ -706,8 +709,11 @@ namespace Meditrans.Client.Services
             trip.TripId = raw.RideId;
 
             // 2. Address and coordinates
-            trip.PickupAddress = raw.FromSt;
-            trip.DropoffAddress = raw.ToST;
+            var pickupFullAddress = $"{raw.FromSt}, {raw.FromCity}, {raw.FromState}, {raw.FromZIP}";
+            var dropoffFullAddress = $"{raw.ToST}, {raw.ToCity}, {raw.ToState}, {raw.ToZip}";
+
+            trip.PickupAddress = pickupFullAddress; // raw.FromSt;
+            trip.DropoffAddress = dropoffFullAddress; // raw.ToST;
 
             switch (csvType)
             {
