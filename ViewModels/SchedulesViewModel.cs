@@ -1219,7 +1219,7 @@ namespace Meditrans.Client.ViewModels
                 for (int i = startIndex; i < Schedules.Count - 1; i++)
                 {
                     var currentSchedule = Schedules[i];
-                    var previousSchedule = Schedules[i - 1];
+                    ScheduleDto previousSchedule = Schedules[i - 1];
 
                     // If the current event is already 'Performed', we do not need to recalculate its ETA.
                     // We just skip to the next one.
@@ -1246,10 +1246,19 @@ namespace Meditrans.Client.ViewModels
                         currentSchedule.Distance = 0;
                         currentSchedule.Travel = TimeSpan.Zero;
                     }
-              
+
+                    TimeSpan travelToCurrent = currentSchedule.Travel ?? TimeSpan.Zero;
+
+                    if (previousSchedule.Name.Equals("Pull-out")) // Update Pull-out ETA based on the first real stop.
+                    {
+                        // ETATime = tripToRoute.FromTime - (TimeSpan.FromMinutes(20) + request.PickupTravelTime)
+                        previousSchedule.ETA = currentSchedule.Pickup - (TimeSpan.FromMinutes(20) + travelToCurrent);
+                        await _scheduleService.UpdateAsync(previousSchedule.Id, previousSchedule);
+                    }
+
                     TimeSpan previousEta = previousSchedule.ETA ?? TimeSpan.Zero;
                     TimeSpan previousServiceTime = TimeSpan.FromMinutes(previousSchedule.On ?? 15);
-                    TimeSpan travelToCurrent = currentSchedule.Travel ?? TimeSpan.Zero;
+                    
                     TimeSpan calculatedEta = previousEta + previousServiceTime + travelToCurrent;
               
                     TimeSpan finalEta = calculatedEta;
