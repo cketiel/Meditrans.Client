@@ -102,7 +102,7 @@
 
     </UserControl.Resources>
 
-    <materialDesign:DialogHost Identifier="RootDialogHost">
+    <materialDesign:DialogHost Identifier="ScheduleRootDialogHost">
         <Border BorderThickness="1,1,1,1" BorderBrush="{StaticResource MainBorderBrush}">
             <Grid Margin="4 0 4 4">
                 <Grid IsEnabled="{Binding !IsLoading}">

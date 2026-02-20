@@ -1183,7 +1183,8 @@ namespace Meditrans.Client.ViewModels
             {
                 // The first element affected is the one in the earliest position
                 int startIndex = Math.Min(oldIndex, newIndex);
-                await RecalculateScheduleAsync(startIndex);
+                await RecalculateScheduleAsync(startIndex);               
+                await LoadSchedulesAndTripsAsync();
                 UpdateRouteSummary();
             }
             catch (Exception ex)
@@ -1411,7 +1412,7 @@ namespace Meditrans.Client.ViewModels
             var dialogViewModel = new EditTripDialogViewModel(tripToEdit);
             var dialog = new EditTripDialog { DataContext = dialogViewModel };
            
-            var result = await MaterialDesignThemes.Wpf.DialogHost.Show(dialog, "RootDialogHost");
+            var result = await MaterialDesignThemes.Wpf.DialogHost.Show(dialog, "ScheduleRootDialogHost");
 
             if (result is bool wasSaved && wasSaved)
             {
