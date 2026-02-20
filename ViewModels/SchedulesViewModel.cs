@@ -450,7 +450,7 @@ namespace Meditrans.Client.ViewModels
             _liveUpdateTimer = new DispatcherTimer
             {
                 // Defines the update interval.
-                Interval = TimeSpan.FromSeconds(3) // Update every 5 seconds
+                Interval = TimeSpan.FromSeconds(5) // Update every 5 seconds
             };
             // Subscribe the Tick event to our update method.
             _liveUpdateTimer.Tick += async (s, e) => await RefreshLiveDataAsync();
