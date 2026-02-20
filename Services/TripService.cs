@@ -128,7 +128,8 @@ namespace Meditrans.Client.Services
 
         public async Task<bool> UpdateTripAsync(TripReadDto tripDto)
         {
-            var response = await _httpClient.PutAsJsonAsync($"{EndPoint}/update", tripDto);
+            var response = await _httpClient.PutAsJsonAsync($"{EndPoint}/{tripDto.Id}", tripDto);
+            //var response = await _httpClient.PutAsJsonAsync($"{EndPoint}/update", tripDto);
             if (!response.IsSuccessStatusCode)
             {
                 throw await CreateApiException(response, $"Error updating trip {tripDto.Id}");

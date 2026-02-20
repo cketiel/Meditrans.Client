@@ -503,6 +503,7 @@ namespace Meditrans.Client.ViewModels
                 if (value != null)
                 {
                     SearchText = value.FullName; // Patch to autocomplete bug.
+                    IdCustomer = value.Id;
                 }
                 if(_selectedCustomer != null)
                 {

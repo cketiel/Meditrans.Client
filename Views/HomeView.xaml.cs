@@ -456,7 +456,26 @@ namespace Meditrans.Client.Views
 
             };
 
-            if (DOBDatePicker.SelectedDate == null)
+            DateTime finalDob;
+
+            if (DOBDatePicker.SelectedDate.HasValue)
+            {
+                finalDob = DOBDatePicker.SelectedDate.Value.Date;
+            }
+            else if (!string.IsNullOrWhiteSpace(DOBDatePicker.Text) && DateTime.TryParse(DOBDatePicker.Text, out var parsedDob))
+            {
+                
+                finalDob = parsedDob.Date;
+            }
+            else
+            {
+                MessageBox.Show("Please select a valid date of birth.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+          
+            customer.DOB = DateTime.SpecifyKind(finalDob, DateTimeKind.Unspecified);
+
+            /*if (DOBDatePicker.SelectedDate == null)
             {
                 MessageBox.Show("Please select a valid date of birth.");
                 return;
@@ -472,7 +491,7 @@ namespace Meditrans.Client.Views
             {
                 MessageBox.Show("Invalid date of birth. Use a valid format.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
-            }
+            }*/
 
             /*bool customerExists = false;
             var (updateSuccess, updateMessage) = (false,"");
@@ -484,13 +503,17 @@ namespace Meditrans.Client.Views
             if (DataContext is HomeViewModel vm)
             {
                 Customer selectedCustomer = vm.SelectedCustomer;
-                if (selectedCustomer?.Id == null)
+                if (selectedCustomer?.Id == null || selectedCustomer.Id == 0)
                 {
                     try
                     {
                         var createdCustomer = await _customerService.CreateCustomerAsync(customer);
                         success = true;
                         vm.IdCustomer = createdCustomer.Id;
+
+                        vm.SelectedCustomer = createdCustomer;                      
+                        vm.Customers?.Add(createdCustomer);
+                        vm.FilteredCustomers?.Add(createdCustomer);
                     }
                     catch (ApiException ex)
                     {
