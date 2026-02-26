@@ -1160,7 +1160,7 @@ namespace Meditrans.Client.ViewModels
         }
 
         public async void Drop(IDropInfo dropInfo)
-        {
+         {
             var sourceItem = dropInfo.Data as ScheduleDto;
             if (sourceItem == null) return;
 
@@ -1224,7 +1224,7 @@ namespace Meditrans.Client.ViewModels
 
                     // If the current event is already 'Performed', we do not need to recalculate its ETA.
                     // We just skip to the next one.
-                    if (currentSchedule.Performed)
+                    if (currentSchedule.Performed) 
                     {
                         continue;
                     }

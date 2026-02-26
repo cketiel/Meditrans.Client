@@ -28,6 +28,13 @@ namespace Meditrans.Client.ViewModels
 {
     public partial class HomeViewModel : ObservableObject // BaseViewModel
     {
+        // Properties for trip type
+        [ObservableProperty] private bool _isRoundTrip;
+        [ObservableProperty] private bool _isOneWay = true; // Default One Way
+        [ObservableProperty] private bool _isAppointment = true; // Default Appt
+        [ObservableProperty] private bool _isReturn;
+        [ObservableProperty] private bool _isWillCall;
+
         public Action OnTripSavedSuccess { get; set; }
 
         [ObservableProperty] private string _pickupName;
@@ -923,7 +930,7 @@ namespace Meditrans.Client.ViewModels
         {
             try
             {
-                // 1. Validaciones básicas antes de enviar
+                // Basic validations before sending
                 if (IdCustomer <= 0) { MessageBox.Show("Please select or save a customer first."); return; }
                 if (SelectedSpaceType == null) { MessageBox.Show("Please select a Space Type."); return; }
                 if (SelectedFundingSource == null) { MessageBox.Show("Please select a Funding Source."); return; }
@@ -933,7 +940,7 @@ namespace Meditrans.Client.ViewModels
                 // We force UTC conversion not to be applied
                 DateTime tripDate = DateTime.SpecifyKind(FilterDate.Date, DateTimeKind.Unspecified); // tells the system: "Don't touch the time, send it as is."
 
-                Trip trip = new Trip
+                Trip trip1 = new Trip
                 {
                     Date = tripDate,
                     Day = tripDate.DayOfWeek.ToString(),
@@ -942,7 +949,7 @@ namespace Meditrans.Client.ViewModels
                     CustomerId = IdCustomer,
                     Authorization = Authorization,
 
-                    // Direcciones y Coordenadas
+                    // Directions and Coordinates
                     PickupAddress = SelectedCustomer?.Address,
                     PickupLatitude = PickupLatitude,   
                     PickupLongitude = PickupLongitude,
@@ -961,8 +968,7 @@ namespace Meditrans.Client.ViewModels
 
                     SpaceTypeId = SelectedSpaceType?.Id ?? 0,
                     FundingSourceId = SelectedFundingSource?.Id ?? 0,
-
-                    // Distancia: Si el ViewModel tiene la distancia calculada por Google, úsala
+                   
                     // "11.5 mi" -> parsear a double
                     Distance = double.TryParse(Distance?.Split(' ')[0], out var d) ? d : 0.0,
 
@@ -971,11 +977,57 @@ namespace Meditrans.Client.ViewModels
                     
                 };
 
-                trip.WillCall = (trip.ToTime == TimeSpan.Zero);             
-                trip.Type = trip.WillCall ? "Return" : "Appointment";
+                trip1.WillCall = IsWillCall;
+                //trip1.WillCall = (trip1.ToTime == TimeSpan.Zero);             
+                trip1.Type = trip1.WillCall ? "Return" : "Appointment";
 
-                var result = await _tripService.CreateTripAsync(trip);
-                MessageBox.Show("Trip created successfully!");
+                var result = await _tripService.CreateTripAsync(trip1);
+
+                // --- RETURN TRIP (ONLY IF IT IS ROUND TRIP) ---
+                if (IsRoundTrip)
+                {
+                    Trip trip2 = new Trip
+                    {
+                        Date = tripDate,
+                        Day = tripDate.DayOfWeek.ToString(),
+                        //For return, the FromTime is usually the ReturnTimePicker
+                        FromTime = ReturnTimePicker?.TimeOfDay ?? TimeSpan.Zero,
+                        ToTime = TimeSpan.Zero, 
+                        CustomerId = IdCustomer,
+                        Authorization = Authorization,
+
+                        // DATOS INVERTIDOS: Pickup del regreso es el Dropoff de la ida
+                        PickupAddress = trip1.DropoffAddress,
+                        PickupLatitude = trip1.DropoffLatitude,
+                        PickupLongitude = trip1.DropoffLongitude,
+                        PickupCity = trip1.DropoffCity,
+                        Pickup = trip1.Dropoff,
+                        PickupPhone = trip1.DropoffPhone,
+                        PickupComment = trip1.DropoffComment,
+
+                        // DATOS INVERTIDOS: Dropoff del regreso es el Pickup de la ida
+                        DropoffAddress = trip1.PickupAddress,
+                        DropoffLatitude = trip1.PickupLatitude,
+                        DropoffLongitude = trip1.PickupLongitude,
+                        DropoffCity = trip1.PickupCity,
+                        Dropoff = trip1.Pickup,
+                        DropoffPhone = trip1.PickupPhone,
+                        DropoffComment = trip1.PickupComment,
+
+                        SpaceTypeId = trip1.SpaceTypeId,
+                        FundingSourceId = trip1.FundingSourceId,
+                        Distance = trip1.Distance,
+                        Status = TripStatus.Accepted,
+                        Created = DateTime.Now,
+                        WillCall = IsWillCall,
+                        Type = "Return"
+                    };
+
+                    await _tripService.CreateTripAsync(trip2);
+                }
+
+                MessageBox.Show(IsRoundTrip ? "Round Trip created successfully!" : "Trip created successfully!");
+
 
                 await LoadTripsByDateAsync(FilterDate);
 
@@ -1009,6 +1061,7 @@ namespace Meditrans.Client.ViewModels
             // (aunque a veces se dejan si es el mismo cliente)
             PickupName = string.Empty;
             PickupPhone = string.Empty;
+            IsWillCall = false;
         }
 
         /*private async void SaveTrip()

@@ -556,13 +556,13 @@
 
 
                                         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Grid.Row="2" Grid.Column="0" Margin="0,10,10,5">
-                                            <RadioButton x:Name="RoundTripRadioButton" Content="{Binding RoundTripRadioButtonContent}" GroupName="TripType" Margin="0,0,10,0" Checked="RoundTripRadioButton_Checked"/>
-                                            <RadioButton x:Name="OneWayRadioButton" Content="{Binding OneWayRadioButtonContent}" GroupName="TripType" Checked="OneWayRadioButton_Checked"/>
+                                            <RadioButton x:Name="RoundTripRadioButton" Content="{Binding RoundTripRadioButtonContent}" GroupName="TripType" IsChecked="{Binding IsRoundTrip}" Margin="0,0,10,0" Checked="RoundTripRadioButton_Checked"/>
+                                            <RadioButton x:Name="OneWayRadioButton" Content="{Binding OneWayRadioButtonContent}" GroupName="TripType" IsChecked="{Binding IsOneWay}" Checked="OneWayRadioButton_Checked"/>
                                         </StackPanel>
 
                                         <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Grid.Row="3" Grid.Column="0" Margin="0,10,10,5">
-                                            <RadioButton x:Name="AppointmentRadioButton" Content="{Binding AppointmentRadioButtonContent}" GroupName="OneWayKind" Margin="0,0,10,0" Checked="AppointmentRadioButton_Checked"/>
-                                            <RadioButton x:Name="ReturnRadioButton" Content="{Binding ReturnRadioButtonContent}" GroupName="OneWayKind" Checked="ReturnRadioButton_Checked"/>
+                                            <RadioButton x:Name="AppointmentRadioButton" Content="{Binding AppointmentRadioButtonContent}" GroupName="OneWayKind" IsChecked="{Binding IsAppointment}" Margin="0,0,10,0" Checked="AppointmentRadioButton_Checked"/>
+                                            <RadioButton x:Name="ReturnRadioButton" Content="{Binding ReturnRadioButtonContent}" GroupName="OneWayKind" IsChecked="{Binding IsReturn}" Checked="ReturnRadioButton_Checked"/>
                                         </StackPanel>
 
                                         <!-- Right column -->                                   
@@ -604,7 +604,7 @@
                                             Is24Hours="False"/>
 
                                         <StackPanel Orientation="Horizontal" Grid.Row="3" Grid.Column="1" Margin="10,10,0,5">
-                                            <CheckBox x:Name="WillCallCheckBox" Content="Will Call"/>
+                                            <CheckBox x:Name="WillCallCheckBox" Content="Will Call" IsChecked="{Binding IsWillCall}"/>
                                         </StackPanel>
                                     </Grid>
                                 </TabItem>

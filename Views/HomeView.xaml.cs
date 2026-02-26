@@ -566,6 +566,15 @@ namespace Meditrans.Client.Views
 
             if (success)
             {
+                if (DataContext is HomeViewModel vm2)
+                {
+                    vm2.IsOneWay = true;
+                    vm2.IsRoundTrip = false;
+                    vm2.IsAppointment = true;
+                    vm2.IsReturn = false;
+                    vm2.IsWillCall = false;
+                }
+
                 //MessageBox.Show(message); // luego crear servicios de mensajes, avisos y alertas
 
                 CustomerColumn.Width = new GridLength(3.2, GridUnitType.Star);
