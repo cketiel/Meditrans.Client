@@ -682,32 +682,39 @@ namespace Meditrans.Client.ViewModels
                 try
                 {
                     var schedules = await _scheduleService.GetSchedulesAsync(route.Id, CurrentDispatchDate);
-                    
-                    foreach (var schedule in schedules)
-                    {
-                        
-                        /*schedule.Run = route.Name;
-                        schedule.Driver = route.DriverFullName;
-                        schedule.Vehicle = route.VehicleName;*/
-                        _masterAllEvents.Add(schedule);
-                    }
-                    runItem.Schedules = new ObservableCollection<ScheduleDto>(schedules);
-                    runItem.UpdateCalculatedProperties();
 
-                    TotalVehicles = Runs.Count();
-                    ClearVehicles = 0;
-                    LoadedVehicles = 0;
-                    EnRouteVehicles = 0; // 
-                    OnBreakVehicles = 0;
-                    OfflineVehicles = 0;
+                    if (schedules != null && schedules.Any())
+                    {
+                        foreach (var schedule in schedules)
+                        {
+                            /*schedule.Run = route.Name;
+                            schedule.Driver = route.DriverFullName;
+                            schedule.Vehicle = route.VehicleName;*/
+                            _masterAllEvents.Add(schedule);
+                        }
+
+                        runItem.Schedules = new ObservableCollection<ScheduleDto>(schedules);
+                        runItem.UpdateCalculatedProperties();
+
+                        // We add the Run to the visible list only because it has trips
+                        Runs.Add(runItem);
+                    }
 
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error loading schedules for route {route.Name}: {ex.Message}");
                 }
-                Runs.Add(runItem);
+                //Runs.Add(runItem);
             }
+
+            TotalVehicles = Runs.Count();
+            ClearVehicles = 0;   
+            LoadedVehicles = 0;
+            EnRouteVehicles = 0;
+            OnBreakVehicles = 0;
+            OfflineVehicles = 0;
+
             FilterAllEvents(); // Call the filter to populate the visible collection
 
             await UpdateAllRunsLocationAsync();
