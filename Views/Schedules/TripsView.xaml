@@ -152,6 +152,7 @@
                                       SelectedValuePath="Id"
                                       SelectedValue="{Binding VehicleRouteId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                       SelectionChanged="RunComboBox_SelectionChanged"
+                                      IsEnabled="False"
                                       Width="150" Margin="5,0,0,0">
                                 </ComboBox>
                             </StackPanel>

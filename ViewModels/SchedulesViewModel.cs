@@ -193,7 +193,7 @@ namespace Meditrans.Client.ViewModels
             var viewModel = new TripHistoryViewModel(tripToView);
             var view = new Views.TripHistoryDialog { DataContext = viewModel };
            
-            await MaterialDesignThemes.Wpf.DialogHost.Show(view, "RootDialogHost");
+            await MaterialDesignThemes.Wpf.DialogHost.Show(view, "ScheduleRootDialogHost");
         }
 
         private async Task ExecuteUnperformEventAsync(ScheduleDto schedule)
