@@ -33,6 +33,10 @@ namespace Meditrans.Client.Views.Schedules
             var comboBox = sender as ComboBox;
             if (comboBox == null) return;
 
+            // If the control is not loaded or if there are no elements removed,
+            // means it is the initial WPF binding and not a user action.
+            if (!comboBox.IsLoaded || e.RemovedItems.Count == 0) return;
+
             // We get the row object (TripReadDto)
             var trip = comboBox.DataContext as TripReadDto;
 
