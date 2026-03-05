@@ -882,6 +882,7 @@ namespace Meditrans.Client.ViewModels
         public string ColumnHeaderDropoff => LocalizationService.Instance["Dropoff"];
         public string ColumnHeaderPickupPhone => LocalizationService.Instance["PickupPhone"];
         public string ColumnHeaderDropoffPhone => LocalizationService.Instance["DropoffPhone"];
+        public string ColumnHeaderTripId => LocalizationService.Instance["TripId"];
         public string ColumnHeaderAuthorization => LocalizationService.Instance["Authorization"];
         public string ColumnHeaderFundingSource => LocalizationService.Instance["FundingSource"];
         public string ColumnHeaderDistance => LocalizationService.Instance["Distance"];

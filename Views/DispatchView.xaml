@@ -404,7 +404,9 @@
                                                                                     <DataGridTextColumn Binding="{Binding DropoffPhone}"
                                             Header="{Binding Data.ColumnHeaderDropoffPhone, Source={StaticResource vmProxy}}"/>
 
-                                                                                    <DataGridTextColumn Binding="{Binding Authorization}"
+                                            <DataGridTextColumn Binding="{Binding TripId}" Header="{Binding Data.ColumnHeaderTripId, Source={StaticResource vmProxy}}"/>
+
+                                            <DataGridTextColumn Binding="{Binding Authorization}"
                                             Header="{Binding Data.ColumnHeaderAuthorization, Source={StaticResource vmProxy}}"/>
 
                                                                                     <DataGridTextColumn Binding="{Binding FundingSourceName}"

@@ -804,6 +804,7 @@
                             <DataGridTextColumn Binding="{Binding Dropoff}" Header="{Binding Data.ColumnHeaderDropoff, Source={StaticResource vmProxy}}"/>
                             <DataGridTextColumn Binding="{Binding PickupPhone}" Header="{Binding Data.ColumnHeaderPickupPhone, Source={StaticResource vmProxy}}"/>
                             <DataGridTextColumn Binding="{Binding DropoffPhone}" Header="{Binding Data.ColumnHeaderDropoffPhone, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding TripId}" Header="{Binding Data.ColumnHeaderTripId, Source={StaticResource vmProxy}}"/>
                             <DataGridTextColumn Binding="{Binding Authorization}" Header="{Binding Data.ColumnHeaderAuthorization, Source={StaticResource vmProxy}}"/>
                             <DataGridTextColumn Binding="{Binding FundingSource}" Header="{Binding Data.ColumnHeaderFundingSource, Source={StaticResource vmProxy}}"/>
                             <DataGridTextColumn Binding="{Binding Distance}" Header="{Binding Data.ColumnHeaderDistance, Source={StaticResource vmProxy}}"/>

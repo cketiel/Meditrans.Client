@@ -32,6 +32,8 @@ namespace Meditrans.Client.ViewModels
         public string Type => _tripDto.Type;
         public string PickupPhone => _tripDto.PickupPhone;
         public string DropoffPhone => _tripDto.DropoffPhone;
+
+        public string? TripId => _tripDto.TripId;
         public string Authorization => _tripDto.Authorization;
         public string FundingSourceName => _tripDto.FundingSource;
         public double? Distance => _tripDto.Distance;
