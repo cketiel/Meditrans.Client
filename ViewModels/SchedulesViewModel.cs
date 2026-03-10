@@ -25,6 +25,9 @@ namespace Meditrans.Client.ViewModels
     {      
         // Flag to prevent concurrent recalculations.
         private bool _isRecalculating = false;
+
+        private bool _isDataLoading = false; // New flag to avoid duplicates
+
         /// <summary>
         /// Stores the sequence of the last 'Performed' event that triggered a recalculation.
         /// It acts as a "seal" to prevent redundant recalculations.
@@ -419,8 +422,30 @@ namespace Meditrans.Client.ViewModels
                 Schedules[i].Sequence = i;
             }
         }*/
-      
+
         private void FilterSchedules()
+        {
+            Schedules.Clear();
+
+            // Aseguramos que el Master esté ordenado por secuencia antes de filtrar
+            var orderedMaster = _masterSchedules.OrderBy(s => s.Sequence).ToList();
+
+            foreach (var schedule in orderedMaster)
+            {
+                // Regla: Siempre mostrar Pull-out, Pull-in y lo que no esté realizado.
+                // Si DisplayPerformedEvents es true, mostramos todo.
+                bool isServiceEvent = schedule.Name == "Pull-out" || schedule.Name == "Pull-in";
+
+                if (DisplayPerformedEvents || !schedule.Performed || isServiceEvent)
+                {
+                    Schedules.Add(schedule);
+                }
+            }
+
+            CalculateVisualOffsets();
+        }
+
+        /*private void FilterSchedules()
         {
             Schedules.Clear();
             IEnumerable<ScheduleDto> filteredEvents = _masterSchedules;
@@ -443,7 +468,7 @@ namespace Meditrans.Client.ViewModels
             }
 
             CalculateVisualOffsets();
-        }
+        }*/
 
         private void StartLiveTracking()
         {
@@ -666,8 +691,58 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
-        // Load the main grids
+
         private async Task LoadSchedulesAndTripsAsync()
+        {
+            // Si ya se está cargando, no permitimos otra carga simultánea
+            if (_isDataLoading) return;
+
+            _isDataLoading = true;
+            IsLoading = true;
+
+            try
+            {
+                // 1. Limpiar colecciones
+                _masterSchedules.Clear();
+                UnscheduledTrips.Clear();
+                SelectedUnscheduledTripPoints.Clear();
+
+                // 2. Obtener datos del servidor
+                var schedulesTask = _scheduleService.GetSchedulesAsync(SelectedVehicleRoute.Id, SelectedDate);
+                var tripsTask = _scheduleService.GetUnscheduledTripsAsync(SelectedDate);
+
+                // Ejecutamos ambas peticiones en paralelo para mayor velocidad
+                await Task.WhenAll(schedulesTask, tripsTask);
+
+                var schedules = await schedulesTask;
+                var trips = await tripsTask;
+
+                // 3. Llenar Master y filtrar Schedules
+                _masterSchedules.AddRange(schedules);
+                FilterSchedules();
+
+                // 4. Llenar UnscheduledTrips
+                foreach (var source in trips)
+                {
+                    UnscheduledTrips.Add(source);
+                }
+
+                UpdateMapViewForAllPoints();
+                UpdateRouteSummary();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading schedule data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                IsLoading = false;
+                _isDataLoading = false; // Liberar el bloqueo
+            }
+        }
+
+        // Load the main grids
+        private async Task LoadSchedulesAndTripsAsyncOld()
         {
             IsLoading = true;
 
@@ -687,7 +762,7 @@ namespace Meditrans.Client.ViewModels
                     Schedules.Add(schedules[i]);
                 }*/
 
-                FilterSchedules();
+        FilterSchedules();
 
                 //foreach (var s in schedules) Schedules.Add(s);
 
@@ -761,7 +836,14 @@ namespace Meditrans.Client.ViewModels
             try
             {
                 
-                var previousSchedule = Schedules.LastOrDefault(s => s.ETA < tripToSchedule.FromTime && s.Name != "Pull-in");
+                //var previousSchedule = Schedules.LastOrDefault(s => s.ETA < tripToSchedule.FromTime && s.Name != "Pull-in");
+                var previousSchedule = _masterSchedules
+                    .OrderBy(s => s.Sequence)
+                    .LastOrDefault(s => s.ETA <= tripToSchedule.FromTime && s.Name != "Pull-in");
+
+                // Si hay un previo, insertamos justo después. Si no, después del Pull-out (que es seq 0).
+                int targetSequence = (previousSchedule != null) ? (previousSchedule.Sequence ?? 0) + 1 : 1;
+
                 double originLat, originLng;
                 TimeSpan previousEta, previousServiceTime;
 
@@ -811,7 +893,8 @@ namespace Meditrans.Client.ViewModels
                     DropoffDistance = dDistance,
                     DropoffTravelTime = dTravelTime,
                     DropoffETA = dFinalEta,
-                    VehicleRouteName = vehicleRoute.Name
+                    VehicleRouteName = vehicleRoute.Name,
+                    TargetSequence = targetSequence
                 };
 
                 await _scheduleService.RouteTripsAsync(request);
@@ -819,6 +902,28 @@ namespace Meditrans.Client.ViewModels
 
                 BusyMessage = "Route updated. Finalizing calculations...";
 
+                // Recargamos los datos para tener los IDs nuevos
+                await LoadSchedulesAndTripsAsync();
+                await RecalculateScheduleAsync(0); // Recalcular todo para ajustar Pull-out y demás.
+                FilterSchedules();
+
+                // Buscamos el nuevo Pickup insertado para saber desde dónde empezar a recalcular
+                /*var newEvent = _masterSchedules.FirstOrDefault(s => s.TripId == tripToSchedule.Id && s.EventType == ScheduleEventType.Pickup);
+                if (newEvent != null)
+                {
+                    // Recalculamos desde el principio para asegurar que Pull-out y todo lo demás esté perfecto
+                    await RecalculateScheduleAsync(0);
+
+                    // Ya no se necesita llamar a LoadSchedulesAndTripsAsync aquí 
+                    // porque RecalculateScheduleAsync ya actualiza los objetos en memoria
+                    // y FilterSchedules() mantiene el orden.
+                    FilterSchedules();
+
+                    // Volvemos a cargar para refrescar la UI con los ETAs finales
+                    //await LoadSchedulesAndTripsAsync();
+                }*/
+
+                /*
                 // We load the list, which may come with the wrong order from the backend.
                 await LoadSchedulesAndTripsAsync();
 
@@ -845,7 +950,7 @@ namespace Meditrans.Client.ViewModels
                 }
 
                 // We reload to ensure that the UI reflects the final state saved in the DB.
-                await LoadSchedulesAndTripsAsync();
+                await LoadSchedulesAndTripsAsync();*/
             }
             catch (Exception ex)
             {
@@ -1160,6 +1265,49 @@ namespace Meditrans.Client.ViewModels
         }
 
         public async void Drop(IDropInfo dropInfo)
+        {
+            var sourceItem = dropInfo.Data as ScheduleDto;
+            if (sourceItem == null) return;
+
+            int oldIndex = Schedules.IndexOf(sourceItem);
+            int newIndex = dropInfo.InsertIndex;
+
+            if (oldIndex < newIndex) newIndex--;
+
+            // 1. Mover visualmente
+            Schedules.Move(oldIndex, newIndex);
+
+            // 2. Sincronizar Master (Para que contenga el orden que el usuario ve)
+            // Esto es vital para manejar eventos ocultos por el filtro
+            var targetList = Schedules.ToList();
+
+            // 3. Recalcular y Persistir
+            IsBusy = true;
+            BusyMessage = "Saving route order...";
+            try
+            {
+                // Actualizamos las secuencias según el nuevo orden visual
+                for (int i = 0; i < Schedules.Count; i++)
+                {
+                    Schedules[i].Sequence = i;
+                    // Enviamos la actualización de la secuencia a la DB inmediatamente
+                    await _scheduleService.UpdateAsync(Schedules[i].Id, Schedules[i]);
+                }
+
+                // Ahora ejecutamos el cálculo de ETAs basado en este nuevo orden
+                await RecalculateScheduleAsync(0);
+
+                // Finalmente refrescamos para asegurar que todo esté sincronizado
+                await LoadSchedulesAndTripsAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error saving order: {ex.Message}");
+            }
+            finally { IsBusy = false; }
+        }
+
+        /*public async void Drop(IDropInfo dropInfo)
          {
             var sourceItem = dropInfo.Data as ScheduleDto;
             if (sourceItem == null) return;
@@ -1197,9 +1345,92 @@ namespace Meditrans.Client.ViewModels
             {
                 IsBusy = false;
             }
-        }
+        }*/
 
         private async Task RecalculateScheduleAsync(int startIndex)
+        {
+            // Usamos Schedules (la lista visual ordenada) para el cálculo
+            if (_isRecalculating || Schedules.Count <= 2) return;
+
+            try
+            {
+                _isRecalculating = true;
+
+                for (int i = 1; i < Schedules.Count; i++)
+                {
+                    var current = Schedules[i];
+
+                    // BUSCAR EL PREVIO VÁLIDO (Lógica No-Show)
+                    ScheduleDto validPrevious = null;
+                    for (int j = i - 1; j >= 0; j--)
+                    {
+                        var p = Schedules[j];
+                        // Un punto es válido si: No está cancelado O (está cancelado pero el Driver llegó/Arrive)
+                        bool isPhysicalStop = p.Status != "Canceled" || p.Arrive != null;
+                        if (isPhysicalStop)
+                        {
+                            validPrevious = p;
+                            break;
+                        }
+                    }
+                    if (validPrevious == null) validPrevious = Schedules[0];
+
+                    // ASIGNAR SECUENCIA
+                    current.Sequence = i;
+
+                    // LÓGICA DE CÁLCULO
+                    if (current.Status == "Canceled" && current.Arrive == null)
+                    {
+                        // Es un viaje cancelado al que no se fue: distancia 0
+                        current.Distance = 0;
+                        current.Travel = TimeSpan.Zero;
+                        current.ETA = validPrevious.ETA;
+                    }
+                    else
+                    {
+                        if (!current.Performed)
+                        {
+                            var routeDetails = await _googleMapsService.GetRouteFullDetails(
+                                validPrevious.ScheduleLatitude, validPrevious.ScheduleLongitude,
+                                current.ScheduleLatitude, current.ScheduleLongitude);
+
+                            if (routeDetails != null)
+                            {
+                                current.Distance = routeDetails.DistanceMiles;
+                                current.Travel = TimeSpan.FromSeconds(routeDetails.DurationInTrafficSeconds);
+                            }
+
+                            
+                            TimeSpan travelToCurrent = current.Travel ?? TimeSpan.Zero;
+                            if (validPrevious.Name.Equals("Pull-out"))
+                            {
+                                validPrevious.ETA = current.Pickup - (TimeSpan.FromMinutes(20) + travelToCurrent);
+                                await _scheduleService.UpdateAsync(validPrevious.Id, validPrevious);
+                            }
+
+                            // CÁLCULO DE ETA SIGUIENTE
+                            TimeSpan prevEta = validPrevious.ETA ?? TimeSpan.Zero;
+                            TimeSpan prevService = (validPrevious.Name == "Pull-out") ? TimeSpan.Zero : TimeSpan.FromMinutes(validPrevious.On ?? 15);
+                            TimeSpan calculatedEta = prevEta + prevService + travelToCurrent;
+
+                            // Violaciones de tiempo
+                            if (current.EventType == ScheduleEventType.Pickup && current.Pickup.HasValue)
+                            {
+                                TimeSpan margin = (current.TripType == "Return") ? TimeSpan.FromMinutes(5) : TimeSpan.FromMinutes(15);
+                                if (calculatedEta < (current.Pickup.Value - margin)) calculatedEta = current.Pickup.Value - margin;
+                            }
+                            current.ETA = calculatedEta;
+                        }
+                    }
+
+                    // GUARDAR EN DB
+                    await _scheduleService.UpdateAsync(current.Id, current);
+                }
+            }
+            finally { _isRecalculating = false; }
+        }
+
+        private async Task RecalculateScheduleAsyncOld(int startIndex)
         {
             // If we are already recalculating, we leave to avoid problems.
             if (_isRecalculating) return;
@@ -1224,7 +1455,7 @@ namespace Meditrans.Client.ViewModels
 
                     // If the current event is already 'Performed', we do not need to recalculate its ETA.
                     // We just skip to the next one.
-                    if (currentSchedule.Performed) 
+                    if (currentSchedule.Performed && !currentSchedule.Status.Equals("Canceled")) 
                     {
                         continue;
                     }
