@@ -890,6 +890,12 @@ namespace Meditrans.Client.Views
                                 break;
                             case CsvType.Ride2md:
                                 jsonFileName = "Ride2md.json";
+                                bool correctFormat = csvReaderService.IsRide2mdCorrectFormat();
+                                if (!correctFormat)
+                                {
+                                    MessageBox.Show("The selected Ride2md CSV file does not have the correct format. Please check the file and try again.", "Format Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                                    return; // Exit if format is incorrect
+                                }
                                 break;
                             default:
                                 throw new ArgumentOutOfRangeException(nameof(csvType), csvType, "CSV type not supported");

@@ -98,6 +98,42 @@ namespace Meditrans.Client.Services
             }
 
         }
+
+        public bool IsRide2mdCorrectFormat()
+        {
+            // Define CsvHelper settings
+            var config = new CsvHelper.Configuration.CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = true,
+                HeaderValidated = null,
+                MissingFieldFound = (args) =>
+                {
+                    Console.WriteLine($"Missing field found. Headers: '{string.Join(", ", args.HeaderNames ?? new string[0])}', Index: {args.Index}, Row: {args.Context.Parser.Row}");
+                },
+            };
+
+            using var reader = new StreamReader(_csvFilePath);
+            using var csv = new CsvHelper.CsvReader(reader, config);
+
+            csv.Read();
+            csv.ReadHeader();
+            var actualCsvHeaders = csv.Context.Reader.HeaderRecord;
+            if (actualCsvHeaders == null)
+            {
+                throw new InvalidOperationException("The CSV file contains no headers or is empty.");
+            }
+            var header = actualCsvHeaders[47];
+            if (string.Equals(header, "AddressDO", StringComparison.OrdinalIgnoreCase) )
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
         public List<CsvTripRawModel> ReadCsv()
         {
             using var reader = new StreamReader(_csvFilePath);
