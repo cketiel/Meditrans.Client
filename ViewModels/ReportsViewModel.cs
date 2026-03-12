@@ -148,6 +148,127 @@ namespace Meditrans.Client.ViewModels
         {
             _isGenerating = true;
             GenerateButtonText = "Generating...";
+            CommandManager.InvalidateRequerySuggested();
+
+            try
+            {
+                int? fundingSourceId = (SelectedFundingSource != null && SelectedFundingSource.Id != -1)
+                    ? SelectedFundingSource.Id : (int?)null;
+
+                var reportData = await _scheduleService.GetProductionReportDataAsync(SelectedDate, fundingSourceId);
+
+                if (reportData == null || reportData.Count == 0)
+                {
+                    MessageBox.Show("No production data found.", "No Data", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                SaveFileDialog saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "Excel Workbook|*.xlsx",
+                    FileName = $"ProductionReport_{SelectedDate:yyyyMMdd}.xlsx"
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    using (var workbook = new XLWorkbook())
+                    {
+                        var worksheet = workbook.Worksheets.Add("Production Report");
+                       
+                        var headers = new string[] {
+                    "Date", "Req Pickup", "Appointment", "Patient", "Pickup Address",
+                    "Dropoff Address", "Space", "Charge", "Paid", "Pickup Comment",
+                    "Dropoff Comment", "Type", "Pickup Phone", "Dropoff Phone", "Authorization",
+                    "Funding Source", "Distance", "Run", "Driver", "Pickup Arrive",
+                    "Pickup Perform", "Dropoff Arrive", "Dropoff Perform", "Will Call", "Canceled",
+                    "VIN", "Pickup Odometer", "Dropoff Odometer", "Will Call Time", "Vehicle",
+                    "Vehicle Plate", "Trip Id", "Pickup GPS Arrive Distance", "Dropoff GPS Arrive Distance", "Pickup City",
+                    "Pickup State", "Pickup Zip", "Dropoff City", "Dropoff State", "Dropoff Zip",
+                    "Patient Address", "DOB", "Driver No-Show Reason", "Pickup Lat", "Pickup Lon",
+                    "Dropoff Lat", "Dropoff Lon", "Created"
+                };
+
+                        for (int i = 0; i < headers.Length; i++)
+                        {
+                            worksheet.Cell(1, i + 1).Value = headers[i];
+                        }
+                      
+                        for (int i = 0; i < reportData.Count; i++)
+                        {
+                            var d = reportData[i];
+                            var r = i + 2;
+
+                            worksheet.Cell(r, 1).Value = d.Date.ToShortDateString();
+                            worksheet.Cell(r, 2).Value = d.ReqPickup?.ToString(@"hh\:mm") ?? "";
+                            worksheet.Cell(r, 3).Value = d.Appointment?.ToString(@"hh\:mm") ?? "";
+                            worksheet.Cell(r, 4).Value = d.Patient;
+                            worksheet.Cell(r, 5).Value = d.PickupAddress;
+                            worksheet.Cell(r, 6).Value = d.DropoffAddress;
+                            worksheet.Cell(r, 7).Value = d.Space;
+                            worksheet.Cell(r, 8).Value = d.Charge;
+                            worksheet.Cell(r, 9).Value = d.Paid;
+                            worksheet.Cell(r, 10).Value = d.PickupComment;
+                            worksheet.Cell(r, 11).Value = d.DropoffComment;
+                            worksheet.Cell(r, 12).Value = d.Type;
+                            worksheet.Cell(r, 13).Value = d.PickupPhone;
+                            worksheet.Cell(r, 14).Value = d.DropoffPhone;
+                            worksheet.Cell(r, 15).Value = d.Authorization;
+                            worksheet.Cell(r, 16).Value = d.FundingSource;
+                            worksheet.Cell(r, 17).Value = d.Distance;
+                            worksheet.Cell(r, 18).Value = d.Run;
+                            worksheet.Cell(r, 19).Value = d.Driver;
+                            worksheet.Cell(r, 20).Value = d.PickupArrive?.ToString(@"hh\:mm") ?? "";
+                            worksheet.Cell(r, 21).Value = d.PickupPerform?.ToString(@"hh\:mm") ?? "";
+                            worksheet.Cell(r, 22).Value = d.DropoffArrive?.ToString(@"hh\:mm") ?? "";
+                            worksheet.Cell(r, 23).Value = d.DropoffPerform?.ToString(@"hh\:mm") ?? "";
+                            worksheet.Cell(r, 24).Value = d.WillCall ? "Yes" : "No";
+                            worksheet.Cell(r, 25).Value = d.Canceled ? "Yes" : "No";
+                            worksheet.Cell(r, 26).Value = d.VIN;
+                            worksheet.Cell(r, 27).Value = d.PickupOdometer;
+                            worksheet.Cell(r, 28).Value = d.DropoffOdometer;
+                            worksheet.Cell(r, 29).Value = d.WillCallTime?.ToString(@"hh\:mm") ?? "";
+                            worksheet.Cell(r, 30).Value = d.Vehicle;
+                            worksheet.Cell(r, 31).Value = d.VehiclePlate;
+                            worksheet.Cell(r, 32).Value = d.TripId;
+                            worksheet.Cell(r, 33).Value = d.PickupGpsArriveDistance;
+                            worksheet.Cell(r, 34).Value = d.DropoffGpsArriveDistance;
+                            worksheet.Cell(r, 35).Value = d.PickupCity;
+                            worksheet.Cell(r, 36).Value = d.PickupState;
+                            worksheet.Cell(r, 37).Value = d.PickupZip;
+                            worksheet.Cell(r, 38).Value = d.DropoffCity;
+                            worksheet.Cell(r, 39).Value = d.DropoffState;
+                            worksheet.Cell(r, 40).Value = d.DropoffZip;
+                            worksheet.Cell(r, 41).Value = d.PatientAddress;
+                            worksheet.Cell(r, 42).Value = d.DOB?.ToShortDateString() ?? "";
+                            worksheet.Cell(r, 43).Value = d.DriverNoShowReason;
+                            worksheet.Cell(r, 44).Value = d.PickupLat;
+                            worksheet.Cell(r, 45).Value = d.PickupLon;
+                            worksheet.Cell(r, 46).Value = d.DropoffLat;
+                            worksheet.Cell(r, 47).Value = d.DropoffLon;
+                            worksheet.Cell(r, 48).Value = d.Created.ToString("g");
+                        }
+
+                        worksheet.Columns().AdjustToContents();
+                        workbook.SaveAs(saveFileDialog.FileName);
+                        MessageBox.Show("Report generated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                _isGenerating = false;
+                GenerateButtonText = "Generate Production Report";
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+        private async Task GenerateProductionReportOld(object obj)
+        {
+            _isGenerating = true;
+            GenerateButtonText = "Generating...";
             // This is important to update the UI, especially the button's IsEnabled state
             CommandManager.InvalidateRequerySuggested();
 
