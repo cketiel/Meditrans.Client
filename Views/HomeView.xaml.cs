@@ -841,6 +841,21 @@ namespace Meditrans.Client.Views
             ImportTripsGridRow.Visibility = Visibility.Visible;
         }
 
+        private void BackToHome_Click(object sender, RoutedEventArgs e)
+        {
+            // Ocultamos la vista de importación
+            ImportTripsGridRow.Visibility = Visibility.Collapsed;
+
+            // Volvemos a mostrar los componentes principales
+            GridRow0.Visibility = Visibility.Visible;
+            GridRow1.Visibility = Visibility.Visible;
+            GridRow2.Visibility = Visibility.Visible;
+
+            // Opcional: Limpiar el DataGrid de vista previa al salir
+            PreviewGrid.ItemsSource = null;
+            ProgressPanel.Visibility = Visibility.Collapsed;
+        }
+
         private async void SelectCsv_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new OpenFileDialog

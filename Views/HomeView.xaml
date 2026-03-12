@@ -1236,34 +1236,117 @@
             </DataGrid>-->
 
 
-            <!-- Import Trips-->
-                <Grid Grid.Row="0" x:Name="ImportTripsGridRow" Visibility="Collapsed" Margin="10">
-                    <StackPanel>
-                    <ComboBox x:Name="FundingSourceImportComboBox"
-                        ItemsSource="{Binding FundingSources}" 
-                        SelectedItem="{Binding SelectedFundingSourceImport, Mode=TwoWay}" 
-                        DisplayMemberPath="Name" 
-                        SelectedValuePath="Id"
-                        Style="{StaticResource MaterialDesignFilledComboBox}"
-                        materialDesign:TextFieldAssist.HasClearButton="True"
-                        materialDesign:TextFieldAssist.HasLeadingIcon="True"
-                        materialDesign:TextFieldAssist.LeadingIcon="Finance"
-                        Margin="0,0,0,10"
-                        materialDesign:HintAssist.Hint="{Binding FundingSourceComboBoxHint}" />
+                <!-- Sección de Importación de Viajes (Diseño Mejorado) -->
+                <Grid Grid.Row="0" Grid.RowSpan="3" x:Name="ImportTripsGridRow" Visibility="Collapsed" Background="{DynamicResource MaterialDesignPaper}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
 
-                    <Button Content="{Binding SelectCsvButtonContent}" Click="SelectCsv_Click" Margin="0 0 0 10" x:Name="SelectCsvButton"/>
+                    <!-- Encabezado con botón de Volver -->
+                    <materialDesign:ColorZone Mode="PrimaryMid" Padding="16" materialDesign:ElevationAssist.Elevation="Dp3">
+                        <DockPanel>
+                            <Button  
+                    Foreground="White"
+                    Click="BackToHome_Click"
+                    ToolTip="Back to Home">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="ArrowLeft" VerticalAlignment="Center" />
+                                    <TextBlock Text="VOLVER A INICIO" Margin="8,0,0,0" VerticalAlignment="Center" FontWeight="Bold"/>
+                                </StackPanel>
+                            </Button>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <materialDesign:PackIcon Kind="DatabaseImport" Width="24" Height="24" />
+                                <TextBlock Text="IMPORTACIÓN DE VIAJES" Margin="12,0,0,0" Style="{StaticResource MaterialDesignHeadline6TextBlock}" />
+                            </StackPanel>
+                        </DockPanel>
+                    </materialDesign:ColorZone>
 
-                        <!-- Contenedor para la barra de progreso y el texto -->
-                        <StackPanel Margin="0,5,0,10" x:Name="ProgressPanel" Visibility="Collapsed">
-                            <TextBlock x:Name="ProgressText" Text="{Binding ProgressPanelText}" HorizontalAlignment="Center"/>
-                            <ProgressBar x:Name="ImportProgressBar" Height="20" Margin="0,5,0,0" IsIndeterminate="False"/>
-                        </StackPanel>
+                    <!-- Contenido Principal -->
+                    <Grid Grid.Row="1" Margin="20">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <!-- Tarjeta de Configuración -->
+                            <RowDefinition Height="*" />
+                            <!-- Tarjeta del Grid -->
+                        </Grid.RowDefinitions>
 
-                        <DataGrid x:Name="PreviewGrid" AutoGenerateColumns="True" Height="350" Margin="0,10,0,0"/>
-                    </StackPanel>
+                        <!-- PASO 1: Selección de Fuente y Archivo -->
+                        <materialDesign:Card Padding="16" Margin="0,0,0,16" materialDesign:ElevationAssist.Elevation="Dp2">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <ComboBox x:Name="FundingSourceImportComboBox"
+                          Grid.Column="0"
+                          ItemsSource="{Binding FundingSources}" 
+                          SelectedItem="{Binding SelectedFundingSourceImport, Mode=TwoWay}" 
+                          DisplayMemberPath="Name" 
+                          SelectedValuePath="Id"
+                          materialDesign:HintAssist.Hint="Seleccionar Funding Source"
+                          materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                          materialDesign:TextFieldAssist.LeadingIcon="Finance"
+                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                          Margin="0,0,16,0" />
+
+                                <Button x:Name="SelectCsvButton"
+                        Grid.Column="1"
+                        Height="50"
+                        Click="SelectCsv_Click" 
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        materialDesign:ButtonAssist.CornerRadius="5">
+                                    <StackPanel Orientation="Horizontal">
+                                        <materialDesign:PackIcon Kind="FileCsv" Margin="0,0,8,0" />
+                                        <TextBlock Text="SELECCIONAR CSV" />
+                                    </StackPanel>
+                                </Button>
+
+                                <!-- Panel de Progreso -->
+                                <StackPanel Grid.Column="2" Margin="24,0,0,0" VerticalAlignment="Center" MinWidth="250">
+                                    <StackPanel x:Name="ProgressPanel" Visibility="Collapsed">
+                                        <TextBlock x:Name="ProgressText" 
+                                   Text="{Binding ProgressPanelText}" 
+                                   Style="{StaticResource MaterialDesignCaptionTextBlock}" 
+                                   HorizontalAlignment="Center" />
+                                        <ProgressBar x:Name="ImportProgressBar" 
+                                     Height="10" 
+                                     IsIndeterminate="False" 
+                                     />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </materialDesign:Card>
+
+                        <!-- PASO 2: Vista previa de datos -->
+                        <materialDesign:Card Grid.Row="1" materialDesign:ElevationAssist.Elevation="Dp1">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+
+                                <Border Background="{DynamicResource MaterialDesignDivider}" Padding="12,8">
+                                    <TextBlock Text="VISTA PREVIA DE DATOS A IMPORTAR" Style="{StaticResource MaterialDesignSubtitle2TextBlock}" Opacity="0.6" />
+                                </Border>
+
+                                <DataGrid Grid.Row="1"
+                          x:Name="PreviewGrid" 
+                          AutoGenerateColumns="True" 
+                          IsReadOnly="True"
+                          CanUserAddRows="False"
+                          HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto"
+                          Style="{StaticResource MaterialDesignDataGrid}">
+                                </DataGrid>
+                            </Grid>
+                        </materialDesign:Card>
+                    </Grid>
                 </Grid>
-                
-            <!-- Import Trips-->
+
+                <!-- Import Trips-->
                 <!--<Grid Grid.Row="0" x:Name="ImportTripsGridRow" Visibility="Collapsed" Margin="10">
                     <StackPanel>
                         <Button Content="Seleccionar archivo CSV" Click="SelectCsv_Click" Margin="0 0 0 10"/>
