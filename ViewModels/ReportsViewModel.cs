@@ -452,8 +452,7 @@ namespace Meditrans.Client.ViewModels
             _isGeneratingAviata = true;
             GenerateAviataButtonText = "Generating...";
             try
-            {
-                // Debes implementar GetAviataReportDataAsync en tu ScheduleService del cliente que llame a la nueva ruta de la API
+            {              
                 var reportData = await _scheduleService.GetAviataReportDataAsync(StartDate, EndDate);
 
                 if (!reportData.Any())
