@@ -8,7 +8,6 @@ using MaterialDesignColors;
 using Meditrans.Client.Services;
 
 
-
 namespace Meditrans.Client
 {
     /// <summary>

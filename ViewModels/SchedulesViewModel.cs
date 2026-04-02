@@ -13,10 +13,12 @@ using Meditrans.Client.Views.Dispatch;
 using Meditrans.Client.Views.Schedules;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using System.Linq;
 
 
 namespace Meditrans.Client.ViewModels
@@ -906,6 +908,89 @@ namespace Meditrans.Client.ViewModels
                 await LoadSchedulesAndTripsAsync();
                 await RecalculateScheduleAsync(0); // Recalcular todo para ajustar Pull-out y demás.
                 FilterSchedules();
+
+                BusyMessage = "Sending notification to Member...";
+                HttpClient client = new HttpClient();
+                ApiZonitelService _apiZonitelService = new ApiZonitelService(client, App.Configuration);
+
+                // Validar si el teléfono es nulo o está vacío
+                if (string.IsNullOrWhiteSpace(tripToSchedule.CustomerPhone))
+                {
+                    MessageBox.Show("Cannot send SMS notification: The passenger does not have a registered phone number.",
+                                    "Missing Information", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Limpiar el teléfono (Quitar espacios, guiones y el prefijo +1 si existe)
+                string cleanPhone = tripToSchedule.CustomerPhone.Trim();
+
+                // Si empieza con +1, quitamos los primeros 2 caracteres
+                if (cleanPhone.StartsWith("+1"))
+                {
+                    cleanPhone = cleanPhone.Substring(2);
+                }
+                // Si por casualidad empieza con 1 (sin el +), quitamos el primer caracter
+                else if (cleanPhone.StartsWith("1") && cleanPhone.Length > 10)
+                {
+                    cleanPhone = cleanPhone.Substring(1);
+                }
+
+                // string cleanPhone = tripToSchedule.CustomerPhone.Replace("+1", "").Trim();
+
+                // Limpieza adicional por si el número viene con formato (786) 483-6314
+                cleanPhone = new string(cleanPhone.Where(char.IsDigit).ToArray());
+
+                // Formatear la hora (de TimeSpan? a string legible)
+                // Usamos el campo Date combinado con FromTime si existe
+                string pickupTimeDisplay = "Not set";
+                if (tripToSchedule.FromTime.HasValue)
+                {
+                    // Convertimos TimeSpan a un formato 12h (AM/PM)
+                    pickupTimeDisplay = DateTime.Today.Add(tripToSchedule.FromTime.Value).ToString("hh:mm tt");
+                }
+
+                try
+                {
+                    // Llamar al servicio
+                    // Usamos TripId (si existe) o el Id de la base de datos como respaldo
+                    string tripNumber = !string.IsNullOrEmpty(tripToSchedule.TripId)
+                                        ? tripToSchedule.TripId
+                                        : tripToSchedule.Id.ToString();
+
+                    bool isSent = await _apiZonitelService.SendSMSMessageRideHasBeenScheduled(
+                        cleanPhone,
+                        tripToSchedule.Date.ToString("M/d/yyyy"),
+                        tripToSchedule.CustomerName ?? "Valued Customer",
+                        tripNumber,
+                        tripToSchedule.PickupAddress ?? "Not specified",
+                        pickupTimeDisplay
+                    );
+
+                    if (isSent)
+                    {
+                        MessageBox.Show("Notification sent successfully to the passenger.", "Success",
+                                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("The SMS could not be sent. Please check the API logs or connection.",
+                                        "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"An error occurred while sending the SMS: {ex.Message}",
+                                    "Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+
+                /*bool resultado = await _apiZonitelService.SendSMSMessageRiderHasBeenScheduled(
+                    "7860000000",
+                    "Nombre Pasajero",
+                    "12345",
+                    "Direccion 123",
+                    "10:00 AM"
+                );*/
+
 
                 // Buscamos el nuevo Pickup insertado para saber desde dónde empezar a recalcular
                 /*var newEvent = _masterSchedules.FirstOrDefault(s => s.TripId == tripToSchedule.Id && s.EventType == ScheduleEventType.Pickup);
