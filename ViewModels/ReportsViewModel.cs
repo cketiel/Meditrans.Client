@@ -464,7 +464,7 @@ namespace Meditrans.Client.ViewModels
                 SaveFileDialog saveFileDialog = new SaveFileDialog
                 {
                     Filter = "PDF Document|*.pdf",
-                    FileName = $"Aviata_{StartDate:yyyyMMdd}_{EndDate:yyyyMMdd}.pdf"
+                    FileName = $"Aviata_{StartDate:MM-dd-yyyy}_{EndDate:MM-dd-yyyy}.pdf"
                 };
 
                 if (saveFileDialog.ShowDialog() == true)
