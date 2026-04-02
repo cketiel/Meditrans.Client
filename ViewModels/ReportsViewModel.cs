@@ -1,6 +1,7 @@
 ﻿using ClosedXML.Excel;
 using Meditrans.Client.Commands;
 using Meditrans.Client.Models;
+using Meditrans.Client.Models.Pdf;
 using Meditrans.Client.Services;
 using Microsoft.Win32;
 using System;
@@ -12,6 +13,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using QuestPDF.Fluent;
+using QuestPDF.Infrastructure;
 
 namespace Meditrans.Client.ViewModels
 {
@@ -37,12 +40,18 @@ namespace Meditrans.Client.ViewModels
         private string _generateGpsButtonText = "Generate GPS Report";
         private bool _isGeneratingGps;
 
+        private string _generateTrip2ButtonText = "Generate Trip2 PDF";
+        private bool _isGeneratingTrip2;
+
         public ICommand GenerateProductionReportCommand { get; }
         public ICommand GenerateGpsReportCommand { get; }
 
-
-
-
+        public ICommand GenerateTrip2PdfCommand { get; }
+        public string GenerateTrip2ButtonText
+        {
+            get => _generateTrip2ButtonText;
+            set { _generateTrip2ButtonText = value; OnPropertyChanged(); }
+        }
 
         public ReportsViewModel()
         {
@@ -54,6 +63,7 @@ namespace Meditrans.Client.ViewModels
             // We pass the async method to the command and manage the execution state.
             GenerateProductionReportCommand = new RelayCommandObject(async (obj) => await GenerateProductionReport(obj), (obj) => !_isGenerating);
             GenerateGpsReportCommand = new RelayCommandObject(async (o) => await GenerateGpsReport(o), (o) => !_isGeneratingGps && SelectedVehicleRoute != null);
+            GenerateTrip2PdfCommand = new RelayCommandObject(async (o) => await GenerateTrip2Report(o), (o) => !_isGeneratingTrip2);
 
             // Load initial data
             LoadVehicleRoutes();
@@ -423,6 +433,53 @@ namespace Meditrans.Client.ViewModels
             {
                 _isGeneratingGps = false;
                 GenerateGpsButtonText = "Generate GPS Report";
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+
+        private async Task GenerateTrip2Report(object obj)
+        {
+            _isGeneratingTrip2 = true;
+            GenerateTrip2ButtonText = "Generating PDF...";
+            CommandManager.InvalidateRequerySuggested();
+
+            try
+            {                
+                var reportData = await _scheduleService.GetProductionReportDataAsync(SelectedDate, null);
+
+                if (reportData == null || !reportData.Any())
+                {
+                    MessageBox.Show("No data found for this date.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+               
+                SaveFileDialog saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "PDF Document|*.pdf",
+                    FileName = $"Trip2_{SelectedDate:MM-dd-yyyy}.pdf"
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    // Agrupar datos por Driver (Cada driver inicia en página nueva)
+                    var groupedByDriver = reportData.GroupBy(d => d.Driver ?? "Unknown Driver").ToList();
+
+                    // Generar el PDF usando QuestPDF                  
+                    QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+                    var document = new Trip2Document(groupedByDriver, SelectedDate);
+                    document.GeneratePdf(saveFileDialog.FileName);
+
+                    MessageBox.Show("PDF Report generated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                _isGeneratingTrip2 = false;
+                GenerateTrip2ButtonText = "Generate Trip2 PDF";
                 CommandManager.InvalidateRequerySuggested();
             }
         }
