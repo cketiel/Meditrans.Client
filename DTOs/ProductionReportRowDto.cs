@@ -6,6 +6,13 @@ using System.Threading.Tasks;
 
 namespace Meditrans.Client.DTOs
 {
+    public class ChargeLineDto
+    {
+        public string ChargeName { get; set; }
+        public double Quantity { get; set; }
+        public double Rate { get; set; }
+        public double Amount => Quantity * Rate;
+    }
     public class ProductionReportRowDto
     {
         public DateTime Date { get; set; }
@@ -58,6 +65,8 @@ namespace Meditrans.Client.DTOs
         public DateTime Created { get; set; }
 
         public byte[]? PickupSignature { get; set; }
+        public List<ChargeLineDto> BillableLines { get; set; } = new List<ChargeLineDto>();
+        public double TotalTripAmount => BillableLines.Sum(x => x.Amount);
     }
 
     /*public class ProductionReportRowDto

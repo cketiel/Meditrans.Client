@@ -43,15 +43,24 @@ namespace Meditrans.Client.ViewModels
         private string _generateTrip2ButtonText = "Generate Trip2 PDF";
         private bool _isGeneratingTrip2;
 
+        private DateTime _startDate = DateTime.Today;
+        private DateTime _endDate = DateTime.Today;
+        private string _generateAviataButtonText = "Generate Aviata Report";
+        private bool _isGeneratingAviata;
+
         public ICommand GenerateProductionReportCommand { get; }
         public ICommand GenerateGpsReportCommand { get; }
-
         public ICommand GenerateTrip2PdfCommand { get; }
+        public ICommand GenerateAviataReportCommand { get; }
+
         public string GenerateTrip2ButtonText
         {
             get => _generateTrip2ButtonText;
             set { _generateTrip2ButtonText = value; OnPropertyChanged(); }
         }
+        public DateTime StartDate { get => _startDate; set { _startDate = value; OnPropertyChanged(); } }
+        public DateTime EndDate { get => _endDate; set { _endDate = value; OnPropertyChanged(); } }
+        public string GenerateAviataButtonText { get => _generateAviataButtonText; set { _generateAviataButtonText = value; OnPropertyChanged(); } }
 
         public ReportsViewModel()
         {
@@ -64,6 +73,7 @@ namespace Meditrans.Client.ViewModels
             GenerateProductionReportCommand = new RelayCommandObject(async (obj) => await GenerateProductionReport(obj), (obj) => !_isGenerating);
             GenerateGpsReportCommand = new RelayCommandObject(async (o) => await GenerateGpsReport(o), (o) => !_isGeneratingGps && SelectedVehicleRoute != null);
             GenerateTrip2PdfCommand = new RelayCommandObject(async (o) => await GenerateTrip2Report(o), (o) => !_isGeneratingTrip2);
+            GenerateAviataReportCommand = new RelayCommandObject(async (o) => await GenerateAviataReport(o), (o) => !_isGeneratingAviata);
 
             // Load initial data
             LoadVehicleRoutes();
@@ -437,6 +447,43 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
+        private async Task GenerateAviataReport(object obj)
+        {
+            _isGeneratingAviata = true;
+            GenerateAviataButtonText = "Generating...";
+            try
+            {
+                // Debes implementar GetAviataReportDataAsync en tu ScheduleService del cliente que llame a la nueva ruta de la API
+                var reportData = await _scheduleService.GetAviataReportDataAsync(StartDate, EndDate);
+
+                if (!reportData.Any())
+                {
+                    MessageBox.Show("No data found."); return;
+                }
+
+                SaveFileDialog saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "PDF Document|*.pdf",
+                    FileName = $"Aviata_{StartDate:yyyyMMdd}_{EndDate:yyyyMMdd}.pdf"
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    QuestPDF.Settings.License = LicenseType.Community;
+                    // Agrupar por Cliente
+                    var groupedByClient = reportData.GroupBy(x => x.Patient).ToList();
+                    var document = new AviataDocument(groupedByClient);
+                    document.GeneratePdf(saveFileDialog.FileName);
+                    MessageBox.Show("Report generated!");
+                }
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            finally
+            {
+                _isGeneratingAviata = false;
+                GenerateAviataButtonText = "Generate Aviata Report";
+            }
+        }
         private async Task GenerateTrip2Report(object obj)
         {
             _isGeneratingTrip2 = true;

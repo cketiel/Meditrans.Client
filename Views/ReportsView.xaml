@@ -196,6 +196,38 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="Aviata Report" Style="{StaticResource CustomTabItemStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Background="#F7F7F7" CornerRadius="5" Padding="15" BorderBrush="#E0E0E0" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Aviata Billing Report" FontSize="16" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
+                            <UniformGrid Columns="2">
+                                <StackPanel Orientation="Horizontal" Margin="5">
+                                    <TextBlock Text="From:" VerticalAlignment="Center" Width="50"/>
+                                    <DatePicker SelectedDate="{Binding StartDate}" Width="150"/>
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="5">
+                                    <TextBlock Text="To:" VerticalAlignment="Center" Width="50"/>
+                                    <DatePicker SelectedDate="{Binding EndDate}" Width="150"/>
+                                </StackPanel>
+                            </UniformGrid>
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                        <Button Command="{Binding GenerateAviataReportCommand}" Style="{StaticResource GenerateButtonStyle}">
+                            <TextBlock Text="{Binding GenerateAviataButtonText}"/>
+                        </Button>
+                        <TextBlock Text="Generates PDF grouped by Client for the selected date range." Foreground="Gray" Margin="0,10,0,0" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+
         </TabControl>
     </Grid>
 

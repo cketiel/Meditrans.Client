@@ -109,6 +109,21 @@ namespace Meditrans.Client.Services
             // The ReadFromJsonAsync method handles JSON deserialization for you.
             return await response.Content.ReadFromJsonAsync<List<ProductionReportRowDto>>();
         }
+
+        public async Task<List<ProductionReportRowDto>> GetAviataReportDataAsync(DateTime startDate, DateTime endDate)
+        {
+            // Formateamos las fechas para el QueryString
+            string start = startDate.ToString("yyyy-MM-dd");
+            string end = endDate.ToString("yyyy-MM-dd");
+
+            var requestUri = $"{_endPoint}/reports/aviata?startDate={start}&endDate={end}";
+
+            var response = await _httpClient.GetAsync(requestUri);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<List<ProductionReportRowDto>>();
+        }
+
         private async Task<ApiException> CreateApiException(HttpResponseMessage response, string context)
         {
             try
