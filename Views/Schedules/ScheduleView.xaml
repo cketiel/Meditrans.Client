@@ -790,25 +790,33 @@
                             <DataGridTextColumn Binding="{Binding Date}" Header="{Binding Data.ColumnHeaderDate, Source={StaticResource vmProxy}}"/>
                             <DataGridTextColumn Binding="{Binding FromTime}" Header="{Binding Data.ColumnHeaderFromTime, Source={StaticResource vmProxy}}"/>
                             <DataGridTextColumn Binding="{Binding ToTime}" Header="{Binding Data.ColumnHeaderToTime, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding NotificationStatus}" Header="{Binding Data.ColumnHeaderNotificationStatus, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding PickupCity}" Header="{Binding Data.ColumnHeaderPickupCity, Source={StaticResource vmProxy}}"/>
                             <DataGridTextColumn Binding="{Binding CustomerName}" Header="{Binding Data.ColumnHeaderPatient, Source={StaticResource vmProxy}}"/>
                             <DataGridTextColumn Binding="{Binding PickupAddress}" Header="{Binding Data.ColumnHeaderPickupAddress, Source={StaticResource vmProxy}}"/>
                             <DataGridTextColumn Binding="{Binding DropoffAddress}" Header="{Binding Data.ColumnHeaderDropoffAddress, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding SpaceType}" Header="{Binding Data.ColumnHeaderSpace, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding FundingSource}" Header="{Binding Data.ColumnHeaderFundingSource, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding Type}" Header="{Binding Data.ColumnHeaderType, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding TripId}" Header="{Binding Data.ColumnHeaderTripId, Source={StaticResource vmProxy}}"/>
+
+                            <DataGridTextColumn Binding="{Binding NotificationStatus}" Header="{Binding Data.ColumnHeaderNotificationStatus, Source={StaticResource vmProxy}}"/>
+                            
+                            
                             <DataGridTextColumn Binding="{Binding Charge}" Header="{Binding Data.ColumnHeaderCharge, Source={StaticResource vmProxy}}"/>
                             <DataGridTextColumn Binding="{Binding Paid}" Header="{Binding Data.ColumnHeaderPaid, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding SpaceType}" Header="{Binding Data.ColumnHeaderSpace, Source={StaticResource vmProxy}}"/>
+                            
                             <DataGridTextColumn Binding="{Binding PickupComment}" Header="{Binding Data.ColumnHeaderPickupComment, Source={StaticResource vmProxy}}"/>
                             <DataGridTextColumn Binding="{Binding DropoffComment}" Header="{Binding Data.ColumnHeaderDropoffComment, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding Type}" Header="{Binding Data.ColumnHeaderType, Source={StaticResource vmProxy}}"/>
+                            
                             <DataGridTextColumn Binding="{Binding Pickup}" Header="{Binding Data.ColumnHeaderPickup, Source={StaticResource vmProxy}}"/>
                             <DataGridTextColumn Binding="{Binding Dropoff}" Header="{Binding Data.ColumnHeaderDropoff, Source={StaticResource vmProxy}}"/>
                             <DataGridTextColumn Binding="{Binding PickupPhone}" Header="{Binding Data.ColumnHeaderPickupPhone, Source={StaticResource vmProxy}}"/>
                             <DataGridTextColumn Binding="{Binding DropoffPhone}" Header="{Binding Data.ColumnHeaderDropoffPhone, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding TripId}" Header="{Binding Data.ColumnHeaderTripId, Source={StaticResource vmProxy}}"/>
+                            
                             <DataGridTextColumn Binding="{Binding Authorization}" Header="{Binding Data.ColumnHeaderAuthorization, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding FundingSource}" Header="{Binding Data.ColumnHeaderFundingSource, Source={StaticResource vmProxy}}"/>
+                            
                             <DataGridTextColumn Binding="{Binding Distance}" Header="{Binding Data.ColumnHeaderDistance, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding PickupCity}" Header="{Binding Data.ColumnHeaderPickupCity, Source={StaticResource vmProxy}}"/>
+                            
                             <DataGridTextColumn Binding="{Binding DropoffCity}" Header="{Binding Data.ColumnHeaderDropoffCity, Source={StaticResource vmProxy}}"/>
                         </DataGrid.Columns>
                     </DataGrid>
