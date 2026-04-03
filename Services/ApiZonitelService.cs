@@ -49,7 +49,7 @@ namespace Meditrans.Client.Services
                                    $"Trip Number: {tripNumber}\n" +
                                    $"Address: {pickupAddress}\n" +
                                    $"Time: {pickupTime}\n" +
-                                   "visit www.etamilanes.com";
+                                   "Visit www.etamilanes.com";
 
                 // Espacios en blanco en exceso: Al usar el formato $@"" con sangría dentro del código C#, todos esos espacios de la izquierda se incluyen en el texto del mensaje, haciendo que supere el límite de caracteres y se vea mal.
                 // Este no funcionaba pq tenia muchos espacios en blanco y la api solo soporta 320 caracteres.
