@@ -8,59 +8,81 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using QuestPDF.Fluent;
 using QuestPDF.Infrastructure;
+using System.ComponentModel;
 
 namespace Meditrans.Client.ViewModels
 {
-    /// <summary>
-    /// ViewModel for the ReportsView. Handles the logic for generating reports.
-    /// </summary>
     public class ReportsViewModel : BaseViewModel
     {
         private readonly FundingSourceService _fundingSourceService;
         private readonly ScheduleService _scheduleService;
-
-        private ObservableCollection<FundingSource> _allFundingSources;
-        private FundingSource _selectedFundingSource;
-
-        private DateTime _selectedDate = DateTime.Today;
-        private string _generateButtonText = "Generate Production Report";
-        private bool _isGenerating;
-
         private readonly GpsService _gpsService;
         private readonly RunService _vehicleRouteService;
-        private ObservableCollection<VehicleRoute> _allVehicleRoutes;
-        private VehicleRoute _selectedVehicleRoute;
-        private string _generateGpsButtonText = "Generate GPS Report";
+
+        public ObservableCollection<FundingSource> AllFundingSources { get; set; } = new ObservableCollection<FundingSource>();
+        public ObservableCollection<VehicleRoute> AllVehicleRoutes { get; set; } = new ObservableCollection<VehicleRoute>();
+        public FundingSource SelectedFundingSource { get; set; }
+        public VehicleRoute SelectedVehicleRoute { get; set; }
+        public DateTime SelectedDate { get; set; } = DateTime.Today;
+        private bool _isGenerating;
+        public string GenerateButtonText { get; set; } = "Generate Production Report";
         private bool _isGeneratingGps;
-
-        private string _generateTrip2ButtonText = "Generate Trip2 PDF";
+        public string GenerateGpsButtonText { get; set; } = "Generate GPS Report";
         private bool _isGeneratingTrip2;
+        public string GenerateTrip2ButtonText { get; set; } = "Generate Trip2 PDF";
 
-        private DateTime _startDate = DateTime.Today;
-        private DateTime _endDate = DateTime.Today;
-        private string _generateAviataButtonText = "Generate Aviata Report";
+        // Aviata
+        private bool _isAllSelected;
+        private bool _isUpdatingSelection = false; // Flag to prevent infinite loops
+        public DateTime StartDate { get; set; } = DateTime.Today;
+        public DateTime EndDate { get; set; } = DateTime.Today;
         private bool _isGeneratingAviata;
+        public string GenerateAviataButtonText { get; set; } = "Generate Aviata Report";
+        public bool IsGeneratingAviata { get; set; }
+        public string PreviewFilePath { get; set; }
+        public bool IsPreviewReady { get; set; }
 
+        public bool IsAllSelected
+        {
+            get => _isAllSelected;
+            set
+            {
+                if (_isAllSelected != value)
+                {
+                    _isAllSelected = value;
+                    OnPropertyChanged();
+                    ToggleAllFundingSources(value);
+                }
+            }
+        }
+
+        // Logic for "Select All" CheckBox
+        /*public bool IsAllSelected
+        {
+            get => _isAllSelected;
+            set
+            {
+                if (_isAllSelected != value)
+                {
+                    _isAllSelected = value;
+                    OnPropertyChanged();
+                    ToggleAllSelection(value); // Select or Deselect all items
+                }
+            }
+        }*/
+
+        // Comandos
         public ICommand GenerateProductionReportCommand { get; }
         public ICommand GenerateGpsReportCommand { get; }
         public ICommand GenerateTrip2PdfCommand { get; }
         public ICommand GenerateAviataReportCommand { get; }
-
-        public string GenerateTrip2ButtonText
-        {
-            get => _generateTrip2ButtonText;
-            set { _generateTrip2ButtonText = value; OnPropertyChanged(); }
-        }
-        public DateTime StartDate { get => _startDate; set { _startDate = value; OnPropertyChanged(); } }
-        public DateTime EndDate { get => _endDate; set { _endDate = value; OnPropertyChanged(); } }
-        public string GenerateAviataButtonText { get => _generateAviataButtonText; set { _generateAviataButtonText = value; OnPropertyChanged(); } }
+        public ICommand PreviewAviataReportCommand { get; }
+        public ICommand SaveAviataReportCommand { get; }
 
         public ReportsViewModel()
         {
@@ -70,97 +92,174 @@ namespace Meditrans.Client.ViewModels
             _vehicleRouteService = new RunService();
 
             // We pass the async method to the command and manage the execution state.
-            GenerateProductionReportCommand = new RelayCommandObject(async (obj) => await GenerateProductionReport(obj), (obj) => !_isGenerating);
+            GenerateProductionReportCommand = new RelayCommandObject(async (o) => await GenerateProductionReport(o), (o) => !_isGenerating);
             GenerateGpsReportCommand = new RelayCommandObject(async (o) => await GenerateGpsReport(o), (o) => !_isGeneratingGps && SelectedVehicleRoute != null);
             GenerateTrip2PdfCommand = new RelayCommandObject(async (o) => await GenerateTrip2Report(o), (o) => !_isGeneratingTrip2);
-            GenerateAviataReportCommand = new RelayCommandObject(async (o) => await GenerateAviataReport(o), (o) => !_isGeneratingAviata);
+            //GenerateAviataReportCommand = new RelayCommandObject(async (o) => await GenerateAviataReport(o));
+            //GenerateAviataReportCommand = new RelayCommandObject(async (o) => await GenerateAviataReport(o), (o) => !_isGeneratingAviata);
 
-            // Load initial data
-            LoadVehicleRoutes();
-            LoadFundingSources();
+            PreviewAviataReportCommand = new RelayCommandObject(async (o) => await GenerateAviataPreview());
+            SaveAviataReportCommand = new RelayCommandObject((o) => SavePreviewToFile());
+
+            LoadData();
         }
 
-        private async void LoadFundingSources()
+        private async void LoadData()
         {
             try
             {
-                var sources = await _fundingSourceService.GetFundingSourcesAsync(false); // Get only active sources
+                // Limpiamos antes de cargar para evitar duplicados
+                AllFundingSources.Clear();
+                AllVehicleRoutes.Clear();
 
-                // --- Create a special "All" item ---
-                // This is a placeholder for the UI. Its ID helps us know when to send 'null' to the API.
-                var allSourcesPlaceholder = new FundingSource { Id = -1, Name = "[ All Funding Sources ]" };
+                var sources = await _fundingSourceService.GetFundingSourcesAsync(false);
+                foreach (var s in sources)
+                {
+                    s.IsSelected = false;
+                    s.PropertyChanged += OnFundingSourceSelectionChanged;
+                    AllFundingSources.Add(s);
+                }
 
-                sources.Insert(0, allSourcesPlaceholder); // Add it to the top of the list
-
-                AllFundingSources = new ObservableCollection<FundingSource>(sources);
-                SelectedFundingSource = allSourcesPlaceholder; // Set it as the default selection
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to load funding sources: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        public ObservableCollection<FundingSource> AllFundingSources
-        {
-            get => _allFundingSources;
-            set { _allFundingSources = value; OnPropertyChanged(); }
-        }
-
-        public FundingSource SelectedFundingSource
-        {
-            get => _selectedFundingSource;
-            set { _selectedFundingSource = value; OnPropertyChanged(); }
-        }
-
-        public DateTime SelectedDate
-        {
-            get => _selectedDate;
-            set
-            {
-                _selectedDate = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public string GenerateButtonText
-        {
-            get => _generateButtonText;
-            set
-            {
-                _generateButtonText = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public ObservableCollection<VehicleRoute> AllVehicleRoutes
-        {
-            get => _allVehicleRoutes;
-            set { _allVehicleRoutes = value; OnPropertyChanged(); }
-        }
-
-        public VehicleRoute SelectedVehicleRoute
-        {
-            get => _selectedVehicleRoute;
-            set { _selectedVehicleRoute = value; OnPropertyChanged(); }
-        }
-
-        public string GenerateGpsButtonText
-        {
-            get => _generateGpsButtonText;
-            set { _generateGpsButtonText = value; OnPropertyChanged(); }
-        }
-
-        private async void LoadVehicleRoutes()
-        {
-            try
-            {
                 var routes = await _vehicleRouteService.GetAllAsync();
-                AllVehicleRoutes = new ObservableCollection<VehicleRoute>(routes);
+                foreach (var r in routes) AllVehicleRoutes.Add(r);
+
+                SelectedVehicleRoute = AllVehicleRoutes.FirstOrDefault();
+            }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine(ex.Message); }
+        }
+        private async void LoadDataOld()
+        {
+            try
+            {
+                // Load Funding Sources
+                var sources = await _fundingSourceService.GetFundingSourcesAsync(false);
+                foreach (var s in sources)
+                {
+                    s.IsSelected = false;
+                    s.PropertyChanged += OnFundingSourceSelectionChanged; // Subscribe to changes
+                    AllFundingSources.Add(s);
+                }
+                SelectedFundingSource = AllFundingSources.FirstOrDefault();
+            }
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
+            try
+            {
+                /*var sources = await _fundingSourceService.GetFundingSourcesAsync(false);
+                foreach (var s in sources) AllFundingSources.Add(s);
+                SelectedFundingSource = AllFundingSources.FirstOrDefault();*/
+
+                var routes = await _vehicleRouteService.GetAllAsync();
+                foreach (var r in routes) AllVehicleRoutes.Add(r);
+            }
+            catch { /* Manejar error silencioso para no romper UI */ }
+        }
+
+        // Logic to Select/Deselect all items
+        private void ToggleAllFundingSources(bool selectAll)
+        {
+            if (_isUpdatingSelection) return;
+            _isUpdatingSelection = true;
+
+            foreach (var source in AllFundingSources)
+                source.IsSelected = selectAll;
+
+            _isUpdatingSelection = false;
+        }
+
+        // Sync "Select All" CheckBox when individual items are clicked
+        private void OnFundingSourceSelectionChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(FundingSource.IsSelected) && !_isUpdatingSelection)
+            {
+                _isUpdatingSelection = true;
+                IsAllSelected = AllFundingSources.All(x => x.IsSelected);
+                _isUpdatingSelection = false;
+            }
+        }
+
+        // Logic to select/deselect all items when "Select All" is toggled
+        private void ToggleAllSelection(bool isSelected)
+        {
+            if (_isUpdatingSelection) return;
+            _isUpdatingSelection = true;
+
+            foreach (var source in AllFundingSources)
+            {
+                source.IsSelected = isSelected;
+            }
+
+            _isUpdatingSelection = false;
+        }
+
+        // Updates "IsAllSelected" state based on individual item changes
+        private void OnFundingSourcePropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(FundingSource.IsSelected) && !_isUpdatingSelection)
+            {
+                _isUpdatingSelection = true;
+                // If all items are selected, check "Select All", otherwise uncheck it
+                IsAllSelected = AllFundingSources.All(x => x.IsSelected);
+                _isUpdatingSelection = false;
+            }
+        }
+
+        private async Task GenerateAviataPreview()
+        {
+            IsGeneratingAviata = true; IsPreviewReady = false;
+            OnPropertyChanged(nameof(IsGeneratingAviata));
+            OnPropertyChanged(nameof(IsPreviewReady));
+
+            try
+            {
+                // Get only selected IDs for the report
+                var selectedIds = AllFundingSources.Where(x => x.IsSelected && x.Id != -1).Select(x => x.Id).ToList();
+
+                var reportData = await _scheduleService.GetAviataReportDataAsync(StartDate, EndDate, selectedIds);
+
+                if (reportData == null || !reportData.Any())
+                {
+                    MessageBox.Show("No data found for the selected Funding Sources.", "No Data", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                QuestPDF.Settings.License = LicenseType.Community;
+                var document = new AviataDocument(reportData.GroupBy(x => x.Patient).ToList());
+              
+                string fileName = $"AviataPreview_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+                string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), fileName);
+
+                document.GeneratePdf(tempPath);
+                PreviewFilePath = new Uri(tempPath).AbsoluteUri;
+
+                IsPreviewReady = true;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to load vehicle routes: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Error generating report: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                IsGeneratingAviata = false;
+                OnPropertyChanged(nameof(IsGeneratingAviata));
+                OnPropertyChanged(nameof(IsPreviewReady));
+                OnPropertyChanged(nameof(PreviewFilePath));
+            }
+        }
+
+        private void SavePreviewToFile()
+        {
+            if (string.IsNullOrEmpty(PreviewFilePath)) return;
+            SaveFileDialog sfd = new SaveFileDialog 
+            {
+                Filter = "PDF Document|*.pdf",
+                FileName = $"Aviata_{StartDate:MM-dd-yyyy}_{EndDate:MM-dd-yyyy}.pdf"
+            };
+            
+            if (sfd.ShowDialog() == true)
+            {
+                string localPath = new Uri(PreviewFilePath).LocalPath;
+                System.IO.File.Copy(localPath, sfd.FileName, true);
+                MessageBox.Show("Report saved!");
             }
         }
 
@@ -194,7 +293,7 @@ namespace Meditrans.Client.ViewModels
                     using (var workbook = new XLWorkbook())
                     {
                         var worksheet = workbook.Worksheets.Add("Production Report");
-                       
+
                         var headers = new string[] {
                     "Date", "Req Pickup", "Appointment", "Patient", "Pickup Address",
                     "Dropoff Address", "Space", "Charge", "Paid", "Pickup Comment",
@@ -212,7 +311,7 @@ namespace Meditrans.Client.ViewModels
                         {
                             worksheet.Cell(1, i + 1).Value = headers[i];
                         }
-                      
+
                         for (int i = 0; i < reportData.Count; i++)
                         {
                             var d = reportData[i];
@@ -452,7 +551,7 @@ namespace Meditrans.Client.ViewModels
             _isGeneratingAviata = true;
             GenerateAviataButtonText = "Generating...";
             try
-            {              
+            {
                 var reportData = await _scheduleService.GetAviataReportDataAsync(StartDate, EndDate);
 
                 if (!reportData.Any())
@@ -490,7 +589,7 @@ namespace Meditrans.Client.ViewModels
             CommandManager.InvalidateRequerySuggested();
 
             try
-            {                
+            {
                 var reportData = await _scheduleService.GetProductionReportDataAsync(SelectedDate, null);
 
                 if (reportData == null || !reportData.Any())
@@ -498,7 +597,7 @@ namespace Meditrans.Client.ViewModels
                     MessageBox.Show("No data found for this date.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
-               
+
                 SaveFileDialog saveFileDialog = new SaveFileDialog
                 {
                     Filter = "PDF Document|*.pdf",
@@ -531,7 +630,5 @@ namespace Meditrans.Client.ViewModels
         }
 
 
-    } // end class
-
-
+    }
 }

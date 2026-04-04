@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Meditrans.Client.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Meditrans.Client.Models
 {
-    public class FundingSource
+    public class FundingSource: BaseViewModel
     {
         public int Id { get; set; }
         [Required]
@@ -28,6 +29,14 @@ namespace Meditrans.Client.Models
         public string? VectorcareFacilityId { get; set; }
         [Required]
         public bool IsActive { get; set; } = true;
+
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set { _isSelected = value; OnPropertyChanged(); }
+        }
+
         public ICollection<Customer> Customers { get; set; }
         public ICollection<FundingSourceBillingItem> BillingItems { get; set; }
     }

@@ -124,6 +124,44 @@ namespace Meditrans.Client.Services
             return await response.Content.ReadFromJsonAsync<List<ProductionReportRowDto>>();
         }
 
+        public async Task<List<ProductionReportRowDto>> GetAviataReportDataAsync(DateTime startDate, DateTime endDate, List<int> fundingSourceIds)
+        {
+            // Format dates for the QueryString
+            string start = startDate.ToString("yyyy-MM-dd");
+            string end = endDate.ToString("yyyy-MM-dd");
+
+            // Start building the URL
+            var requestUri = $"{_endPoint}/reports/aviata?startDate={start}&endDate={end}";
+
+            // If there are selected IDs, join them with commas and append to URL
+            if (fundingSourceIds != null && fundingSourceIds.Any())
+            {
+                string idsString = string.Join(",", fundingSourceIds);
+                requestUri += $"&fundingSourceIds={idsString}";
+            }
+
+            var response = await _httpClient.GetAsync(requestUri);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<List<ProductionReportRowDto>>();
+        }
+
+        public async Task<List<ProductionReportRowDto>> GetAviataReportDataAsyncOld(DateTime startDate, DateTime endDate, List<int> fundingSourceIds)
+        {
+            string start = startDate.ToString("yyyy-MM-dd");
+            string end = endDate.ToString("yyyy-MM-dd");
+
+            // Join IDs as a comma-separated string: "1,5,10"
+            string ids = string.Join(",", fundingSourceIds);
+
+            var requestUri = $"{_endPoint}/reports/aviata?startDate={start}&endDate={end}&fundingSourceIds={ids}";
+
+            var response = await _httpClient.GetAsync(requestUri);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadFromJsonAsync<List<ProductionReportRowDto>>();
+        }
+
         private async Task<ApiException> CreateApiException(HttpResponseMessage response, string context)
         {
             try

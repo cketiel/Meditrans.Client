@@ -4,82 +4,44 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Meditrans.Client.ViewModels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:helpers="clr-namespace:Meditrans.Client.Helpers"
+             xmlns:converters="clr-namespace:Meditrans.Client.Converters"
+             xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="800"
+             d:DesignHeight="700" d:DesignWidth="1100"
              FontFamily="Segoe UI">
 
     <UserControl.Resources>
-        <!-- Simple and clean style for the Generate Button -->
+        <!-- Convertidores -->
+        <BooleanToVisibilityConverter x:Key="StandardBoolToVis" />
+        <converters:AviataInverseVisibilityConverter x:Key="AviataInverseVisibilityConverter" />
+
+        <!-- Style for individual FundingSource items -->
+        <Style x:Key="MultiSelectComboBoxItemStyle" TargetType="ComboBoxItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBoxItem">
+                        <CheckBox Content="{Binding Name}" 
+                                  IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"  
+                                  Margin="10,2"
+                                  HorizontalAlignment="Stretch"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="GenerateButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#007ACC"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="14"/>
             <Setter Property="Padding" Value="20,10"/>
-            <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="5">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#005A9E"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <!-- Style for the TabControl -->
-        <Style x:Key="CustomTabControlStyle" TargetType="TabControl">
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Background" Value="Transparent"/>
-        </Style>
-
-        <!-- Style for TabItems to give them a modern look -->
-        <Style x:Key="CustomTabItemStyle" TargetType="TabItem">
-            <Setter Property="Padding" Value="12,6"/>
-            <Setter Property="Foreground" Value="Gray"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TabItem">
-                        <Grid>
-                            <Border Name="Border" 
-                                Background="{TemplateBinding Background}" 
-                                BorderBrush="LightGray" 
-                                BorderThickness="0,0,0,2"
-                                Margin="0,0,-1,0">
-                                <ContentPresenter x:Name="ContentSite"
-                                              VerticalAlignment="Center"
-                                              HorizontalAlignment="Center"
-                                              ContentSource="Header"
-                                              Margin="{TemplateBinding Padding}"/>
-                            </Border>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Foreground" Value="#007ACC"/>
-                                <Setter TargetName="Border" Property="BorderBrush" Value="#007ACC" />
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Foreground" Value="#005A9E"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
         </Style>
     </UserControl.Resources>
 
     <Grid Margin="15">
-        <TabControl Style="{StaticResource CustomTabControlStyle}">
-            <TabItem Header="Production Report" Style="{StaticResource CustomTabItemStyle}">
+        <TabControl>
+            <TabItem Header="Production Report" >
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -107,7 +69,7 @@
                               Width="250"
                               VerticalAlignment="Center"/>
                             </StackPanel>
-                            
+
                         </StackPanel>
                     </Border>
 
@@ -126,7 +88,7 @@
             </TabItem>
 
             <!-- GPS Report Tab -->
-            <TabItem Header="GPS Report" Style="{StaticResource CustomTabItemStyle}">
+            <TabItem Header="GPS Report" >
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -166,7 +128,7 @@
             </TabItem>
 
             <!-- Trip2 PDF Report Tab -->
-            <TabItem Header="Trip2 PDF Report" Style="{StaticResource CustomTabItemStyle}">
+            <TabItem Header="Trip2 PDF Report" >
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -196,40 +158,60 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Header="Aviata Report" Style="{StaticResource CustomTabItemStyle}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+            <!-- AVIATA (Previsualización y Filtros) -->
+            <TabItem Header="Aviata Report">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="320"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                    <Border Grid.Row="0" Background="#F7F7F7" CornerRadius="5" Padding="15" BorderBrush="#E0E0E0" BorderThickness="1">
+                    <!-- FILTROS -->
+                    <Border Grid.Column="0" Background="White" CornerRadius="5" Padding="15" Margin="0,0,10,0" BorderBrush="#DDD" BorderThickness="1">
                         <StackPanel>
-                            <TextBlock Text="Aviata Billing Report" FontSize="16" FontWeight="SemiBold" Foreground="#333" Margin="0,0,0,10"/>
-                            <UniformGrid Columns="2">
-                                <StackPanel Orientation="Horizontal" Margin="5">
-                                    <TextBlock Text="From:" VerticalAlignment="Center" Width="50"/>
-                                    <DatePicker SelectedDate="{Binding StartDate}" Width="150"/>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="5">
-                                    <TextBlock Text="To:" VerticalAlignment="Center" Width="50"/>
-                                    <DatePicker SelectedDate="{Binding EndDate}" Width="150"/>
-                                </StackPanel>
-                            </UniformGrid>
+                            <TextBlock Text="Aviata Billing Filters" FontSize="18" FontWeight="Bold" Margin="0,0,0,20"/>
+
+                            <TextBlock Text="Start Date:" Margin="0,10,0,5"/>
+                            <DatePicker SelectedDate="{Binding StartDate}"/>
+
+                            <TextBlock Text="End Date:" Margin="0,15,0,5"/>
+                            <DatePicker SelectedDate="{Binding EndDate}"/>
+
+                            <TextBlock Text="Funding Sources:" Margin="0,15,0,5"/>
+
+                            <!-- Master CheckBox (Select All) placed above the ComboBox -->
+                            <CheckBox Content="[ SELECT ALL SOURCES ]" 
+                                      IsChecked="{Binding IsAllSelected}" 
+                                      FontWeight="Bold" Margin="2,0,0,5"/>
+
+                            <!-- Multi-selection ComboBox -->
+                            <ComboBox ItemsSource="{Binding AllFundingSources}" 
+                                      ItemContainerStyle="{StaticResource MultiSelectComboBoxItemStyle}"
+                                      materialDesign:HintAssist.Hint="Filter by item..."
+                                      SelectedItem="{Binding SelectedFundingSource}"/>
+
+                            <Separator Margin="0,20"/>
+                            <Button Command="{Binding PreviewAviataReportCommand}" Content="GENERATE PREVIEW" Style="{StaticResource GenerateButtonStyle}" Background="#673AB7"/>
+                            <Button Command="{Binding SaveAviataReportCommand}" Content="SAVE AS PDF" IsEnabled="{Binding IsPreviewReady}" Style="{StaticResource GenerateButtonStyle}" Background="#2E7D32" Margin="0,10,0,0"/>
+
+                            <ProgressBar IsIndeterminate="True" Margin="0,10" Visibility="{Binding IsGeneratingAviata, Converter={StaticResource StandardBoolToVis}}"/>
                         </StackPanel>
                     </Border>
 
-                    <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <Button Command="{Binding GenerateAviataReportCommand}" Style="{StaticResource GenerateButtonStyle}">
-                            <TextBlock Text="{Binding GenerateAviataButtonText}"/>
-                        </Button>
-                        <TextBlock Text="Generates PDF grouped by Client for the selected date range." Foreground="Gray" Margin="0,10,0,0" HorizontalAlignment="Center"/>
-                    </StackPanel>
+                    <!-- PREVIEW -->
+                    <Border Grid.Column="1" Background="#F0F0F0" CornerRadius="5" BorderBrush="#E0E0E0" BorderThickness="1">
+                        <Grid>
+                            <StackPanel VerticalAlignment="Center" Visibility="{Binding IsPreviewReady, Converter={StaticResource AviataInverseVisibilityConverter}}">
+                                <materialDesign:PackIcon Kind="FilePdfBox" Width="60" Height="60" HorizontalAlignment="Center" Foreground="#BDBDBD"/>
+                                <TextBlock Text="Click 'Generate Preview' to see the report." HorizontalAlignment="Center" Foreground="#9E9E9E"/>
+                            </StackPanel>
+                            <wv2:WebView2 x:Name="PdfWebView" 
+                                  Source="{Binding PreviewFilePath}"
+                                  Visibility="{Binding IsPreviewReady, Converter={StaticResource StandardBoolToVis}}"/>
+                        </Grid>
+                    </Border>
                 </Grid>
             </TabItem>
-
         </TabControl>
     </Grid>
-
-
 </UserControl>
