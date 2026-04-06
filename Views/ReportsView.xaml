@@ -128,7 +128,7 @@
             </TabItem>
 
             <!-- Trip2 PDF Report Tab -->
-            <TabItem Header="Trip2 PDF Report" >
+            <!--<TabItem Header="Trip2 PDF Report" >
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -155,6 +155,71 @@
                        Margin="0,10,0,0"
                        HorizontalAlignment="Center"/>
                     </StackPanel>
+                </Grid>
+            </TabItem>-->
+
+            <TabItem Header="Trip2 PDF Report">
+                <Grid Margin="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="320"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- FILTERS SIDEBAR -->
+                    <Border Grid.Column="0" Background="White" CornerRadius="5" Padding="15" Margin="0,0,10,0" BorderBrush="#DDD" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="Trip2 Report Filters" FontSize="18" FontWeight="Bold" Foreground="#007ACC" Margin="0,0,0,20"/>
+
+                            <TextBlock Text="Date Range" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <DatePicker SelectedDate="{Binding Trip2StartDate}" materialDesign:HintAssist.Hint="Start Date" Margin="0,5"/>
+                            <DatePicker SelectedDate="{Binding Trip2EndDate}" materialDesign:HintAssist.Hint="End Date" Margin="0,5"/>
+
+                            <TextBlock Text="Funding Sources" FontWeight="SemiBold" Margin="0,15,0,5"/>
+
+                            <!-- Master CheckBox -->
+                            <CheckBox Content="[ SELECT ALL SOURCES ]" 
+                          IsChecked="{Binding IsTrip2AllSelected}" 
+                          FontWeight="Bold" Margin="2,0,0,5"/>
+
+                            <!-- Multi-selection ComboBox -->
+                            <ComboBox ItemsSource="{Binding AllFundingSources}" 
+                          ItemContainerStyle="{StaticResource MultiSelectComboBoxItemStyle}"
+                          materialDesign:HintAssist.Hint="Filter by item..."
+                          SelectedItem="{Binding SelectedFundingSource}"/>
+
+                            <Separator Margin="0,20"/>
+
+                            <Button Command="{Binding PreviewTrip2ReportCommand}" 
+                        Content="GENERATE PREVIEW" 
+                        Style="{StaticResource GenerateButtonStyle}" 
+                        Background="#673AB7"/>
+
+                            <Button Command="{Binding SaveTrip2ReportCommand}" 
+                        Content="SAVE AS PDF" 
+                        IsEnabled="{Binding IsTrip2PreviewReady}" 
+                        Style="{StaticResource GenerateButtonStyle}" 
+                        Background="#2E7D32" Margin="0,10,0,0"/>
+
+                            <ProgressBar IsIndeterminate="True" Margin="0,10" 
+                             Visibility="{Binding IsGeneratingTrip2Preview, Converter={StaticResource StandardBoolToVis}}"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- PREVIEW AREA -->
+                    <Border Grid.Column="1" Background="#F0F0F0" CornerRadius="5" BorderBrush="#E0E0E0" BorderThickness="1">
+                        <Grid>
+                            <!-- Placeholder -->
+                            <StackPanel VerticalAlignment="Center" Visibility="{Binding IsTrip2PreviewReady, Converter={StaticResource AviataInverseVisibilityConverter}}">
+                                <materialDesign:PackIcon Kind="FilePdfBox" Width="60" Height="60" HorizontalAlignment="Center" Foreground="#BDBDBD"/>
+                                <TextBlock Text="Click 'Generate Preview' to see the Trip2 report." HorizontalAlignment="Center" Foreground="#9E9E9E"/>
+                            </StackPanel>
+
+                            <!-- WebView2 Preview -->
+                            <wv2:WebView2 x:Name="Trip2PdfWebView" 
+                              Source="{Binding Trip2PreviewFilePath}"
+                              Visibility="{Binding IsTrip2PreviewReady, Converter={StaticResource StandardBoolToVis}}"/>
+                        </Grid>
+                    </Border>
                 </Grid>
             </TabItem>
 

@@ -36,7 +36,34 @@ namespace Meditrans.Client.ViewModels
         private bool _isGeneratingTrip2;
         public string GenerateTrip2ButtonText { get; set; } = "Generate Trip2 PDF";
 
-        // Aviata
+        // Trip2 Properties
+        private bool _isTrip2AllSelected;
+        private bool _isGeneratingTrip2Preview;
+        private bool _isTrip2PreviewReady;
+        private string _trip2PreviewFilePath;
+
+        public DateTime Trip2StartDate { get; set; } = DateTime.Today;
+        public DateTime Trip2EndDate { get; set; } = DateTime.Today;
+
+        public bool IsGeneratingTrip2Preview { get => _isGeneratingTrip2Preview; set { _isGeneratingTrip2Preview = value; OnPropertyChanged(); } }
+        public bool IsTrip2PreviewReady { get => _isTrip2PreviewReady; set { _isTrip2PreviewReady = value; OnPropertyChanged(); } }
+        public string Trip2PreviewFilePath { get => _trip2PreviewFilePath; set { _trip2PreviewFilePath = value; OnPropertyChanged(); } }
+
+        public bool IsTrip2AllSelected
+        {
+            get => _isTrip2AllSelected;
+            set
+            {
+                if (_isTrip2AllSelected != value)
+                {
+                    _isTrip2AllSelected = value;
+                    OnPropertyChanged();
+                    ToggleAllFundingSources(value); // You can reuse the existing toggle method
+                }
+            }
+        }
+
+        // Aviata Properties
         private bool _isAllSelected;
         private bool _isUpdatingSelection = false; // Flag to prevent infinite loops
         public DateTime StartDate { get; set; } = DateTime.Today;
@@ -76,13 +103,15 @@ namespace Meditrans.Client.ViewModels
             }
         }*/
 
-        // Comandos
+        // Commands
         public ICommand GenerateProductionReportCommand { get; }
         public ICommand GenerateGpsReportCommand { get; }
         public ICommand GenerateTrip2PdfCommand { get; }
         public ICommand GenerateAviataReportCommand { get; }
         public ICommand PreviewAviataReportCommand { get; }
         public ICommand SaveAviataReportCommand { get; }
+        public ICommand PreviewTrip2ReportCommand { get; }
+        public ICommand SaveTrip2ReportCommand { get; }
 
         public ReportsViewModel()
         {
@@ -98,6 +127,8 @@ namespace Meditrans.Client.ViewModels
             //GenerateAviataReportCommand = new RelayCommandObject(async (o) => await GenerateAviataReport(o));
             //GenerateAviataReportCommand = new RelayCommandObject(async (o) => await GenerateAviataReport(o), (o) => !_isGeneratingAviata);
 
+            PreviewTrip2ReportCommand = new RelayCommandObject(async (o) => await GenerateTrip2Preview());
+            SaveTrip2ReportCommand = new RelayCommandObject((o) => SaveTrip2PreviewToFile());
             PreviewAviataReportCommand = new RelayCommandObject(async (o) => await GenerateAviataPreview());
             SaveAviataReportCommand = new RelayCommandObject((o) => SavePreviewToFile());
 
@@ -200,6 +231,68 @@ namespace Meditrans.Client.ViewModels
                 // If all items are selected, check "Select All", otherwise uncheck it
                 IsAllSelected = AllFundingSources.All(x => x.IsSelected);
                 _isUpdatingSelection = false;
+            }
+        }
+
+        private async Task GenerateTrip2Preview()
+        {
+            IsGeneratingTrip2Preview = true;
+            IsTrip2PreviewReady = false;
+            OnPropertyChanged(nameof(IsTrip2PreviewReady));
+
+            try
+            {
+                // 1. Collect selected IDs
+                var selectedIds = AllFundingSources.Where(x => x.IsSelected && x.Id != -1).Select(x => x.Id).ToList();
+
+                // 2. Fetch data (Using the range method)
+                var reportData = await _scheduleService.GetTrip2ReportDataAsync(Trip2StartDate, Trip2EndDate, selectedIds);
+
+                if (reportData == null || !reportData.Any())
+                {
+                    MessageBox.Show("No data found for Trip2 with selected filters.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                // 3. Generate PDF
+                QuestPDF.Settings.License = LicenseType.Community;
+                var groupedByDriver = reportData.GroupBy(d => d.Driver ?? "Unknown Driver").ToList();
+
+                // Dynamic filename to force WebView2 refresh
+                string fileName = $"Trip2Preview_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+                string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), fileName);
+
+                var document = new Trip2Document(groupedByDriver, Trip2StartDate); // Or handle range in document
+                document.GeneratePdf(tempPath);
+
+                // 4. Update UI
+                Trip2PreviewFilePath = new Uri(tempPath).AbsoluteUri;
+                IsTrip2PreviewReady = true;
+            }
+            catch (Exception ex) { MessageBox.Show($"Error: {ex.Message}"); }
+            finally
+            {
+                IsGeneratingTrip2Preview = false;
+                OnPropertyChanged(nameof(IsGeneratingTrip2Preview));
+                OnPropertyChanged(nameof(IsTrip2PreviewReady));
+                OnPropertyChanged(nameof(Trip2PreviewFilePath));
+            }
+        }
+
+        private void SaveTrip2PreviewToFile()
+        {
+            if (string.IsNullOrEmpty(Trip2PreviewFilePath)) return;
+            SaveFileDialog sfd = new SaveFileDialog
+            {
+                Filter = "PDF Document|*.pdf",
+                FileName = $"Trip2_{Trip2StartDate:MM-dd-yyyy}_{Trip2EndDate:MM-dd-yyyy}.pdf"
+            };
+
+            if (sfd.ShowDialog() == true)
+            {
+                string localPath = new Uri(Trip2PreviewFilePath).LocalPath;
+                System.IO.File.Copy(localPath, sfd.FileName, true);
+                MessageBox.Show("Trip2 Report saved!");
             }
         }
 
