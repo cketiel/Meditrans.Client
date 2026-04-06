@@ -63,9 +63,9 @@
                 <TabItem Header="{Binding Schedule}" Content="{Binding ScheduleContentViewModel}"/>
 
 
-                <TabItem Header="{Binding Trips}">
+                <!--<TabItem Header="{Binding Trips}">
                     <views:TripsView />
-                </TabItem>
+                </TabItem>-->
 
                 <TabItem Header="{Binding Revenue}">
                     <views:RevenueView />
