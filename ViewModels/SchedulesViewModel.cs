@@ -708,6 +708,7 @@ namespace Meditrans.Client.ViewModels
                 _masterSchedules.Clear();
                 UnscheduledTrips.Clear();
                 SelectedUnscheduledTripPoints.Clear();
+                SelectedUnscheduledTrip = null;
 
                 // 2. Obtener datos del servidor
                 var schedulesTask = _scheduleService.GetSchedulesAsync(SelectedVehicleRoute.Id, SelectedDate);

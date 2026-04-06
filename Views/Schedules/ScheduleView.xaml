@@ -744,12 +744,12 @@
 
                     <GridSplitter Grid.Row="3" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="LightGray" ShowsPreview="True"/>
 
-                    <DataGrid Grid.Row="4" ItemsSource="{Binding UnscheduledTrips}" SelectedItem="{Binding SelectedUnscheduledTrip}" SelectionMode="Single" ScrollViewer.CanContentScroll="True" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" FrozenColumnCount="2" IsReadOnly="True" AlternationCount="2" AlternatingRowBackground="White" Style="{StaticResource CustomDataGridStyle}" ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}" RowStyle="{StaticResource UnscheduledTripRowStyle}" CellStyle="{StaticResource CustomCellStyle}" SelectionUnit="FullRow" AutoGenerateColumns="False" CanUserAddRows="False" Cursor="Hand">
+                    <DataGrid Grid.Row="4" ItemsSource="{Binding UnscheduledTrips}" SelectedItem="{Binding SelectedUnscheduledTrip}" EnableColumnVirtualization="False" VirtualizingStackPanel.IsVirtualizing="False" SelectionMode="Single" ScrollViewer.CanContentScroll="False" ScrollViewer.HorizontalScrollBarVisibility="Auto" ScrollViewer.VerticalScrollBarVisibility="Auto" FrozenColumnCount="0" IsReadOnly="True" AlternationCount="2" AlternatingRowBackground="White" Style="{StaticResource CustomDataGridStyle}" ColumnHeaderStyle="{StaticResource CustomColumnHeaderStyle}" RowStyle="{StaticResource UnscheduledTripRowStyle}" CellStyle="{StaticResource CustomCellStyle}" SelectionUnit="FullRow" AutoGenerateColumns="False" CanUserAddRows="False" Cursor="Hand">
                         <DataGrid.Columns>
-                            <DataGridTemplateColumn Width="Auto">
+                            <DataGridTemplateColumn Width="130">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <StackPanel Orientation="Horizontal">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0">
                                             <Button Command="{Binding Data.CancelTripCommand, Source={StaticResource vmProxy}}" CommandParameter="{Binding}" Style="{StaticResource MaterialDesignToolButton}" VerticalAlignment="Center" ToolTip="{Binding Data.CancelTripToolTip, Source={StaticResource vmProxy}}">
                                                 <Button.Visibility>
                                                     <Binding Path="Status" Converter="{StaticResource StatusToVisibilityConverter}" ConverterParameter="NotCanceled" />
@@ -787,37 +787,56 @@
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
-                            <DataGridTextColumn Binding="{Binding Date}" Header="{Binding Data.ColumnHeaderDate, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding FromTime}" Header="{Binding Data.ColumnHeaderFromTime, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding ToTime}" Header="{Binding Data.ColumnHeaderToTime, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding PickupCity}" Header="{Binding Data.ColumnHeaderPickupCity, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding CustomerName}" Header="{Binding Data.ColumnHeaderPatient, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding PickupAddress}" Header="{Binding Data.ColumnHeaderPickupAddress, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding DropoffAddress}" Header="{Binding Data.ColumnHeaderDropoffAddress, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding SpaceType}" Header="{Binding Data.ColumnHeaderSpace, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding FundingSource}" Header="{Binding Data.ColumnHeaderFundingSource, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding Type}" Header="{Binding Data.ColumnHeaderType, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding TripId}" Header="{Binding Data.ColumnHeaderTripId, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding Date, StringFormat=\{0:MM/dd/yyyy\}}" Width="100" Header="{Binding Data.ColumnHeaderDate, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding FromTime, StringFormat=\{0:hh\\:mm\}}" Width="90" Header="{Binding Data.ColumnHeaderFromTime, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding ToTime, StringFormat=\{0:hh\\:mm\}}" Width="90" Header="{Binding Data.ColumnHeaderToTime, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding PickupCity}" Width="120" Header="{Binding Data.ColumnHeaderPickupCity, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding CustomerName}" Width="160" Header="{Binding Data.ColumnHeaderPatient, Source={StaticResource vmProxy}}"/>
+                            
+                            <DataGridTextColumn Binding="{Binding PickupAddress}" Width="250" Header="{Binding Data.ColumnHeaderPickupAddress, Source={StaticResource vmProxy}}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                        <Setter Property="ToolTip" Value="{Binding PickupAddress}"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
 
-                            <DataGridTextColumn Binding="{Binding NotificationStatus}" Header="{Binding Data.ColumnHeaderNotificationStatus, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding DropoffAddress}" Width="250" Header="{Binding Data.ColumnHeaderDropoffAddress, Source={StaticResource vmProxy}}">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                        <Setter Property="ToolTip" Value="{Binding DropoffAddress}"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
                             
-                            
-                            <DataGridTextColumn Binding="{Binding Charge}" Header="{Binding Data.ColumnHeaderCharge, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding Paid}" Header="{Binding Data.ColumnHeaderPaid, Source={StaticResource vmProxy}}"/>
-                            
-                            <DataGridTextColumn Binding="{Binding PickupComment}" Header="{Binding Data.ColumnHeaderPickupComment, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding DropoffComment}" Header="{Binding Data.ColumnHeaderDropoffComment, Source={StaticResource vmProxy}}"/>
-                            
-                            <DataGridTextColumn Binding="{Binding Pickup}" Header="{Binding Data.ColumnHeaderPickup, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding Dropoff}" Header="{Binding Data.ColumnHeaderDropoff, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding PickupPhone}" Header="{Binding Data.ColumnHeaderPickupPhone, Source={StaticResource vmProxy}}"/>
-                            <DataGridTextColumn Binding="{Binding DropoffPhone}" Header="{Binding Data.ColumnHeaderDropoffPhone, Source={StaticResource vmProxy}}"/>
-                            
-                            <DataGridTextColumn Binding="{Binding Authorization}" Header="{Binding Data.ColumnHeaderAuthorization, Source={StaticResource vmProxy}}"/>
-                            
-                            <DataGridTextColumn Binding="{Binding Distance}" Header="{Binding Data.ColumnHeaderDistance, Source={StaticResource vmProxy}}"/>
-                            
-                            <DataGridTextColumn Binding="{Binding DropoffCity}" Header="{Binding Data.ColumnHeaderDropoffCity, Source={StaticResource vmProxy}}"/>
+                            <!--<DataGridTextColumn Binding="{Binding PickupAddress}" Header="{Binding Data.ColumnHeaderPickupAddress, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding DropoffAddress}" Header="{Binding Data.ColumnHeaderDropoffAddress, Source={StaticResource vmProxy}}"/>-->
+                            <DataGridTextColumn Binding="{Binding SpaceType}" Width="100" Header="{Binding Data.ColumnHeaderSpace, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding FundingSource}" Width="150" Header="{Binding Data.ColumnHeaderFundingSource, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding Type}" Width="100" Header="{Binding Data.ColumnHeaderType, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding TripId}" Width="100" Header="{Binding Data.ColumnHeaderTripId, Source={StaticResource vmProxy}}"/>
+
+                            <DataGridTextColumn Binding="{Binding NotificationStatus}" Width="100" Header="{Binding Data.ColumnHeaderNotificationStatus, Source={StaticResource vmProxy}}"/>
+
+
+                            <DataGridTextColumn Binding="{Binding Charge}" Width="80" Header="{Binding Data.ColumnHeaderCharge, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding Paid}" Width="80" Header="{Binding Data.ColumnHeaderPaid, Source={StaticResource vmProxy}}"/>
+
+                            <DataGridTextColumn Binding="{Binding PickupComment}" Width="250" Header="{Binding Data.ColumnHeaderPickupComment, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding DropoffComment}" Width="250" Header="{Binding Data.ColumnHeaderDropoffComment, Source={StaticResource vmProxy}}"/>
+
+                            <DataGridTextColumn Binding="{Binding Pickup}" Width="100" Header="{Binding Data.ColumnHeaderPickup, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding Dropoff}" Width="100" Header="{Binding Data.ColumnHeaderDropoff, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding PickupPhone}" Width="100" Header="{Binding Data.ColumnHeaderPickupPhone, Source={StaticResource vmProxy}}"/>
+                            <DataGridTextColumn Binding="{Binding DropoffPhone}" Width="100" Header="{Binding Data.ColumnHeaderDropoffPhone, Source={StaticResource vmProxy}}"/>
+
+                            <DataGridTextColumn Binding="{Binding Authorization}" Width="80" Header="{Binding Data.ColumnHeaderAuthorization, Source={StaticResource vmProxy}}"/>
+
+                            <DataGridTextColumn Binding="{Binding Distance}" Width="80" Header="{Binding Data.ColumnHeaderDistance, Source={StaticResource vmProxy}}"/>
+
+                            <DataGridTextColumn Binding="{Binding DropoffCity}" Width="120" Header="{Binding Data.ColumnHeaderDropoffCity, Source={StaticResource vmProxy}}"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
