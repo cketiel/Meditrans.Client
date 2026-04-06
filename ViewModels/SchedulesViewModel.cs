@@ -968,8 +968,7 @@ namespace Meditrans.Client.ViewModels
 
                     if (isSent)
                     {
-                        MessageBox.Show("Notification sent successfully to the passenger.", "Success",
-                                        MessageBoxButton.OK, MessageBoxImage.Information);
+                        //MessageBox.Show("Notification sent successfully to the passenger.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     else
                     {
