@@ -1034,6 +1034,7 @@ namespace Meditrans.Client.Views
                             // Wait for all mapping tasks to complete
                             await Task.WhenAll(mappingTasks);
 
+                            string errorTripIdList = ""; // string.Join(", ", mappedTrips.Select(t => t.Id));
                             // Resolving the concurrency error
                             // Try to insert the trips that gave a concurrency error when inserting the customer.
                             foreach (var et in errorTrips) 
@@ -1047,7 +1048,7 @@ namespace Meditrans.Client.Views
                                 }
                                 catch (Exception ex)
                                 {
-
+                                    errorTripIdList = errorTripIdList + et.RideId + ", ";
                                     Debug.WriteLine($"Error mapping record: {ex.Message}");
                                 }
                                 
@@ -1059,6 +1060,8 @@ namespace Meditrans.Client.Views
                             // Variant of saving all trips in a single request to the API
                             //await tripService.CreateTripsAsync(mappedTrips); 
                             MessageBox.Show($"{mappedTrips.Count} Trips processed and ready to preview.", "Process Completed", MessageBoxButton.OK, MessageBoxImage.Information);
+                            if(errorTrips.Count  > 0) 
+                                MessageBox.Show($"{errorTripIdList} Lista de ids de trips sin importar.", "Process Completed", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
 
                         
