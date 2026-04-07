@@ -43,6 +43,9 @@ namespace Meditrans.Client.ViewModels
         private List<ScheduleDto> _masterSchedules = new List<ScheduleDto>();
 
         [ObservableProperty]
+        private VehicleGroup? _selectedVehicleGroup;
+
+        [ObservableProperty]
         private bool _allowUnperformAction = false;
 
         [ObservableProperty]
@@ -97,8 +100,10 @@ namespace Meditrans.Client.ViewModels
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(CancelRouteCommand))]
-        private ScheduleDto _selectedSchedule;        
+        private ScheduleDto _selectedSchedule;
 
+        // Lista privada para mantener todas las rutas cargadas inicialmente
+        private List<VehicleRoute> _allVehicleRoutesMaster = new();
         public ObservableCollection<VehicleRoute> VehicleRoutes { get; } = new();
         public ObservableCollection<VehicleGroup> VehicleGroups { get; } = new();
         public ObservableCollection<ScheduleDto> Schedules { get; } = new();
@@ -628,10 +633,72 @@ namespace Meditrans.Client.ViewModels
             }
             _liveUpdateTimer = null;
         }
-        
+
         // Load initial data (route and group lists)
 
         private async Task LoadInitialDataListsAsync()
+        {
+            RunService _runService = new RunService();
+            var routes = await _runService.GetAllAsync();
+
+            // Guardamos en la lista maestra
+            _allVehicleRoutesMaster = routes.Where(r => {
+                var now = DateTime.UtcNow;
+                bool inDateRange = now >= r.FromDate && (r.ToDate == null || now <= r.ToDate);
+                bool isSuspended = r.Suspensions.Any(s => now >= s.SuspensionStart && now <= s.SuspensionEnd);
+                return inDateRange && !isSuspended;
+            }).ToList();
+
+            // Llenamos la colección observable que ve la UI por primera vez
+            //ApplyVehicleRouteFilter();
+
+            // Cargar grupos
+            VehicleGroupService _vehicleGroupService = new VehicleGroupService();
+            var groups = await _vehicleGroupService.GetGroupsAsync();
+            VehicleGroups.Clear();
+
+            var allGroupsOption = new VehicleGroup
+            {
+                Id = 0,
+                Name = "All Groups",
+                Color = "Transparent" // O un color neutro como #FFFFFF
+            };
+            VehicleGroups.Add(allGroupsOption);
+
+            foreach (var g in groups) VehicleGroups.Add(g);
+
+            // Seleccionar "Todos" por defecto
+            SelectedVehicleGroup = allGroupsOption;
+
+            // Ejecutar filtro inicial
+            ApplyVehicleRouteFilter();
+        }
+
+        partial void OnSelectedVehicleGroupChanged(VehicleGroup? value)
+        {
+            ApplyVehicleRouteFilter();
+        }
+
+        private void ApplyVehicleRouteFilter()
+        {
+            var previousSelected = SelectedVehicleRoute;
+            var filtered = _allVehicleRoutesMaster.AsEnumerable();
+
+            // SI el grupo seleccionado NO es nulo Y su ID no es 0, filtramos.
+            // SI el ID es 0, mostramos todos (no entra en el IF).
+            if (SelectedVehicleGroup != null && SelectedVehicleGroup.Id != 0)
+            {
+                filtered = filtered.Where(r => r.Vehicle?.VehicleGroup?.Id == SelectedVehicleGroup.Id);
+            }
+
+            VehicleRoutes.Clear();
+            foreach (var route in filtered) VehicleRoutes.Add(route);
+
+            // Mantener selección si es posible
+            SelectedVehicleRoute = VehicleRoutes.FirstOrDefault(r => r.Id == (previousSelected?.Id ?? -1))
+                                   ?? VehicleRoutes.FirstOrDefault();
+        }
+        private async Task LoadInitialDataListsAsyncOld()
         {
             // Este método solo carga las listas de ComboBox, sin seleccionar nada.
             RunService _runService = new RunService();

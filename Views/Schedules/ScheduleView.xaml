@@ -26,6 +26,7 @@
         <converters:DirectionToAngleConverter x:Key="DirectionToAngleConverter"/>
         <converters:NullToVisibilityConverter x:Key="NullToVis"/>
         <converters:NullToBooleanConverter x:Key="NullToBoolConverter"/>
+        <converters:StringToBrushConverter x:Key="StringToBrushConverter"/>
         
         <SolidColorBrush x:Key="StoppedBlueBrush" Color="#A9D0F5"/>
         <SolidColorBrush x:Key="NormalSpeedBlueBrush" Color="#0078D7"/>
@@ -116,8 +117,55 @@
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
                         <DatePicker SelectedDate="{Binding SelectedDate}" Margin="5"/>
-                        <ComboBox ItemsSource="{Binding VehicleRoutes}" SelectedItem="{Binding SelectedVehicleRoute}" DisplayMemberPath="Name" Width="200" Margin="5"/>
-                        <ComboBox ItemsSource="{Binding VehicleGroups}" DisplayMemberPath="Name" Width="200" Margin="5"/>
+
+                        <!-- COMBOBOX DE GRUPOS CON INDICADOR DE COLOR -->
+                        <ComboBox ItemsSource="{Binding VehicleGroups}" 
+              SelectedItem="{Binding SelectedVehicleGroup}" 
+              Width="200" Margin="5">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <!-- Círculo de color -->
+                                        <Border Width="12" Height="12" CornerRadius="6" Margin="0,0,8,0"
+                            VerticalAlignment="Center"
+                            Background="{Binding Color, Converter={StaticResource StringToBrushConverter}}"
+                            BorderBrush="Gray" BorderThickness="0.5"/>
+                                        <!-- Nombre del grupo -->
+                                        <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <!-- COMBOBOX DE RUTAS (CON FONDO DE COLOR) -->
+                        <ComboBox ItemsSource="{Binding VehicleRoutes}" 
+              SelectedItem="{Binding SelectedVehicleRoute}" 
+              Width="220" Margin="5">
+                            <!-- Template para el item seleccionado -->
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+
+                            <!-- Estilo para los items de la lista desplegable -->
+                            <ComboBox.ItemContainerStyle>
+                                <Style TargetType="ComboBoxItem" BasedOn="{StaticResource MaterialDesignComboBoxItemStyle}">
+                                    <!-- Pintamos el fondo del color del grupo de la ruta -->
+                                    <Setter Property="Background" Value="{Binding Vehicle.VehicleGroup.Color, Converter={StaticResource StringToBrushConverter}}"/>
+                                    <Setter Property="Margin" Value="0,1"/>
+                                    <Style.Triggers>
+                                        <!-- Si el color es oscuro, podrías cambiar el Foreground a blanco aquí con más triggers -->
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ComboBox.ItemContainerStyle>
+                        </ComboBox>
+
+                        <!--<ComboBox ItemsSource="{Binding VehicleRoutes}" SelectedItem="{Binding SelectedVehicleRoute}" DisplayMemberPath="Name" Width="200" Margin="5"/>
+                        <ComboBox ItemsSource="{Binding VehicleGroups}" SelectedItem="{Binding SelectedVehicleGroup}" DisplayMemberPath="Name" Width="200" Margin="5"/>-->
                         <TextBlock Text="{Binding RouteSummaryText}" FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="15,0,0,0" Foreground="Black" FontStyle="Italic"/>
 
                         <Button Grid.Column="0"
