@@ -1122,13 +1122,13 @@
                         <DataGridTextColumn Binding="{Binding Day}"
                                         Header="{Binding Data.DayText, Source={StaticResource vmProxy}}"/>
 
-                        <DataGridTextColumn Binding="{Binding Date}"
+                        <DataGridTextColumn Binding="{Binding Date, StringFormat=\{0:MM/dd/yyyy\}}"
                                         Header="{Binding Data.DateText, Source={StaticResource vmProxy}}"/>
 
-                        <DataGridTextColumn Binding="{Binding FromTime}"
+                        <DataGridTextColumn Binding="{Binding FromTime, StringFormat=\{0:hh\\:mm\}}"
                                         Header="{Binding Data.FromTimeText, Source={StaticResource vmProxy}}"/>
 
-                        <DataGridTextColumn Binding="{Binding ToTime}"
+                        <DataGridTextColumn Binding="{Binding ToTime, StringFormat=\{0:hh\\:mm\}}"
                                         Header="{Binding Data.ToTimeText, Source={StaticResource vmProxy}}"/>
 
                         <DataGridTextColumn Binding="{Binding CustomerName}"
