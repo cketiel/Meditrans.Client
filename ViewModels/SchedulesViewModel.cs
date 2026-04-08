@@ -794,7 +794,8 @@ namespace Meditrans.Client.ViewModels
                 // 4. Llenar UnscheduledTrips
                 foreach (var source in trips)
                 {
-                    UnscheduledTrips.Add(source);
+                    if(source.IsCanceled != true)
+                        UnscheduledTrips.Add(source);
                 }
 
                 UpdateMapViewForAllPoints();
