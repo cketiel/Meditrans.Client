@@ -503,9 +503,10 @@ namespace Meditrans.Client.ViewModels
             return parameter is RunItemViewModel;
         }
 
+        // Revisar el codigo con calma pues esta dando problemas: await CheckForPendingRecalculation(); (en InitializeAsync del SchedulesViewModel) esta desordenando las rutas.
         private async void ExecuteShowScheduleView(object parameter)
         {
-            StopOverviewLiveTracking();
+            /*StopOverviewLiveTracking();
             if (parameter is RunItemViewModel selectedRun && selectedRun.VehicleRoute?.Model != null)
             {
                 IsLoading = true;
@@ -530,7 +531,7 @@ namespace Meditrans.Client.ViewModels
                 {
                     IsLoading = false;
                 }
-            }
+            }*/
         }               
 
         private async Task ExecuteUncancelTripAsync(object parameter)
