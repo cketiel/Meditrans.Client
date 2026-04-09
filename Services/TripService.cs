@@ -29,6 +29,16 @@ namespace Meditrans.Client.Services
             _historyService = new TripHistoryService();
         }
 
+        public async Task<bool> UpdateTripTypeAsync(List<TripTypeUpdateDto> updatePayload)
+        {
+            var response = await _httpClient.PutAsJsonAsync($"{EndPoint}/update-types", updatePayload);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                throw await CreateApiException(response, $"Error updating TripTypes...");
+            }
+            return true;
+        }
         public async Task<List<TripReadDto>> GetAllTripsAsync()
         {
             var result = await _httpClient.GetFromJsonAsync<List<TripReadDto>>(EndPoint);

@@ -1053,7 +1053,17 @@ namespace Meditrans.Client.Views
                                 }
                                 
                             }
-                            
+
+                            AssignTripTypes(mappedTrips);
+                           
+                            var updatePayload = mappedTrips.Select(t => new TripTypeUpdateDto
+                            {
+                                Id = t.Id,
+                                Type = t.Type
+                            }).ToList();
+
+                            await tripService.UpdateTripTypeAsync(updatePayload);
+
                             //PreviewGrid.ItemsSource = new ObservableCollection<Trip>(mappedTrips); // Use ObservableCollection if the UI needs to be updated dynamically
                             PreviewGrid.ItemsSource = mappedTrips;
 
@@ -1081,6 +1091,39 @@ namespace Meditrans.Client.Views
                     SelectCsvButton.IsEnabled = true;
                     ProgressPanel.Visibility = Visibility.Collapsed; // Hide progress panel
                     ImportProgressBar.Value = 0; // Reset bar
+                }
+            }
+        }
+
+        public void AssignTripTypes(List<TripReadDto> trips)
+        {
+            // Agrupamos por cliente para analizar sus viajes del día
+            var tripsByCustomer = trips.GroupBy(t => t.CustomerId);
+
+            foreach (var group in tripsByCustomer)
+            {
+                var customerTrips = group.OrderBy(t => t.FromTime).ToList();
+
+                if (customerTrips.Count == 1)
+                {
+                    var trip = customerTrips.First();
+                    // Regla: Si es único y WillCall es true, es Return. Si no, Appointment.
+                    trip.Type = trip.WillCall ? "Return" : "Appointment";
+                }
+                else if (customerTrips.Count >= 2)
+                {
+                    // El primero (más temprano) es Appointment
+                    customerTrips.First().Type = "Appointment";
+
+                    // El último (más tarde) es Return
+                    customerTrips.Last().Type = "Return";
+
+                    // Si hubiera viajes intermedios (más de 2), podrías decidir qué hacer.
+                    // Por ahora, marcamos los del medio como Return
+                    for (int i = 1; i < customerTrips.Count - 1; i++)
+                    {
+                        customerTrips[i].Type = "Return";
+                    }
                 }
             }
         }
