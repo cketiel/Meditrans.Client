@@ -613,7 +613,7 @@ namespace Meditrans.Client.Services
                 tripType = isWillCall ? TripType.Return : TripType.Appointment;
                 trip.Type = tripType;
                 trip.Status = TripStatus.Accepted; // (Member may be notified.)
-                trip.PickupComment = raw.AdditionalNotes;
+                trip.PickupComment = raw.AdditionalNotes + ". " + raw.OtherDetails;
                 trip.DropoffComment = raw.Treatment;
                 trip.PickupPhone = raw.PatientPhoneNumber;
                 trip.DropoffPhone = raw.DropoffPhone;
