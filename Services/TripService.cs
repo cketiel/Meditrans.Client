@@ -144,7 +144,7 @@ namespace Meditrans.Client.Services
             {
                 throw await CreateApiException(response, $"Error updating trip {tripDto.Id}");
             }
-            await _historyService.SaveHistoryAsync(tripDto.Id, "Update_Trip", null, "Trip Updated (Manual/Import)");
+            await _historyService.SaveHistoryAsync(tripDto.Id, "Update_Trip", null, "Trip Updated (Manual/Import)"); // salvar en la tabla history
             return true;
         }
 
