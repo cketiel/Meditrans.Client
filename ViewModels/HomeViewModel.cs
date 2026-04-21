@@ -1198,9 +1198,23 @@ namespace Meditrans.Client.ViewModels
                   
                     await LoadTripsByDateAsync(this.FilterDate);
                 }
-                catch (Exception ex)
+                catch (ApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Conflict)
                 {
-                    MessageBox.Show($"Error restoring trip: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    // --- HERE WE CAPTURE THE DUPLICATE (ERROR 409) ---                   
+                    string duplicateMessage = !string.IsNullOrEmpty(ex.ErrorDetails)
+                        ? ex.ErrorDetails
+                        : "Cannot restore this trip because there is already another active trip for this customer with the same date, time, and addresses.";
+
+                    MessageBox.Show(duplicateMessage, "Duplicate Detected", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                catch (ApiException ex)
+                {
+                    // Other API errors (400, 404, 500)
+                    MessageBox.Show($"Server error ({ex.StatusCode}): {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                catch (Exception ex) // Connection errors or unexpected
+                {
+                    MessageBox.Show($"Error restoring trip: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error); // Unexpected error
                 }
             }
         }

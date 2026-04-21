@@ -185,6 +185,20 @@ namespace Meditrans.Client.Services
         }
 
         public async Task UncancelTripAsync(int tripId)
+        {
+            var response = await _httpClient.PostAsync($"{EndPoint}/{tripId}/uncancel", null);
+          
+            if (!response.IsSuccessStatusCode)
+            {               
+                throw await CreateApiException(response, "Error restoring trip");
+            }
+
+            // --- HISTORY RECORD ---
+            await _historyService.SaveHistoryAsync(tripId, "IsCanceled", "True", "False");
+        }
+
+        // This throws a generic exception that makes it difficult to tell if the error was a 409 (Conflict) or a 500 (Server Error)
+        public async Task UncancelTripAsyncOld(int tripId)
         {           
             var response = await _httpClient.PostAsync($"{EndPoint}/{tripId}/uncancel", null);           
             response.EnsureSuccessStatusCode();
