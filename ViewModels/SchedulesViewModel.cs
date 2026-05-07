@@ -760,7 +760,36 @@ namespace Meditrans.Client.ViewModels
             }
         }
 
+        private async Task LoadSchedulesAsync()
+        {
+            // Si ya se está cargando, no permitimos otra carga simultánea
+            if (_isDataLoading) return;
 
+            _isDataLoading = true;
+            IsLoading = true;
+
+            try
+            {               
+                _masterSchedules.Clear();              
+                                           
+                var schedules = await _scheduleService.GetSchedulesAsync(SelectedVehicleRoute.Id, SelectedDate);
+                                                          
+                _masterSchedules.AddRange(schedules);
+                FilterSchedules();
+              
+                // UpdateMapViewForAllPoints();
+                UpdateRouteSummary();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading schedule data: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                IsLoading = false;
+                _isDataLoading = false; // Liberar el bloqueo
+            }
+        }
         private async Task LoadSchedulesAndTripsAsync()
         {
             // Si ya se está cargando, no permitimos otra carga simultánea
@@ -1160,7 +1189,7 @@ namespace Meditrans.Client.ViewModels
         {
             // Only reload if the VM has already been fully initialized.
             if (IsInitialized && CanLoadSchedulesAndTrips())
-                _ = LoadSchedulesAndTripsAsync();
+                _ = LoadSchedulesAsync(); // no es necesario volver a cargar los viajes
 
 
             /*if (CanLoadSchedulesAndTrips())
