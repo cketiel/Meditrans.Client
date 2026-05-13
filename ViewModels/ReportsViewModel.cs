@@ -29,7 +29,14 @@ namespace Meditrans.Client.ViewModels
         public FundingSource SelectedFundingSource { get; set; }
         public VehicleRoute SelectedVehicleRoute { get; set; }
         public DateTime SelectedDate { get; set; } = DateTime.Today;
+        public bool IsPreviewReady { get; set; }
+        public string PreviewFilePath { get; set; }
         private bool _isGenerating;
+        public bool IsGenerating
+        {
+            get => _isGenerating;
+            set { _isGenerating = value; OnPropertyChanged(); }
+        }
         public string GenerateButtonText { get; set; } = "Generate Production Report";
         private bool _isGeneratingGps;
         public string GenerateGpsButtonText { get; set; } = "Generate GPS Report";
@@ -71,8 +78,8 @@ namespace Meditrans.Client.ViewModels
         private bool _isGeneratingAviata;
         public string GenerateAviataButtonText { get; set; } = "Generate Aviata Report";
         public bool IsGeneratingAviata { get; set; }
-        public string PreviewFilePath { get; set; }
-        public bool IsPreviewReady { get; set; }
+        public string AviataPreviewFilePath { get; set; }
+        public bool IsPreviewReadyAviata { get; set; }
 
         public bool IsAllSelected
         {
@@ -104,6 +111,7 @@ namespace Meditrans.Client.ViewModels
         }*/
 
         // Commands
+        public ICommand PreviewProductionReportCommand { get; }
         public ICommand GenerateProductionReportCommand { get; }
         public ICommand GenerateGpsReportCommand { get; }
         public ICommand GenerateTrip2PdfCommand { get; }
@@ -132,7 +140,52 @@ namespace Meditrans.Client.ViewModels
             PreviewAviataReportCommand = new RelayCommandObject(async (o) => await GenerateAviataPreview());
             SaveAviataReportCommand = new RelayCommandObject((o) => SavePreviewToFile());
 
+            PreviewProductionReportCommand = new RelayCommandObject(async (o) => await GenerateProductionPreview());
+
             LoadData();
+        }
+
+        private async Task GenerateProductionPreview()
+        {
+            IsGenerating = true; // Vinculado al ProgressBar
+            IsPreviewReady = false;
+            OnPropertyChanged(nameof(IsGenerating));
+            OnPropertyChanged(nameof(IsPreviewReady));
+
+            try
+            {
+                // 1. Obtener IDs seleccionados
+                var selectedIds = AllFundingSources.Where(x => x.IsSelected && x.Id != -1).Select(x => x.Id).ToList();
+
+                // 2. Llamar al servicio 
+                var reportData = await _scheduleService.GetProductionReportDataRangeAsync(StartDate, EndDate, selectedIds);
+
+                if (reportData == null || !reportData.Any())
+                {
+                    MessageBox.Show("No data found for the selected filters.", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                // 3. Generar PDF temporal para visualización (Usando QuestPDF)
+                QuestPDF.Settings.License = LicenseType.Community;
+                string fileName = $"ProdPreview_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+                string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), fileName);
+
+                var document = new ProductionDocument(reportData, StartDate, EndDate);              
+                document.GeneratePdf(tempPath);
+
+                // 4. Mostrar en UI
+                PreviewFilePath = new Uri(tempPath).AbsoluteUri;
+                IsPreviewReady = true;
+            }
+            catch (Exception ex) { MessageBox.Show($"Error: {ex.Message}"); }
+            finally
+            {
+                IsGenerating = false;
+                OnPropertyChanged(nameof(IsGenerating));
+                OnPropertyChanged(nameof(IsPreviewReady));
+                OnPropertyChanged(nameof(PreviewFilePath));
+            }
         }
 
         private async void LoadData()
@@ -298,9 +351,9 @@ namespace Meditrans.Client.ViewModels
 
         private async Task GenerateAviataPreview()
         {
-            IsGeneratingAviata = true; IsPreviewReady = false;
+            IsGeneratingAviata = true; IsPreviewReadyAviata = false;
             OnPropertyChanged(nameof(IsGeneratingAviata));
-            OnPropertyChanged(nameof(IsPreviewReady));
+            OnPropertyChanged(nameof(IsPreviewReadyAviata));
 
             try
             {
@@ -322,9 +375,9 @@ namespace Meditrans.Client.ViewModels
                 string tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), fileName);
 
                 document.GeneratePdf(tempPath);
-                PreviewFilePath = new Uri(tempPath).AbsoluteUri;
+                AviataPreviewFilePath = new Uri(tempPath).AbsoluteUri;
 
-                IsPreviewReady = true;
+                IsPreviewReadyAviata = true;
             }
             catch (Exception ex)
             {
@@ -334,14 +387,14 @@ namespace Meditrans.Client.ViewModels
             {
                 IsGeneratingAviata = false;
                 OnPropertyChanged(nameof(IsGeneratingAviata));
-                OnPropertyChanged(nameof(IsPreviewReady));
-                OnPropertyChanged(nameof(PreviewFilePath));
+                OnPropertyChanged(nameof(IsPreviewReadyAviata));
+                OnPropertyChanged(nameof(AviataPreviewFilePath));
             }
         }
 
         private void SavePreviewToFile()
         {
-            if (string.IsNullOrEmpty(PreviewFilePath)) return;
+            if (string.IsNullOrEmpty(AviataPreviewFilePath)) return;
             SaveFileDialog sfd = new SaveFileDialog 
             {
                 Filter = "PDF Document|*.pdf",
@@ -350,13 +403,159 @@ namespace Meditrans.Client.ViewModels
             
             if (sfd.ShowDialog() == true)
             {
-                string localPath = new Uri(PreviewFilePath).LocalPath;
+                string localPath = new Uri(AviataPreviewFilePath).LocalPath;
                 System.IO.File.Copy(localPath, sfd.FileName, true);
                 MessageBox.Show("Report saved!");
             }
         }
 
         private async Task GenerateProductionReport(object obj)
+        {
+            // 1. Iniciar estado de generación
+            _isGenerating = true;
+            GenerateButtonText = "Generating...";
+            OnPropertyChanged(nameof(IsGenerating));
+            OnPropertyChanged(nameof(GenerateButtonText));
+            // Forzar a la UI a reevaluar el estado del botón
+            CommandManager.InvalidateRequerySuggested();
+
+            try
+            {
+                // 2. Obtener IDs de Funding Sources seleccionados (Multi-select)
+                var selectedIds = AllFundingSources
+                    .Where(x => x.IsSelected && x.Id != -1)
+                    .Select(x => x.Id)
+                    .ToList();
+
+                // 3. Obtener datos del servicio usando el rango de fechas (StartDate y EndDate)
+                // Se asume que has añadido 'GetProductionReportDataRangeAsync' a tu ScheduleService
+                var reportData = await _scheduleService.GetProductionReportDataRangeAsync(StartDate, EndDate, selectedIds);
+
+                if (reportData == null || reportData.Count == 0)
+                {
+                    MessageBox.Show("No production data found for the selected date range and filters.", "No Data", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                // 4. Configurar el diálogo para guardar el archivo Excel
+                SaveFileDialog saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "Excel Workbook|*.xlsx",
+                    Title = "Save Production Report",
+                    FileName = $"ProductionReport_{StartDate:yyyyMMdd}_to_{EndDate:yyyyMMdd}.xlsx"
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    using (var workbook = new XLWorkbook())
+                    {
+                        var worksheet = workbook.Worksheets.Add("Production Report");
+
+                        // 5. Definir Encabezados de la tabla
+                        string[] headers = new string[] {
+                    "Date", "Req Pickup", "Appointment", "Patient", "Pickup Address",
+                    "Dropoff Address", "Space", "Charge", "Paid", "Pickup Comment",
+                    "Dropoff Comment", "Type", "Pickup Phone", "Dropoff Phone", "Authorization",
+                    "Funding Source", "Distance", "Run", "Driver", "Pickup Arrive",
+                    "Pickup Perform", "Dropoff Arrive", "Dropoff Perform", "Will Call", "Canceled",
+                    "VIN", "Pickup Odometer", "Dropoff Odometer", "Will Call Time", "Vehicle",
+                    "Vehicle Plate", "Trip Id", "Pickup GPS Arrive Distance", "Dropoff GPS Arrive Distance", "Pickup City",
+                    "Pickup State", "Pickup Zip", "Dropoff City", "Dropoff State", "Dropoff Zip",
+                    "Patient Address", "DOB", "Driver No-Show Reason", "Pickup Lat", "Pickup Lon",
+                    "Dropoff Lat", "Dropoff Lon", "Created"
+                };
+
+                        // Estilo para el encabezado
+                        for (int i = 0; i < headers.Length; i++)
+                        {
+                            var cell = worksheet.Cell(1, i + 1);
+                            cell.Value = headers[i];
+                            cell.Style.Font.Bold = true;
+                            cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#007ACC");
+                            cell.Style.Font.FontColor = XLColor.White;
+                        }
+
+                        // 6. Llenar el Excel con los datos del DTO
+                        for (int i = 0; i < reportData.Count; i++)
+                        {
+                            var d = reportData[i];
+                            int r = i + 2; // Empezar en la fila 2 debido al encabezado
+
+                            worksheet.Cell(r, 1).Value = d.Date.ToShortDateString();
+                            worksheet.Cell(r, 2).Value = d.ReqPickup?.ToString(@"hh\:mm") ?? "";
+                            worksheet.Cell(r, 3).Value = d.Appointment?.ToString(@"hh\:mm") ?? "";
+                            worksheet.Cell(r, 4).Value = d.Patient;
+                            worksheet.Cell(r, 5).Value = d.PickupAddress;
+                            worksheet.Cell(r, 6).Value = d.DropoffAddress;
+                            worksheet.Cell(r, 7).Value = d.Space;
+                            worksheet.Cell(r, 8).Value = d.Charge;
+                            worksheet.Cell(r, 9).Value = d.Paid;
+                            worksheet.Cell(r, 10).Value = d.PickupComment;
+                            worksheet.Cell(r, 11).Value = d.DropoffComment;
+                            worksheet.Cell(r, 12).Value = d.Type;
+                            worksheet.Cell(r, 13).Value = d.PickupPhone;
+                            worksheet.Cell(r, 14).Value = d.DropoffPhone;
+                            worksheet.Cell(r, 15).Value = d.Authorization;
+                            worksheet.Cell(r, 16).Value = d.FundingSource;
+                            worksheet.Cell(r, 17).Value = d.Distance;
+                            worksheet.Cell(r, 18).Value = d.Run;
+                            worksheet.Cell(r, 19).Value = d.Driver;
+                            worksheet.Cell(r, 20).Value = d.PickupArrive?.ToString(@"hh\:mm") ?? "";
+                            worksheet.Cell(r, 21).Value = d.PickupPerform?.ToString(@"hh\:mm") ?? "";
+                            worksheet.Cell(r, 22).Value = d.DropoffArrive?.ToString(@"hh\:mm") ?? "";
+                            worksheet.Cell(r, 23).Value = d.DropoffPerform?.ToString(@"hh\:mm") ?? "";
+                            worksheet.Cell(r, 24).Value = d.WillCall ? "Yes" : "No";
+                            worksheet.Cell(r, 25).Value = d.Canceled ? "Yes" : "No";
+                            worksheet.Cell(r, 26).Value = d.VIN;
+                            worksheet.Cell(r, 27).Value = d.PickupOdometer;
+                            worksheet.Cell(r, 28).Value = d.DropoffOdometer;
+                            worksheet.Cell(r, 29).Value = d.WillCallTime?.ToString(@"hh\:mm") ?? "";
+                            worksheet.Cell(r, 30).Value = d.Vehicle;
+                            worksheet.Cell(r, 31).Value = d.VehiclePlate;
+                            worksheet.Cell(r, 32).Value = d.TripId;
+                            worksheet.Cell(r, 33).Value = d.PickupGpsArriveDistance;
+                            worksheet.Cell(r, 34).Value = d.DropoffGpsArriveDistance;
+                            worksheet.Cell(r, 35).Value = d.PickupCity;
+                            worksheet.Cell(r, 36).Value = d.PickupState;
+                            worksheet.Cell(r, 37).Value = d.PickupZip;
+                            worksheet.Cell(r, 38).Value = d.DropoffCity;
+                            worksheet.Cell(r, 39).Value = d.DropoffState;
+                            worksheet.Cell(r, 40).Value = d.DropoffZip;
+                            worksheet.Cell(r, 41).Value = d.PatientAddress;
+                            worksheet.Cell(r, 42).Value = d.DOB?.ToShortDateString() ?? "";
+                            worksheet.Cell(r, 43).Value = d.DriverNoShowReason;
+                            worksheet.Cell(r, 44).Value = d.PickupLat;
+                            worksheet.Cell(r, 45).Value = d.PickupLon;
+                            worksheet.Cell(r, 46).Value = d.DropoffLat;
+                            worksheet.Cell(r, 47).Value = d.DropoffLon;
+                            worksheet.Cell(r, 48).Value = d.Created.ToString("g");
+                        }
+
+                        // Ajustar columnas al contenido
+                        worksheet.Columns().AdjustToContents();
+
+                        // 7. Guardar el archivo
+                        workbook.SaveAs(saveFileDialog.FileName);
+                        MessageBox.Show("Production Report generated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred while generating the Excel report: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                // 8. Restaurar estado de la UI
+                _isGenerating = false;
+                GenerateButtonText = "Generate Production Report";
+                OnPropertyChanged(nameof(IsGenerating));
+                OnPropertyChanged(nameof(GenerateButtonText));
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+
+        private async Task GenerateProductionReportFullColumnOld(object obj)
         {
             _isGenerating = true;
             GenerateButtonText = "Generating...";
