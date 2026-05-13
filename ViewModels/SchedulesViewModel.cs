@@ -1003,9 +1003,19 @@ namespace Meditrans.Client.ViewModels
                 BusyMessage = "Route updated. Finalizing calculations...";
 
                 // Recargamos los datos para tener los IDs nuevos
-                await LoadSchedulesAndTripsAsync();
+                // Solo recargar los objetos schedules, el grid de viajes se actualiza localmente, eliminando el viaje a rutear de la lista del grid y sin tener que hacer otra llamada innecesaria al backend
+                await LoadSchedulesAsync(); // await LoadSchedulesAndTripsAsync();
                 await RecalculateScheduleAsync(0); // Recalcular todo para ajustar Pull-out y demás.
                 FilterSchedules();
+
+                // eliminar localmente el viaje ruteado
+                var tripToRemove = UnscheduledTrips.FirstOrDefault(t => t.Id == SelectedUnscheduledTrip.Id);
+                if (tripToRemove != null)
+                {
+                    UnscheduledTrips.Remove(tripToRemove);
+                    // Al ser ObservableCollection, el Grid de viajes se actualiza solo aquí
+                }
+                SelectedUnscheduledTrip = null;
 
                 BusyMessage = "Sending notification to Member...";
                 HttpClient client = new HttpClient();
@@ -1138,7 +1148,7 @@ namespace Meditrans.Client.ViewModels
             {
                 MessageBox.Show($"Trip routing error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 
-                await LoadSchedulesAndTripsAsync();
+                //await LoadSchedulesAndTripsAsync();
             }
             finally
             {
@@ -1158,7 +1168,21 @@ namespace Meditrans.Client.ViewModels
                 await _scheduleService.CancelRouteAsync(schedule.Id);
 
                 // Refresh data
-                await LoadSchedulesAndTripsAsync();
+                // No volver a cargar todos los viajes, insertar el viaje correscondiente de forma local.
+                await LoadSchedulesAsync(); // await LoadSchedulesAndTripsAsync();
+
+                if (schedule.TripId.HasValue)
+                {
+                    var tripRead = await _tripService.GetTripByIdAsync(schedule.TripId.Value);
+                    UnscheduledTripDto tripToInsert = ToUnscheduledDto(tripRead);
+                    if (tripRead != null)
+                    {
+                        // ACTUALIZACIÓN LOCAL DE LA LISTA DE VIAJES
+                        // Insertamos en la posición 0 para que aparezca de primero en el Grid
+                        UnscheduledTrips.Insert(0, tripToInsert);
+                       
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -1170,6 +1194,50 @@ namespace Meditrans.Client.ViewModels
                 //MessageBox.Show($"Error canceling Schedule: {ex.Message}", "Error");
             }
 
+        }
+        public static UnscheduledTripDto ToUnscheduledDto(TripReadDto readDto)
+        {
+            if (readDto == null) return null;
+
+            return new UnscheduledTripDto
+            {
+                Id = readDto.Id,
+                Date = readDto.Date,
+                CustomerName = readDto.CustomerName,
+                // TripReadDto no parece tener CustomerPhone, usamos PickupPhone o null
+                CustomerPhone = readDto.PickupPhone,
+                FromTime = readDto.FromTime,
+                ToTime = readDto.ToTime,
+                PickupAddress = readDto.PickupAddress,
+                DropoffAddress = readDto.DropoffAddress,
+                // MAPEOS CLAVE (Nombres diferentes)
+                SpaceType = readDto.SpaceTypeName,
+                FundingSource = readDto.FundingSourceName,
+                IsCanceled = readDto.IsCancelled, // Nota la diferencia de 'll'
+                                                  // FIN MAPEOS CLAVE
+                PickupLatitude = readDto.PickupLatitude,
+                PickupLongitude = readDto.PickupLongitude,
+                DropoffLatitude = readDto.DropoffLatitude,
+                DropoffLongitude = readDto.DropoffLongitude,
+                Distance = readDto.Distance,
+                Charge = readDto.Charge,
+                Paid = readDto.Paid,
+                Type = readDto.Type,
+                Pickup = readDto.Pickup,
+                PickupPhone = readDto.PickupPhone,
+                PickupComment = readDto.PickupComment,
+                Dropoff = readDto.Dropoff,
+                DropoffPhone = readDto.DropoffPhone,
+                DropoffComment = readDto.DropoffComment,
+                TripId = readDto.TripId,
+                Authorization = readDto.Authorization,
+                WillCall = readDto.WillCall,
+                Status = readDto.Status,
+                FundingSourceId = readDto.FundingSourceId,
+                DriverNoShowReason = readDto.DriverNoShowReason,
+                PickupCity = readDto.PickupCity,
+                DropoffCity = readDto.DropoffCity
+            };
         }
 
         private bool CanCancelSelectedRoute() => SelectedSchedule != null;

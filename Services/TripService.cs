@@ -29,6 +29,33 @@ namespace Meditrans.Client.Services
             _historyService = new TripHistoryService();
         }
 
+        public async Task<TripReadDto> GetTripByIdAsync(int id)
+        {
+            try
+            {              
+                var response = await _httpClient.GetAsync($"{EndPoint}/{id}"); 
+
+                if (response.IsSuccessStatusCode)
+                {                  
+                    return await response.Content.ReadFromJsonAsync<TripReadDto>();
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else
+                {                  
+                    var error = await response.Content.ReadAsStringAsync();
+                    throw new Exception($"Error al obtener el viaje: {error}");
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                // Error de conexión, timeout, etc.
+                throw new Exception("Error de conexión con el servidor", ex);
+            }
+            
+        }
         public async Task<bool> UpdateTripTypeAsync(List<TripTypeUpdateDto> updatePayload)
         {
             var response = await _httpClient.PutAsJsonAsync($"{EndPoint}/update-types", updatePayload);
