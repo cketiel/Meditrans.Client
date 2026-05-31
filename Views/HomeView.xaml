@@ -523,9 +523,12 @@
                                         
                                     <TextBox
                                             x:Name="PickupAddressTextBox" Grid.Row="0" Grid.Column="0" Margin="0,3,0,2"
-                                            Text="{Binding SelectedCustomer.Address, UpdateSourceTrigger=PropertyChanged}"
+                                            Text="{Binding PickupAddress, UpdateSourceTrigger=PropertyChanged}"
+                                            IsReadOnly="True" 
+                                            Background="#F5F5F5"
+                                        
                                             materialDesign:HintAssist.Hint="{Binding PickupAddressTextBoxHint}"                                                    
-                                            materialDesign:TextFieldAssist.HasClearButton="True"
+                                            materialDesign:TextFieldAssist.HasClearButton="False"
                                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
                                             materialDesign:TextFieldAssist.LeadingIcon="HomeMapMarker"
                                             Style="{StaticResource MaterialDesignFilledTextBox}" 
@@ -534,8 +537,11 @@
                                         <TextBox
                                             x:Name="DropoffAddressTextBox" Grid.Row="1" Grid.Column="0" Margin="0,0,0,2"
                                             Text="{Binding DropoffAddress, UpdateSourceTrigger=PropertyChanged}"
+                                            IsReadOnly="True" 
+                                            Background="#F5F5F5"
+                                            
                                             materialDesign:HintAssist.Hint="{Binding DropoffAddressTextBoxHint}"                                                    
-                                            materialDesign:TextFieldAssist.HasClearButton="True"
+                                            materialDesign:TextFieldAssist.HasClearButton="False"
                                             materialDesign:TextFieldAssist.HasLeadingIcon="True"
                                             materialDesign:TextFieldAssist.LeadingIcon="MapMarkerCheck"
                                             Style="{StaticResource MaterialDesignFilledTextBox}" 

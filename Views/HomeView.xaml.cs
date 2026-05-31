@@ -203,6 +203,28 @@ namespace Meditrans.Client.Views
 
                         //ShowLocationOnMap((double)result.lat, (double)result.lng);
                     }
+                    else if (data.type == "pickup")
+                    {
+                        var result = data.result;
+
+                        if (result is null) return;
+
+                        Dispatcher.Invoke(() =>
+                        {
+                            if (DataContext is HomeViewModel vm)
+                            {
+                                _isUpdatingFromHtml = true;                              
+                               vm.PickupAddress = (string)result.address;
+                                // Guardar coordenadas en el ViewModel
+                                vm.PickupLatitude = (double)result.lat;
+                                vm.PickupLongitude = (double)result.lng;
+
+                                vm.PickupCity = (string)result.city;
+                                _isUpdatingFromHtml = false;
+                            }
+                        });
+                      
+                    }
                     else if (data.type == "dropoff")
                     {
                         if (data.dropoff_address is null) return;
@@ -240,13 +262,30 @@ namespace Meditrans.Client.Views
 
         private void ViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "SelectedTrip")
+            if (e.PropertyName == "SelectedTrip" && ViewModel.SelectedTrip != null)
             {
                 LoadMap();
+                ExpandLayoutForEditing();
             }
         }
+        private void ExpandLayoutForEditing()
+        {
+            CustomerColumn.Width = new GridLength(3.2, GridUnitType.Star);
+            BillingColumn.Width = new GridLength(2.4, GridUnitType.Star);
+            MapColumn.Width = new GridLength(4.4, GridUnitType.Star);
+            BillingPanel.Visibility = Visibility.Visible;
+            ForDateCalendar.Visibility = Visibility.Visible;
+            TripFilterPanel.Visibility = Visibility.Collapsed;
+            TripTabs.Visibility = Visibility.Visible;
 
-        private void LoadMap()
+            // Ajustar el tamaño de las filas
+            TopRow.Height = new GridLength(6.73, GridUnitType.Star);
+            BottomRow.Height = new GridLength(3.27, GridUnitType.Star);
+
+            // Mostrar el input de Dropoff en el mapa
+            MapaWebView.ExecuteScriptAsync("showDropoff();");
+        }
+        private async void LoadMap()
         {
             var trip = ViewModel.SelectedTrip;
 
@@ -281,6 +320,16 @@ namespace Meditrans.Client.Views
                                    .Replace("{LNG_DESTINO}", trip.DropoffLongitude.ToString());
 
                 MapaWebView.NavigateToString(htmlPath);
+
+                // Esperar a que el mapa cargue y luego inyectar los valores en los inputs de arriba
+                // Usamos un pequeño delay o NavigationCompleted para asegurar que los elementos DOM existan
+                await Task.Delay(500);
+
+                string fillInputsJs = $@"
+                    document.getElementById('pickup').value = `{EscapeJs(trip.PickupAddress)}`;
+                    document.getElementById('dropoff').value = `{EscapeJs(trip.DropoffAddress)}`;
+                ";
+                await MapaWebView.ExecuteScriptAsync(fillInputsJs);
 
                 ShowETAInfo(trip);
 

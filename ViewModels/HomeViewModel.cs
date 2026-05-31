@@ -50,6 +50,7 @@ namespace Meditrans.Client.ViewModels
         [ObservableProperty] private double _dropoffLatitude;
         [ObservableProperty] private double _dropoffLongitude;
 
+        [ObservableProperty] private string _pickupAddress;
         [ObservableProperty] private string _dropoffAddress;
 
         [ObservableProperty] private DateTime? _pickupTimePicker;
@@ -374,10 +375,11 @@ namespace Meditrans.Client.ViewModels
                 _trips = value;
                 OnPropertyChanged();
             }
-        } 
+        }
 
+        [ObservableProperty]
         private TripReadDto _selectedTrip;
-        public TripReadDto SelectedTrip
+        /*public TripReadDto SelectedTrip
         {
             get => _selectedTrip;
             set
@@ -385,7 +387,7 @@ namespace Meditrans.Client.ViewModels
                 _selectedTrip = value;
                 OnPropertyChanged();
             }
-        }
+        }*/
 
         private ObservableCollection<TripReadDto> _tripsByDate;
         public ObservableCollection<TripReadDto> TripsByDate
@@ -688,6 +690,73 @@ namespace Meditrans.Client.ViewModels
 
         }
 
+        // Este método se dispara automáticamente cuando cambia la propiedad SelectedTrip
+        partial void OnSelectedTripChanged(TripReadDto value)
+        {
+            if (value == null) return;
+
+            // 1. Cargar el Cliente asociado para que se llenen los campos de la izquierda
+            var customer = Customers.FirstOrDefault(c => c.Id == value.CustomerId);
+            if (customer != null)
+            {
+                // Esto activará la lógica existente de búsqueda y visualización de cliente
+                SelectedCustomer = customer;
+            }
+
+            // 2. Cargar datos de Localización y Tiempo (Tab 1)
+            PickupAddress = value.PickupAddress;
+            DropoffAddress = value.DropoffAddress;
+            PickupLatitude = value.PickupLatitude;
+            PickupLongitude = value.PickupLongitude;
+            DropoffLatitude = value.DropoffLatitude;
+            DropoffLongitude = value.DropoffLongitude;
+            PickupCity = value.PickupCity;
+            DropoffCity = value.DropoffCity;
+
+            // Tiempos (Conversión segura de TimeSpan a DateTime para los Pickers)
+            if (value.FromTime.HasValue)
+                PickupTimePicker = DateTime.Today.Add(value.FromTime.Value);
+            if (value.ToTime.HasValue)
+                ApptTimePicker = DateTime.Today.Add(value.ToTime.Value);
+
+            // Si hay un ReturnTime (usualmente se mapea de lógica de negocio o campos adicionales)
+            // Nota: Como TripReadDto no tiene ReturnTime explícito, si es tipo Return, usamos FromTime
+            if (value.Type == "Return")
+                ReturnTimePicker = DateTime.Today.Add(value.FromTime ?? TimeSpan.Zero);
+
+            // Tipos de Viaje
+            IsOneWay = true;
+            IsRoundTrip = false; // Por defecto al seleccionar uno del grid, editamos ese viaje individual
+            IsWillCall = value.WillCall;
+            IsAppointment = value.Type == "Appointment";
+            IsReturn = value.Type == "Return";
+
+            // 3. Cargar Datos de Espacio y Funding (Tab 2 y Billing)
+            SelectedSpaceType = SpaceTypes.FirstOrDefault(s => s.Id == value.SpaceTypeId);
+            SelectedFundingSource = FundingSources.FirstOrDefault(f => f.Id == value.FundingSourceId);
+            Authorization = value.Authorization;
+            Distance = $"{value.Distance} mi";
+
+            // 4. Cargar Datos de Pickup/Dropoff (Tab 3 y 4)
+            PickupName = value.Pickup;
+            PickupPhone = value.PickupPhone;
+            PickupComment = value.PickupComment;
+            DropoffName = value.Dropoff;
+            DropoffPhone = value.DropoffPhone;
+            DropoffComment = value.DropoffComment;
+
+            // 5. Notificar a la Vista que debe expandir el layout (esto lo haremos vía un evento o mensajería)
+            // Para no romper nada, usaremos un truco simple: llamaremos a una acción si está definida
+            //TriggerExpandLayout();
+        }
+
+        private void TriggerExpandLayout()
+        {
+            // Reutilizamos la lógica que ya tienes para cuando se salva un cliente
+            // pero aplicada a la selección de un viaje.
+            //OnTripSavedSuccess?.Invoke();
+        }
+
         private async Task ExecuteShowHistoryAsync(object parameter)
         {
             var trip = parameter as TripReadDto;
@@ -940,98 +1009,189 @@ namespace Meditrans.Client.ViewModels
                 // We force UTC conversion not to be applied
                 DateTime tripDate = DateTime.SpecifyKind(FilterDate.Date, DateTimeKind.Unspecified); // tells the system: "Don't touch the time, send it as is."
 
-                Trip trip1 = new Trip
+                // Si SelectedTrip tiene valor, es una EDICIÓN
+                if (SelectedTrip != null && SelectedTrip.Id > 0)
                 {
-                    Date = tripDate,
-                    Day = tripDate.DayOfWeek.ToString(),
-                    FromTime = PickupTimePicker?.TimeOfDay ?? TimeSpan.Zero,
-                    ToTime = ApptTimePicker?.TimeOfDay ?? TimeSpan.Zero,
-                    CustomerId = IdCustomer,
-                    Authorization = Authorization,
+                    var tripReadDto = new TripReadDto
+                    {
+                        Id = SelectedTrip.Id,
+                        TripId = SelectedTrip.TripId, // Mantener el ID externo original
+                        Date = tripDate,
+                        Day = tripDate.DayOfWeek.ToString(),
 
-                    // Directions and Coordinates
-                    PickupAddress = SelectedCustomer?.Address,
-                    PickupLatitude = PickupLatitude,   
-                    PickupLongitude = PickupLongitude,
-                    PickupCity = PickupCity,
-                    Pickup = PickupName ?? SelectedCustomer?.FullName,
-                    PickupPhone = PickupPhone ?? SelectedCustomer?.Phone,
-                    PickupComment = PickupComment,
+                        // Tiempos
+                        FromTime = IsReturn ? ReturnTimePicker?.TimeOfDay : PickupTimePicker?.TimeOfDay,
+                        ToTime = ApptTimePicker?.TimeOfDay,
 
-                    DropoffAddress = DropoffAddress,
-                    DropoffLatitude = DropoffLatitude,
-                    DropoffLongitude = DropoffLongitude,
-                    DropoffCity = DropoffCity,
-                    Dropoff = DropoffName,
-                    DropoffPhone = DropoffPhone,
-                    DropoffComment = DropoffComment,
+                        // Cliente
+                        CustomerId = IdCustomer,
 
-                    SpaceTypeId = SelectedSpaceType?.Id ?? 0,
-                    FundingSourceId = SelectedFundingSource?.Id ?? 0,
-                   
-                    // "11.5 mi" -> parsear a double
-                    Distance = double.TryParse(Distance?.Split(' ')[0], out var d) ? d : 0.0,
+                        // Pickup (Desde las propiedades vinculadas al mapa/formulario)
+                        PickupAddress = PickupAddress,
+                        PickupLatitude = PickupLatitude,
+                        PickupLongitude = PickupLongitude,
+                        PickupCity = PickupCity,
+                        Pickup = PickupName,
+                        PickupPhone = PickupPhone,
+                        PickupComment = PickupComment,
 
-                    Status = TripStatus.Accepted,
-                    Created = DateTime.Now,
-                    
-                };
+                        // Dropoff (Desde las propiedades vinculadas al mapa/formulario)
+                        DropoffAddress = DropoffAddress,
+                        DropoffLatitude = DropoffLatitude,
+                        DropoffLongitude = DropoffLongitude,
+                        DropoffCity = DropoffCity,
+                        Dropoff = DropoffName,
+                        DropoffPhone = DropoffPhone,
+                        DropoffComment = DropoffComment,
 
-                trip1.WillCall = IsWillCall;
-                //trip1.WillCall = (trip1.ToTime == TimeSpan.Zero);             
-                trip1.Type = trip1.WillCall ? "Return" : "Appointment";
+                        // Configuración
+                        SpaceTypeId = SelectedSpaceType.Id,
+                        FundingSourceId = SelectedFundingSource?.Id,
+                        Authorization = Authorization,
+                        Distance = double.TryParse(Distance?.Split(' ')[0], out var dist) ? dist : 0.0,
 
-                var result = await _tripService.CreateTripAsync(trip1);
+                        // Estado y Metadatos (IMPORTANTE: Enviar el status actual para no fallar validación)
+                        Status = SelectedTrip.Status ?? TripStatus.Accepted,
+                        WillCall = IsWillCall,
+                        Type = IsReturn ? "Return" : "Appointment",
+                        Created = SelectedTrip.Created,
+                        VehicleRouteId = SelectedTrip.VehicleRouteId // Mantener la ruta asignada si existe
 
-                // --- RETURN TRIP (ONLY IF IT IS ROUND TRIP) ---
-                if (IsRoundTrip)
+                    };
+
+                    // Creamos el objeto para actualizar
+                    // Reutilizamos la estructura pero apuntando al ID existente
+                    /*var tripUpdate = new Trip
+                    {
+                        Id = SelectedTrip.Id, // IMPORTANTE
+                        Date = tripDate,
+                        Day = tripDate.DayOfWeek.ToString(),
+                        FromTime = IsReturn ? ReturnTimePicker?.TimeOfDay : PickupTimePicker?.TimeOfDay,
+                        ToTime = ApptTimePicker?.TimeOfDay,
+                        CustomerId = IdCustomer,
+                        Authorization = Authorization,
+                        PickupAddress = PickupAddress, 
+                        PickupLatitude = PickupLatitude,
+                        PickupLongitude = PickupLongitude,
+                        PickupCity = PickupCity,
+                        Pickup = PickupName,
+                        PickupPhone = PickupPhone,
+                        PickupComment = PickupComment,
+                        DropoffAddress = DropoffAddress,
+                        DropoffLatitude = DropoffLatitude,
+                        DropoffLongitude = DropoffLongitude,
+                        DropoffCity = DropoffCity,
+                        Dropoff = DropoffName,
+                        DropoffPhone = DropoffPhone,
+                        DropoffComment = DropoffComment,
+                        SpaceTypeId = SelectedSpaceType.Id,
+                        FundingSourceId = SelectedFundingSource?.Id,
+                        Distance = double.TryParse(Distance?.Split(' ')[0], out var dist) ? dist : 0.0,
+                        Status = SelectedTrip.Status, // Mantener el estado actual
+                        WillCall = IsWillCall,
+                        Type = IsReturn ? "Return" : "Appointment",
+                        Created = SelectedTrip.Created // Mantener fecha de creación
+                    };*/
+
+                    await _tripService.UpdateTripAsync(tripReadDto);
+
+                    MessageBox.Show("Trip updated successfully!");
+                }
+                else
                 {
-                    Trip trip2 = new Trip
+                    Trip trip1 = new Trip
                     {
                         Date = tripDate,
                         Day = tripDate.DayOfWeek.ToString(),
-                        //For return, the FromTime is usually the ReturnTimePicker
-                        FromTime = ReturnTimePicker?.TimeOfDay ?? TimeSpan.Zero,
-                        ToTime = TimeSpan.Zero, 
+                        FromTime = PickupTimePicker?.TimeOfDay ?? TimeSpan.Zero,
+                        ToTime = ApptTimePicker?.TimeOfDay ?? TimeSpan.Zero,
                         CustomerId = IdCustomer,
                         Authorization = Authorization,
 
-                        // DATOS INVERTIDOS: Pickup del regreso es el Dropoff de la ida
-                        PickupAddress = trip1.DropoffAddress,
-                        PickupLatitude = trip1.DropoffLatitude,
-                        PickupLongitude = trip1.DropoffLongitude,
-                        PickupCity = trip1.DropoffCity,
-                        Pickup = trip1.Dropoff,
-                        PickupPhone = trip1.DropoffPhone,
-                        PickupComment = trip1.DropoffComment,
+                        // Directions and Coordinates
+                        PickupAddress = SelectedCustomer?.Address,
+                        PickupLatitude = PickupLatitude,
+                        PickupLongitude = PickupLongitude,
+                        PickupCity = PickupCity,
+                        Pickup = PickupName ?? SelectedCustomer?.FullName,
+                        PickupPhone = PickupPhone ?? SelectedCustomer?.Phone,
+                        PickupComment = PickupComment,
 
-                        // DATOS INVERTIDOS: Dropoff del regreso es el Pickup de la ida
-                        DropoffAddress = trip1.PickupAddress,
-                        DropoffLatitude = trip1.PickupLatitude,
-                        DropoffLongitude = trip1.PickupLongitude,
-                        DropoffCity = trip1.PickupCity,
-                        Dropoff = trip1.Pickup,
-                        DropoffPhone = trip1.PickupPhone,
-                        DropoffComment = trip1.PickupComment,
+                        DropoffAddress = DropoffAddress,
+                        DropoffLatitude = DropoffLatitude,
+                        DropoffLongitude = DropoffLongitude,
+                        DropoffCity = DropoffCity,
+                        Dropoff = DropoffName,
+                        DropoffPhone = DropoffPhone,
+                        DropoffComment = DropoffComment,
 
-                        SpaceTypeId = trip1.SpaceTypeId,
-                        FundingSourceId = trip1.FundingSourceId,
-                        Distance = trip1.Distance,
+                        SpaceTypeId = SelectedSpaceType?.Id ?? 0,
+                        FundingSourceId = SelectedFundingSource?.Id ?? 0,
+
+                        // "11.5 mi" -> parsear a double
+                        Distance = double.TryParse(Distance?.Split(' ')[0], out var d) ? d : 0.0,
+
                         Status = TripStatus.Accepted,
                         Created = DateTime.Now,
-                        WillCall = IsWillCall,
-                        Type = "Return"
+
                     };
 
-                    await _tripService.CreateTripAsync(trip2);
-                }
+                    trip1.WillCall = IsWillCall;
+                    //trip1.WillCall = (trip1.ToTime == TimeSpan.Zero);             
+                    trip1.Type = trip1.WillCall ? "Return" : "Appointment";
 
-                MessageBox.Show(IsRoundTrip ? "Round Trip created successfully!" : "Trip created successfully!");
+                    var result = await _tripService.CreateTripAsync(trip1);
 
+                    // --- RETURN TRIP (ONLY IF IT IS ROUND TRIP) ---
+                    if (IsRoundTrip)
+                    {
+                        Trip trip2 = new Trip
+                        {
+                            Date = tripDate,
+                            Day = tripDate.DayOfWeek.ToString(),
+                            //For return, the FromTime is usually the ReturnTimePicker
+                            FromTime = ReturnTimePicker?.TimeOfDay ?? TimeSpan.Zero,
+                            ToTime = TimeSpan.Zero,
+                            CustomerId = IdCustomer,
+                            Authorization = Authorization,
+
+                            // DATOS INVERTIDOS: Pickup del regreso es el Dropoff de la ida
+                            PickupAddress = trip1.DropoffAddress,
+                            PickupLatitude = trip1.DropoffLatitude,
+                            PickupLongitude = trip1.DropoffLongitude,
+                            PickupCity = trip1.DropoffCity,
+                            Pickup = trip1.Dropoff,
+                            PickupPhone = trip1.DropoffPhone,
+                            PickupComment = trip1.DropoffComment,
+
+                            // DATOS INVERTIDOS: Dropoff del regreso es el Pickup de la ida
+                            DropoffAddress = trip1.PickupAddress,
+                            DropoffLatitude = trip1.PickupLatitude,
+                            DropoffLongitude = trip1.PickupLongitude,
+                            DropoffCity = trip1.PickupCity,
+                            Dropoff = trip1.Pickup,
+                            DropoffPhone = trip1.PickupPhone,
+                            DropoffComment = trip1.PickupComment,
+
+                            SpaceTypeId = trip1.SpaceTypeId,
+                            FundingSourceId = trip1.FundingSourceId,
+                            Distance = trip1.Distance,
+                            Status = TripStatus.Accepted,
+                            Created = DateTime.Now,
+                            WillCall = IsWillCall,
+                            Type = "Return"
+                        };
+
+                        await _tripService.CreateTripAsync(trip2);
+                    }
+
+                    MessageBox.Show(IsRoundTrip ? "Round Trip created successfully!" : "Trip created successfully!");
+                }          
 
                 await LoadTripsByDateAsync(FilterDate);
 
                 ClearTripForm();
+                SelectedTrip = null; // Limpiar selección después de guardar
 
                 OnTripSavedSuccess?.Invoke();
             }
