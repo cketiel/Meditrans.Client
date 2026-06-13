@@ -1,12 +1,13 @@
 ﻿
+using DocumentFormat.OpenXml.Vml.Spreadsheet;
+using Meditrans.Client.Exceptions;
+using Meditrans.Client.Models;
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Meditrans.Client.Exceptions;
-using Meditrans.Client.Models;
 
 namespace Meditrans.Client.Services
 {
@@ -80,6 +81,11 @@ namespace Meditrans.Client.Services
                         {
                             IsSuccess = false,
                             Message = "Service temporarily unavailable. Please try again later."
+                        },
+                        HttpStatusCode.Forbidden => new LoginResponse
+                        {
+                            IsSuccess = false,
+                            Message = "User account is disabled. Contact administrator."
                         },
                         _ => new LoginResponse
                         {
