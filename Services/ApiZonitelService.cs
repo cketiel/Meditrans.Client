@@ -46,7 +46,7 @@ namespace Meditrans.Client.Services
                 string messageText = "Ride scheduled.\n" +
                                    $"Date: {date}\n" +
                                    $"Name: {passengerName}\n" +
-                                   $"Trip Number: {tripNumber}\n" +
+                                   //$"Trip Number: {tripNumber}\n" +
                                    $"Address: {pickupAddress}\n" +
                                    $"Time: {pickupTime}\n" +
                                    "Visit www.etamilanes.com";
