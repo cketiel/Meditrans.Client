@@ -18,6 +18,13 @@ namespace Meditrans.Client.ViewModels
             get => _isAdmin;
             set => SetProperty(ref _isAdmin, value);
         }
+
+        private bool _isGeneralVisible;
+        public bool IsGeneralVisible
+        {
+            get => _isGeneralVisible;
+            set => SetProperty(ref _isGeneralVisible, value);
+        }
         public string LoggedUserName => "Hello, User"; // Example
 
         public ICommand ChangeLanguageCommand { get; }
@@ -93,7 +100,20 @@ namespace Meditrans.Client.ViewModels
         #endregion
         public MainWindowViewModel()
         {
-            IsAdmin = (SessionManager.Role.Equals("1", StringComparison.OrdinalIgnoreCase)) ? true : false;
+            // Visibility logic:
+            // Role 1: See everything.
+            // Role 3: See everything except Admin.
+            // Others: Just see Home.
+
+            string currentRole = SessionManager.Role;
+
+            // IsAdmin: Only if role is 1
+            IsAdmin = currentRole == "1";
+
+            // IsGeneralVisible: If it is role 1 OR it is role 3
+            IsGeneralVisible = (currentRole == "1" || currentRole == "3");
+
+            //IsAdmin = (SessionManager.Role.Equals("1", StringComparison.OrdinalIgnoreCase)) ? true : false;
             //LoadUsers();
 
             ChangeLanguageCommand = new RelayCommand<string>(ChangeLanguage);

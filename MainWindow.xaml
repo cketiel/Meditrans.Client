@@ -128,6 +128,7 @@
                         materialDesign:NavigationRailAssist.SelectionCornerRadius="50 10 10 10"
                         materialDesign:NavigationRailAssist.ShowSelectionBackground="True" PreviewMouseLeftButtonUp="MenuTabControl_PreviewMouseLeftButtonUp">
 
+                    <!-- Home: Always visible, no visibility binding required -->
                     <TabItem x:Name="HomeTabMenu" Tag="{x:Static local:MENU.Home}">
                         <TabItem.Header>
                         
@@ -139,7 +140,8 @@
                         </TabItem.Header>
                     </TabItem>
 
-                    <TabItem x:Name="DataTabMenu" Tag="{x:Static local:MENU.Data}">
+                    <!-- Data: Visible for Role 1 and 3 -->
+                    <TabItem x:Name="DataTabMenu" Tag="{x:Static local:MENU.Data}" Visibility="{Binding IsGeneralVisible, Converter={StaticResource BoolToVisConverter}}">
                         <TabItem.Header>
                         
                             <StackPanel>
@@ -149,7 +151,9 @@
                         
                         </TabItem.Header>
                     </TabItem>
-                    <TabItem x:Name="SchedulesTabMenu" Tag="{x:Static local:MENU.Schedules}">
+
+                    <!-- Schedules: Visible for Role 1 and 3 -->
+                    <TabItem x:Name="SchedulesTabMenu" Tag="{x:Static local:MENU.Schedules}" Visibility="{Binding IsGeneralVisible, Converter={StaticResource BoolToVisConverter}}">
                         <TabItem.Header>
 
                             <StackPanel>
@@ -160,7 +164,8 @@
                         </TabItem.Header>
                     </TabItem>
 
-                    <TabItem x:Name="DispatchTabMenu" Tag="{x:Static local:MENU.Dispatch}">
+                    <!-- Dispatch: Visible for Role 1 and 3 -->
+                    <TabItem x:Name="DispatchTabMenu" Tag="{x:Static local:MENU.Dispatch}" Visibility="{Binding IsGeneralVisible, Converter={StaticResource BoolToVisConverter}}">
                         <TabItem.Header>
 
                             <StackPanel>
@@ -170,7 +175,9 @@
 
                         </TabItem.Header>
                     </TabItem>
-                    <TabItem x:Name="ReportsTabMenu" Tag="{x:Static local:MENU.Reports}">
+
+                    <!-- Reports: Visible for Role 1 and 3 -->
+                    <TabItem x:Name="ReportsTabMenu" Tag="{x:Static local:MENU.Reports}" Visibility="{Binding IsGeneralVisible, Converter={StaticResource BoolToVisConverter}}">
                         <TabItem.Header>
 
                             <StackPanel>
@@ -181,6 +188,7 @@
                         </TabItem.Header>
                     </TabItem>
 
+                    <!-- Admin: Only visible for Role 1 -->
                     <TabItem x:Name="AdminTabMenu" Tag="{x:Static local:MENU.Admin}" 
                              Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVisConverter}}">
                         <TabItem.Header>

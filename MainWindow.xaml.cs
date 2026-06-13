@@ -383,6 +383,14 @@ namespace Meditrans.Client
 
             if (tabItem != null && tabItem.Tag is MENU selectedMenu)
             {
+                // Validate if the user has permission before opening the tab
+                string role = SessionManager.Role;
+
+                if (selectedMenu == MENU.Admin && role != "1") return;
+                if ((selectedMenu == MENU.Data || selectedMenu == MENU.Schedules ||
+                     selectedMenu == MENU.Dispatch || selectedMenu == MENU.Reports)
+                     && (role != "1" && role != "3")) return;
+
                 switch (selectedMenu)
                 {
                     case MENU.Home:
