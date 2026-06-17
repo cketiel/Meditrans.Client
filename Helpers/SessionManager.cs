@@ -9,7 +9,10 @@ namespace Meditrans.Client.Helpers
         public static string Username { get; set; }
         public static string UserId { get; set; }
         public static string Role { get; set; }
+        public static int? IntegratorId { get; set; } 
+        public static int? ProviderId { get; set; }
 
+        public static bool IsMilanesTransport => IntegratorId == null && ProviderId == null;
         public static bool IsAuthenticated => !string.IsNullOrEmpty(Token);
         public static void Clear()
         {

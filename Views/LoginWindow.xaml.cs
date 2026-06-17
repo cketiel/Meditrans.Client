@@ -98,6 +98,8 @@ namespace Meditrans.Client.Views
             SessionManager.UserId = result.UserId;
             SessionManager.Role = result.Role;
             //StorageHelper.SaveUsername(username);
+            SessionManager.IntegratorId = result.IntegratorId; 
+            SessionManager.ProviderId = result.ProviderId;
 
             var mainWindow = new MainWindow();
             mainWindow.WindowState = WindowState.Maximized;

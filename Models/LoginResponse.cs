@@ -21,5 +21,8 @@
         //public Guid Role { get; set; }
         //public UserRole Role { get; set; }
 
+        public int? IntegratorId { get; set; }
+        public int? ProviderId { get; set; }
+
     }
 }
