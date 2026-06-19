@@ -27,5 +27,9 @@ namespace Meditrans.Client.Models
         public string RoleName { get; set; }
         public Role Role { get; set; }
         //public ICollection<VehicleRoute> VehicleRoutes { get; set; }
+        public int? IntegratorId { get; set; }
+        public int? ProviderId { get; set; }
+
+
     }
 }

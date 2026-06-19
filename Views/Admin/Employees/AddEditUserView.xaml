@@ -4,10 +4,12 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:converters="clr-namespace:Meditrans.Client.Converters"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     mc:Ignorable="d"
-    Title="Add/Edit User" Height="480" Width="400"
+    Title="Add/Edit User" Height="500" Width="400"
     WindowStartupLocation="CenterOwner" SizeToContent="Height"
     WindowStyle="ToolWindow"
+        
     ResizeMode="NoResize">
 
     <Window.Resources>
@@ -16,6 +18,8 @@
     
     <Grid Margin="15">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -64,7 +68,27 @@
         <Label Content="Active:" Grid.Row="7" Grid.Column="0" VerticalAlignment="Center"/>
         <CheckBox IsChecked="{Binding User.IsActive}" Grid.Row="7" Grid.Column="1" Margin="5" VerticalAlignment="Center"/>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="9" Grid.Column="1" HorizontalAlignment="Right">
+        <!-- Integrator -->
+        <Label Content="Integrator:" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center"/>
+        <ComboBox Grid.Row="8" Grid.Column="1" Margin="5"
+              ItemsSource="{Binding AvailableIntegrators}"
+              DisplayMemberPath="Name"
+              SelectedValuePath="Id"
+              SelectedValue="{Binding User.IntegratorId}"
+              materialDesign:HintAssist.Hint="Select Integrator (Optional)"
+              materialDesign:TextFieldAssist.HasClearButton="True"/>
+
+        <!-- Provider -->
+        <Label Content="Provider:" Grid.Row="9" Grid.Column="0" VerticalAlignment="Center"/>
+        <ComboBox Grid.Row="9" Grid.Column="1" Margin="5"
+              ItemsSource="{Binding AvailableProviders}"
+              DisplayMemberPath="Name"
+              SelectedValuePath="Id"
+              SelectedValue="{Binding User.ProviderId}"
+              materialDesign:HintAssist.Hint="Select Provider (Optional)"
+              materialDesign:TextFieldAssist.HasClearButton="True"/>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="10" Grid.Column="1" HorizontalAlignment="Right">
             <Button Content="Save" Command="{Binding SaveCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}" Margin="0,0,10,0"/>
             <Button Content="Cancel" Command="{Binding CancelCommand}" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"/>
         </StackPanel>

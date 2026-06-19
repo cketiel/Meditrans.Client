@@ -18,10 +18,10 @@ namespace Meditrans.Client.Views.Admin.Employees
 {
     public partial class AddEditUserView : Window
     {
-        public AddEditUserView(User user, List<Role> availableRoles)
+        public AddEditUserView(User user, List<Role> availableRoles, List<Integrator> integrators, List<Provider> providers)
         {
             InitializeComponent();
-            DataContext = new AddEditUserViewModel(user, availableRoles);
+            DataContext = new AddEditUserViewModel(user, availableRoles, integrators, providers);
         }
 
         // Event handler to update the ViewModel's Password property

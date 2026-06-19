@@ -88,7 +88,10 @@ namespace Meditrans.Client.ViewModels
             try
             {
                 var availableRoles = await _roleService.GetRolesAsync();
-                var addEditUserView = new AddEditUserView(null, availableRoles); 
+                var integrators = await new IntegratorService().GetIntegratorsAsync();
+                var providers = await new ProviderService().GetProvidersAsync();
+
+                var addEditUserView = new AddEditUserView(null, availableRoles, integrators, providers) { Owner = Application.Current.MainWindow };
                 var result = addEditUserView.ShowDialog();
 
                 if (result.HasValue && result.Value)
@@ -108,7 +111,10 @@ namespace Meditrans.Client.ViewModels
             try
             {
                 var availableRoles = await _roleService.GetRolesAsync();
-                var addEditUserView = new AddEditUserView(SelectedUser, availableRoles);
+                var integrators = await new IntegratorService().GetIntegratorsAsync();
+                var providers = await new ProviderService().GetProvidersAsync();
+
+                var addEditUserView = new AddEditUserView(SelectedUser, availableRoles, integrators, providers) { Owner = Application.Current.MainWindow };
                 var result = addEditUserView.ShowDialog();
 
                 if (result.HasValue && result.Value)

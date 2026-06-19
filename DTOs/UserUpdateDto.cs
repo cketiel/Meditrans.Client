@@ -17,5 +17,8 @@ namespace Meditrans.Client.DTOs
         public bool IsActive { get; set; }
         public int RoleId { get; set; }
         // Note: The password is changed on a separate endpoint, so we do not include it here.
+
+        public int? IntegratorId { get; set; }
+        public int? ProviderId { get; set; }
     }
 }

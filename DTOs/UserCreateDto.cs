@@ -16,5 +16,8 @@ namespace Meditrans.Client.DTOs
         public string? Address { get; set; }
         public bool IsActive { get; set; }
         public int RoleId { get; set; }
+        public int? IntegratorId { get; set; }
+        public int? ProviderId { get; set; }
+
     }
 }

@@ -15,6 +15,13 @@ namespace Meditrans.Client.ViewModels
         private bool _isEditMode;
         private IUserService _userService;   
         private string _password;
+
+        private IIntegratorService _integratorService;
+        private IProviderService _providerService;
+
+        public ObservableCollection<Integrator> AvailableIntegrators { get; set; }
+        public ObservableCollection<Provider> AvailableProviders { get; set; }
+
         public bool IsCreateMode { get; }
 
         public User User
@@ -34,10 +41,12 @@ namespace Meditrans.Client.ViewModels
         public ICommand SaveCommand { get; }
         public ICommand CancelCommand { get; }
 
-        public AddEditUserViewModel(User user, List<Role> availableRoles)
+        public AddEditUserViewModel(User user, List<Role> availableRoles, List<Integrator> integrators, List<Provider> providers)
         {
             _userService = new UserService();
             AvailableRoles = new ObservableCollection<Role>(availableRoles);
+            AvailableIntegrators = new ObservableCollection<Integrator>(integrators);
+            AvailableProviders = new ObservableCollection<Provider>(providers);
 
             if (user == null)
             {
@@ -58,7 +67,9 @@ namespace Meditrans.Client.ViewModels
                     Address = user.Address,
                     DriverLicense = user.DriverLicense,
                     IsActive = user.IsActive,
-                    RoleId = user.RoleId
+                    RoleId = user.RoleId,
+                    IntegratorId = user.IntegratorId, 
+                    ProviderId = user.ProviderId
                 };
                 _isEditMode = true;
                 IsCreateMode = false;
@@ -96,7 +107,9 @@ namespace Meditrans.Client.ViewModels
                         PhoneNumber = User.PhoneNumber,
                         Address = User.Address,
                         IsActive = User.IsActive,
-                        RoleId = User.RoleId
+                        RoleId = User.RoleId,
+                        IntegratorId = User.IntegratorId,
+                        ProviderId = User.ProviderId
                     };                    
                     await _userService.UpdateUserAsync(userDto);
                 }
@@ -111,7 +124,9 @@ namespace Meditrans.Client.ViewModels
                         PhoneNumber = User.PhoneNumber,
                         Address = User.Address,
                         IsActive = User.IsActive,
-                        RoleId = User.RoleId
+                        RoleId = User.RoleId,
+                        IntegratorId = User.IntegratorId,
+                        ProviderId = User.ProviderId
                     };
                     await _userService.AddUserAsync(userDto);
                 }
