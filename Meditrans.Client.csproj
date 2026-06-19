@@ -25,6 +25,7 @@
     <None Remove="Assets\Mappings\Ride2md.json" />
     <None Remove="Assets\Mappings\SAFERIDE.json" />
     <None Remove="Assets\Mappings\SAFERIDE2.json" />
+    <None Remove="Assets\no-image.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -70,6 +71,9 @@
     <Content Include="Assets\Mappings\SAFERIDE2.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Resource Include="Assets\no-image.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Content Include="Raphael.ico" />
   </ItemGroup>
 

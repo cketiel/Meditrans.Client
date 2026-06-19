@@ -72,6 +72,10 @@
                     <views:IntegratorsView />
                 </TabItem>
 
+                <TabItem Header="Providers">
+                    <views:ProvidersView />
+                </TabItem>
+
             </TabControl>
 
         </Grid>

@@ -32,7 +32,7 @@
                   CellStyle="{StaticResource CustomCellStyle}"
                   SelectionUnit="FullRow">
             <DataGrid.Columns>
-                <!-- Botones Acción -->
+                
                 <DataGridTemplateColumn Width="Auto">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
