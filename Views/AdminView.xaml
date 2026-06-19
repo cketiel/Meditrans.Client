@@ -68,6 +68,10 @@
                     <views:ProfileView />
                 </TabItem>
 
+                <TabItem Header="Integrators">
+                    <views:IntegratorsView />
+                </TabItem>
+
             </TabControl>
 
         </Grid>

@@ -1,0 +1,89 @@
+﻿<Window x:Class="Meditrans.Client.Views.Admin.IntegratorEditView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Integrator Details" 
+        Height="450" 
+        Width="600" 
+        WindowStartupLocation="CenterOwner" 
+        ResizeMode="NoResize"
+        Background="{DynamicResource MaterialDesignPaper}">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Contenido Principal con Scroll por si acaso -->
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="25,20,25,0">
+                <TextBlock Text="Manage Integrator" 
+                           Style="{StaticResource MaterialDesignHeadline5TextBlock}" 
+                           Margin="0,0,0,25"/>
+
+                <!-- Nombre -->
+                <TextBox materialDesign:HintAssist.Hint="Integrator Name"
+                         Text="{Binding Integrator.Name, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}" 
+                         Margin="0,0,0,20"/>
+
+                <!-- Estado -->
+                <CheckBox Content="Is Active" 
+                          IsChecked="{Binding Integrator.IsActive}" 
+                          Margin="0,0,0,20"/>
+
+                <!-- API Key -->
+                <TextBlock Text="Security Configuration" 
+                           Style="{StaticResource MaterialDesignCaptionTextBlock}" 
+                           Foreground="{DynamicResource PrimaryHueMidBrush}"
+                           Margin="0,0,0,5"/>
+
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Añadido Padding="5,0,0,0" para que la "A" de API no se corte -->
+                    <TextBox materialDesign:HintAssist.Hint="API Key"
+                             Text="{Binding ApiKeyDisplay, Mode=OneWay}"
+                             IsReadOnly="True"
+                             Padding="5,4,0,4"
+                             HorizontalScrollBarVisibility="Auto"
+                             Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+
+                    <Button Grid.Column="1" 
+                            Command="{Binding RegenerateKeyCommand}"
+                            Visibility="{Binding IsExisting, Converter={StaticResource BooleanToVisibilityConverter}}"
+                            Style="{StaticResource MaterialDesignIconButton}" 
+                            ToolTip="Regenerate API Key"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Bottom">
+                        <materialDesign:PackIcon Kind="Refresh" Foreground="Orange" Width="24" Height="24"/>
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Botones de Acción fijos abajo -->
+        <Border Grid.Row="1" Background="{DynamicResource MaterialDesignDivider}" Padding="15">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="CANCEL" 
+                        Command="{Binding CancelCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+                        Style="{StaticResource MaterialDesignFlatButton}" 
+                        Margin="0,0,10,0"/>
+                <Button Content="SAVE" 
+                        Command="{Binding SaveCommand}"
+                        CommandParameter="{Binding RelativeSource={RelativeSource AncestorType=Window}}"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Width="100"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
